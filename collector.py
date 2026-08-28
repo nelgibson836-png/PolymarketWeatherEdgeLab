@@ -1,4 +1,7 @@
+import csv
 import json
+import os
+import re
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
@@ -8,17 +11,18 @@ GAMMA_API = "https://gamma-api.polymarket.com"
 
 PAGE_SIZE = 100
 
-TEMPERATURE_KEYWORDS = (
-    "highest temperature",
-    "lowest temperature",
-)
+DATA_DIR = "data"
+SNAPSHOT_DIR = os.path.join(DATA_DIR, "snapshots")
+
+LATEST_JSON = os.path.join(DATA_DIR, "temperature_markets_latest.json")
+HISTORY_CSV = os.path.join(DATA_DIR, "temperature_markets.csv")
 
 
 def get_json(url):
     request = urllib.request.Request(
         url,
         headers={
-            "User-Agent": "PolymarketWeatherEdgeLab/2.0",
+            "User-Agent": "PolymarketWeatherEdgeLab/3.0",
             "Accept": "application/json",
         },
     )
@@ -45,17 +49,13 @@ def get_weather_events():
         }
 
         url = f"{GAMMA_API}/events?{urllib.parse.urlencode(params)}"
+
         page = get_json(url)
 
         if not page:
             break
 
         events.extend(page)
-
-        print(
-            f"  Página: offset={offset} | "
-            f"eventos={len(page)} | acumulado={len(events)}"
-        )
 
         if len(page) < PAGE_SIZE:
             break
@@ -68,14 +68,71 @@ def get_weather_events():
 def is_temperature_market(market):
     question = (market.get("question") or "").lower()
 
-    return any(
-        keyword in question
-        for keyword in TEMPERATURE_KEYWORDS
+    return (
+        "highest temperature" in question
+        or "lowest temperature" in question
     )
 
 
-def parse_market(event, market):
+def extract_city(question):
+    patterns = [
+        r"in (.+?) on [A-Z][a-z]+ \d+",
+        r"in (.+?) on \w+ \d+",
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, question)
+
+        if match:
+            return match.group(1).strip()
+
+    return None
+
+
+def extract_date(text):
+    match = re.search(
+        r"(January|February|March|April|May|June|July|August|September|October|November|December)"
+        r"\s+\d{1,2}",
+        text,
+        re.IGNORECASE,
+    )
+
+    if match:
+        return match.group(0)
+
+    return None
+
+
+def extract_temperature(text):
+    match = re.search(
+        r"(-?\d+(?:\.\d+)?)\s*°[CF]",
+        text,
+        re.IGNORECASE,
+    )
+
+    if match:
+        return float(match.group(1))
+
+    return None
+
+
+def extract_unit(text):
+    match = re.search(
+        r"°([CF])",
+        text,
+        re.IGNORECASE,
+    )
+
+    if match:
+        return match.group(1).upper()
+
+    return None
+
+
+def normalize_market(event, market, collected_at):
+
     question = market.get("question") or ""
+    group_title = market.get("groupItemTitle") or ""
 
     question_lower = question.lower()
 
@@ -87,7 +144,7 @@ def parse_market(event, market):
         temperature_type = "unknown"
 
     return {
-        "collected_at": datetime.now(timezone.utc).isoformat(),
+        "collected_at": collected_at,
 
         "event_id": event.get("id"),
         "event_title": event.get("title"),
@@ -95,186 +152,300 @@ def parse_market(event, market):
 
         "market_id": market.get("id"),
         "market_slug": market.get("slug"),
+
         "question": question,
+
+        "city": extract_city(event.get("title") or question),
 
         "temperature_type": temperature_type,
 
-        "start_date": market.get("startDate"),
-        "end_date": market.get("endDate"),
+        "market_date": extract_date(
+            event.get("title") or question
+        ),
 
-        "resolution_source": market.get("resolutionSource"),
+        "temperature": extract_temperature(
+            question + " " + group_title
+        ),
 
-        "outcomes": market.get("outcomes"),
-        "outcome_prices": market.get("outcomePrices"),
+        "unit": extract_unit(
+            question + " " + group_title
+        ),
 
-        "group_item_title": market.get("groupItemTitle"),
-        "group_item_threshold": market.get("groupItemThreshold"),
+        "group_item_title": group_title,
+
+        "group_item_threshold": market.get(
+            "groupItemThreshold"
+        ),
 
         "lower_bound": market.get("lowerBound"),
+
         "upper_bound": market.get("upperBound"),
 
+        "outcomes": market.get("outcomes"),
+
+        "outcome_prices": market.get(
+            "outcomePrices"
+        ),
+
         "volume": market.get("volume"),
+
         "liquidity": market.get("liquidity"),
+
+        "start_date": market.get("startDate"),
+
+        "end_date": market.get("endDate"),
+
+        "resolution_source": market.get(
+            "resolutionSource"
+        ),
     }
+
+
+def save_json(data):
+    os.makedirs(DATA_DIR, exist_ok=True)
+
+    with open(
+        LATEST_JSON,
+        "w",
+        encoding="utf-8",
+    ) as file:
+
+        json.dump(
+            data,
+            file,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+
+def save_snapshot(data, now):
+    date_dir = os.path.join(
+        SNAPSHOT_DIR,
+        now.strftime("%Y-%m-%d"),
+    )
+
+    os.makedirs(date_dir, exist_ok=True)
+
+    filename = now.strftime("%H%M%S") + ".json"
+
+    filepath = os.path.join(
+        date_dir,
+        filename,
+    )
+
+    with open(
+        filepath,
+        "w",
+        encoding="utf-8",
+    ) as file:
+
+        json.dump(
+            data,
+            file,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+    return filepath
+
+
+def save_csv(markets):
+    os.makedirs(DATA_DIR, exist_ok=True)
+
+    fieldnames = [
+        "collected_at",
+        "event_id",
+        "event_title",
+        "event_slug",
+        "market_id",
+        "market_slug",
+        "question",
+        "city",
+        "temperature_type",
+        "market_date",
+        "temperature",
+        "unit",
+        "group_item_title",
+        "group_item_threshold",
+        "lower_bound",
+        "upper_bound",
+        "outcomes",
+        "outcome_prices",
+        "volume",
+        "liquidity",
+        "start_date",
+        "end_date",
+        "resolution_source",
+    ]
+
+    existing = os.path.exists(HISTORY_CSV)
+
+    with open(
+        HISTORY_CSV,
+        "a",
+        newline="",
+        encoding="utf-8",
+    ) as file:
+
+        writer = csv.DictWriter(
+            file,
+            fieldnames=fieldnames,
+        )
+
+        if not existing:
+            writer.writeheader()
+
+        for market in markets:
+
+            row = market.copy()
+
+            row["outcomes"] = json.dumps(
+                row["outcomes"],
+                ensure_ascii=False,
+            )
+
+            row["outcome_prices"] = json.dumps(
+                row["outcome_prices"],
+                ensure_ascii=False,
+            )
+
+            writer.writerow(row)
 
 
 def main():
 
-    print("=" * 64)
-    print("Polymarket Weather Edge Lab")
-    print("Temperature Market Collector v2.0")
-    print("=" * 64)
-
     now = datetime.now(timezone.utc)
 
-    print(f"UTC: {now.isoformat()}")
+    collected_at = now.isoformat()
+
+    print("=" * 60)
+    print("Polymarket Weather Edge Lab")
+    print("Temperature Collector v3.0")
+    print("=" * 60)
+
+    print(f"UTC: {collected_at}")
     print()
 
     try:
 
-        print("1. Consultando tag Weather...")
-
         weather_tag = get_weather_tag()
 
         print(
-            f"  ID: {weather_tag.get('id')} | "
-            f"Slug: {weather_tag.get('slug')}"
+            f"Weather tag: "
+            f"{weather_tag.get('id')} "
+            f"({weather_tag.get('slug')})"
         )
-
-        print()
-
-        print("2. Descubriendo eventos Weather...")
 
         events = get_weather_events()
 
-        print()
-        print(f"Eventos Weather totales: {len(events)}")
-        print()
+        print(
+            f"Weather events: {len(events)}"
+        )
 
-        temperature_markets = []
+        markets = []
 
-        seen_market_ids = set()
+        seen = set()
 
         for event in events:
 
-            markets = event.get("markets") or []
-
-            for market in markets:
+            for market in event.get("markets") or []:
 
                 market_id = market.get("id")
 
                 if not market_id:
                     continue
 
-                if market_id in seen_market_ids:
+                if market_id in seen:
                     continue
 
-                seen_market_ids.add(market_id)
+                seen.add(market_id)
 
                 if not is_temperature_market(market):
                     continue
 
-                temperature_markets.append(
-                    parse_market(event, market)
+                markets.append(
+                    normalize_market(
+                        event,
+                        market,
+                        collected_at,
+                    )
                 )
 
-        print("=" * 64)
-        print("RESULTADO")
-        print("=" * 64)
-
-        print(
-            f"Eventos analizados: {len(events)}"
-        )
-
-        print(
-            f"Mercados totales examinados: "
-            f"{len(seen_market_ids)}"
-        )
-
-        print(
-            f"Mercados de temperatura: "
-            f"{len(temperature_markets)}"
-        )
-
-        print()
-
-        if not temperature_markets:
-            print("No se encontraron mercados de temperatura.")
-            return
-
-        highest = sum(
-            1
-            for m in temperature_markets
-            if m["temperature_type"] == "highest_temperature"
-        )
-
-        lowest = sum(
-            1
-            for m in temperature_markets
-            if m["temperature_type"] == "lowest_temperature"
-        )
-
-        print(f"Highest temperature: {highest}")
-        print(f"Lowest temperature:  {lowest}")
-        print()
-
-        print("=" * 64)
-        print("MERCADOS ENCONTRADOS")
-        print("=" * 64)
-
-        for market in temperature_markets:
-
-            print()
-            print(f"Market ID: {market['market_id']}")
-            print(f"Evento: {market['event_title']}")
-            print(f"Pregunta: {market['question']}")
-            print(f"Tipo: {market['temperature_type']}")
-            print(f"Fin: {market['end_date']}")
-            print(f"Outcomes: {market['outcomes']}")
-            print(f"Prices: {market['outcome_prices']}")
-            print(f"Group title: {market['group_item_title']}")
-            print(f"Threshold: {market['group_item_threshold']}")
-            print(f"Volume: {market['volume']}")
-            print(f"Liquidity: {market['liquidity']}")
-
-        output = {
-            "collector_version": "2.0",
-            "collected_at": now.isoformat(),
+        data = {
+            "collector_version": "3.0",
+            "collected_at": collected_at,
             "weather_tag": weather_tag,
             "events_analyzed": len(events),
-            "markets_found": len(temperature_markets),
-            "markets": temperature_markets,
+            "temperature_markets": len(markets),
+            "markets": markets,
         }
 
-        with open(
-            "temperature_markets.json",
-            "w",
-            encoding="utf-8",
-        ) as file:
+        save_json(data)
 
-            json.dump(
-                output,
-                file,
-                ensure_ascii=False,
-                indent=2,
-            )
+        snapshot = save_snapshot(
+            data,
+            now,
+        )
+
+        save_csv(markets)
+
+        cities = sorted(
+            {
+                m["city"]
+                for m in markets
+                if m["city"]
+            }
+        )
 
         print()
-        print("=" * 64)
-        print("Archivo generado:")
-        print("temperature_markets.json")
-        print("=" * 64)
+        print("=" * 60)
+        print("COLLECTION COMPLETE")
+        print("=" * 60)
+
+        print(
+            f"Temperature markets: {len(markets)}"
+        )
+
+        print(
+            f"Cities detected: {len(cities)}"
+        )
+
+        print(
+            f"Latest: {LATEST_JSON}"
+        )
+
+        print(
+            f"Snapshot: {snapshot}"
+        )
+
+        print(
+            f"History: {HISTORY_CSV}"
+        )
+
+        print()
+        print("Primeros mercados:")
+
+        for market in markets[:10]:
+
+            print(
+                f"  {market['city']} | "
+                f"{market['temperature_type']} | "
+                f"{market['group_item_title']} | "
+                f"{market['outcome_prices']}"
+            )
 
     except Exception as error:
 
         print()
-        print("=" * 64)
+        print("=" * 60)
         print("ERROR")
-        print("=" * 64)
+        print("=" * 60)
 
         print(
             f"{type(error).__name__}: {error}"
         )
+
+        raise
 
 
 if __name__ == "__main__":
