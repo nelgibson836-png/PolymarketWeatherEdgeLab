@@ -10,29 +10,45 @@ import requests
 
 # ============================================================
 # POLYMARKET WEATHER EDGE LAB
-# Temperature Collector V7.0
+# Temperature Collector V8.0
 # ============================================================
 
 API_BASE = "https://gamma-api.polymarket.com"
+
 TAG_ID = 84
 TAG_SLUG = "weather"
 
 DATA_DIR = "data"
 SNAPSHOT_DIR = os.path.join(DATA_DIR, "snapshots")
 
-LATEST_FILE = os.path.join(DATA_DIR, "temperature_markets_latest.json")
-HISTORY_FILE = os.path.join(DATA_DIR, "temperature_markets.csv")
+LATEST_FILE = os.path.join(
+    DATA_DIR,
+    "temperature_markets_latest.json"
+)
+
+ACTIVE_FILE = os.path.join(
+    DATA_DIR,
+    "active_temperature_markets.json"
+)
+
+HISTORY_FILE = os.path.join(
+    DATA_DIR,
+    "temperature_market_history.csv"
+)
 
 REQUEST_TIMEOUT = 30
-PAGE_SIZE = 100
+
+EVENT_PAGE_SIZE = 100
+
+MAX_EVENT_PAGES = 20
 
 HEADERS = {
-    "User-Agent": "PolymarketWeatherEdgeLab/7.0"
+    "User-Agent": "PolymarketWeatherEdgeLab/8.0"
 }
 
 
 # ============================================================
-# UTILIDADES
+# TIME
 # ============================================================
 
 def utc_now():
@@ -43,16 +59,26 @@ def utc_iso():
     return utc_now().isoformat()
 
 
+# ============================================================
+# SAFE CONVERSIONS
+# ============================================================
+
 def safe_float(value):
+
     try:
+
         if value is None or value == "":
             return None
+
         return float(value)
+
     except (ValueError, TypeError):
+
         return None
 
 
 def safe_json(value):
+
     if value is None:
         return None
 
@@ -60,15 +86,22 @@ def safe_json(value):
         return value
 
     if isinstance(value, str):
+
         try:
             return json.loads(value)
+
         except Exception:
             return None
 
     return None
 
 
+# ============================================================
+# HTTP
+# ============================================================
+
 def request_json(url, params=None):
+
     response = requests.get(
         url,
         params=params,
@@ -77,87 +110,116 @@ def request_json(url, params=None):
     )
 
     response.raise_for_status()
+
     return response.json()
 
 
+# ============================================================
+# DIRECTORIES
+# ============================================================
+
 def ensure_directories():
+
     os.makedirs(DATA_DIR, exist_ok=True)
-    os.makedirs(SNAPSHOT_DIR, exist_ok=True)
+
+    os.makedirs(
+        SNAPSHOT_DIR,
+        exist_ok=True
+    )
 
 
 # ============================================================
-# DESCARGA DE EVENTOS
+# EVENTS
 # ============================================================
 
 def get_weather_events():
-    print("Consultando eventos Weather...")
+
+    print("Consultando eventos Weather activos...")
 
     events = []
+
     offset = 0
 
-    while True:
+    for page in range(MAX_EVENT_PAGES):
+
         params = {
             "tag_id": TAG_ID,
-            "limit": PAGE_SIZE,
-            "offset": offset
+            "limit": EVENT_PAGE_SIZE,
+            "offset": offset,
+            "active": "true",
+            "closed": "false"
         }
 
         try:
+
             batch = request_json(
                 f"{API_BASE}/events",
                 params=params
             )
+
         except Exception as e:
-            print(f"ERROR descargando eventos: {e}")
+
+            print(
+                f"  Fin de paginación: {e}"
+            )
+
             break
 
         if not batch:
+
             break
 
         events.extend(batch)
 
-        print(f"  Eventos descargados: {len(events)}")
+        print(
+            f"  Eventos descargados: "
+            f"{len(events)}"
+        )
 
-        if len(batch) < PAGE_SIZE:
+        if len(batch) < EVENT_PAGE_SIZE:
+
             break
 
-        offset += PAGE_SIZE
+        offset += EVENT_PAGE_SIZE
+
         time.sleep(0.15)
 
     return events
 
 
 # ============================================================
-# DETECCIÓN DE CIUDAD
+# CITY
 # ============================================================
 
-TEMPERATURE_PATTERNS = [
-    r"highest temperature in (.+?) on",
-    r"highest temperature in (.+?) be",
-    r"temperature in (.+?) on",
-    r"temperature in (.+?) be",
-]
-
-
 def extract_city(question):
+
     if not question:
         return None
 
-    for pattern in TEMPERATURE_PATTERNS:
-        match = re.search(pattern, question, re.IGNORECASE)
+    patterns = [
+
+        r"highest temperature in (.+?) on",
+
+        r"lowest temperature in (.+?) on",
+
+        r"temperature in (.+?) on",
+
+    ]
+
+    for pattern in patterns:
+
+        match = re.search(
+            pattern,
+            question,
+            re.IGNORECASE
+        )
 
         if match:
+
             city = match.group(1).strip()
 
             city = re.sub(
                 r"\s+on\s+.*$",
-                "",
-                city,
-                flags=re.IGNORECASE
-            )
-
-            city = re.sub(
-                r"\s+be$",
                 "",
                 city,
                 flags=re.IGNORECASE
@@ -169,31 +231,36 @@ def extract_city(question):
 
 
 # ============================================================
-# DETECCIÓN DE FECHA
+# DATE
 # ============================================================
 
-def extract_market_date(market):
-    end_date = market.get("endDateIso")
+def extract_date(market):
 
-    if end_date:
-        return end_date
+    value = market.get(
+        "endDateIso"
+    )
 
-    end_date = market.get("endDate")
+    if value:
 
-    if end_date:
-        try:
-            return end_date[:10]
-        except Exception:
-            pass
+        return str(value)[:10]
+
+    value = market.get(
+        "endDate"
+    )
+
+    if value:
+
+        return str(value)[:10]
 
     return None
 
 
 # ============================================================
-# DETECCIÓN DE TIPO
+# MARKET TYPE
 # ============================================================
 
 def detect_market_type(question):
+
     if not question:
         return "unknown"
 
@@ -212,10 +279,11 @@ def detect_market_type(question):
 
 
 # ============================================================
-# FILTRO DE TEMPERATURA
+# TEMPERATURE FILTER
 # ============================================================
 
 def is_temperature_market(question):
+
     if not question:
         return False
 
@@ -232,395 +300,459 @@ def is_temperature_market(question):
 
 
 # ============================================================
-# NORMALIZACIÓN DE MERCADO
+# DATE VALIDATION
 # ============================================================
 
-def normalize_market(event, market):
-    question = market.get("question", "")
+def is_future_date(date_string):
 
-    outcomes = safe_json(market.get("outcomes"))
-    prices = safe_json(market.get("outcomePrices"))
-    tokens = safe_json(market.get("clobTokenIds"))
+    if not date_string:
+        return False
 
-    if not isinstance(outcomes, list):
-        outcomes = None
+    try:
 
-    if not isinstance(prices, list):
-        prices = None
+        target = datetime.strptime(
+            date_string,
+            "%Y-%m-%d"
+        ).date()
 
-    if not isinstance(tokens, list):
-        tokens = None
+        return target >= utc_now().date()
+
+    except Exception:
+
+        return False
+
+
+# ============================================================
+# NORMALIZATION
+# ============================================================
+
+def normalize_market(
+    event,
+    market
+):
+
+    question = market.get(
+        "question",
+        ""
+    )
+
+    outcomes = safe_json(
+        market.get("outcomes")
+    )
+
+    prices = safe_json(
+        market.get("outcomePrices")
+    )
+
+    tokens = safe_json(
+        market.get("clobTokenIds")
+    )
 
     yes_price = None
     no_price = None
 
-    if prices and len(prices) >= 2:
-        yes_price = safe_float(prices[0])
-        no_price = safe_float(prices[1])
+    if (
+        isinstance(prices, list)
+        and len(prices) >= 2
+    ):
+
+        yes_price = safe_float(
+            prices[0]
+        )
+
+        no_price = safe_float(
+            prices[1]
+        )
 
     yes_token = None
     no_token = None
 
-    if tokens and len(tokens) >= 2:
+    if (
+        isinstance(tokens, list)
+        and len(tokens) >= 2
+    ):
+
         yes_token = tokens[0]
         no_token = tokens[1]
 
-    best_bid = safe_float(market.get("bestBid"))
-    best_ask = safe_float(market.get("bestAsk"))
+    best_bid = safe_float(
+        market.get("bestBid")
+    )
+
+    best_ask = safe_float(
+        market.get("bestAsk")
+    )
 
     spread = None
 
-    if best_bid is not None and best_ask is not None:
-        spread = best_ask - best_bid
+    if (
+        best_bid is not None
+        and best_ask is not None
+    ):
 
-    event_title = event.get("title")
-    event_slug = event.get("slug")
+        spread = (
+            best_ask
+            - best_bid
+        )
 
-    city = extract_city(question)
+    market_date = extract_date(
+        market
+    )
 
-    record = {
+    return {
+
         "collected_at": utc_iso(),
 
-        "event_id": str(event.get("id")) if event.get("id") else None,
-        "event_title": event_title,
-        "event_slug": event_slug,
-
-        "market_id": str(market.get("id")) if market.get("id") else None,
-
-        "city": city,
-        "market_date": extract_market_date(market),
-
-        "market_type": detect_market_type(question),
-
-        "question": question,
-        "slug": market.get("slug"),
-
-        "group_title": market.get("groupItemTitle"),
-        "group_threshold": safe_float(
-            market.get("groupItemThreshold")
+        "event_id": str(
+            event.get("id")
         ),
 
-        "outcomes": outcomes,
+        "event_title": event.get(
+            "title"
+        ),
+
+        "event_slug": event.get(
+            "slug"
+        ),
+
+        "market_id": str(
+            market.get("id")
+        ),
+
+        "city": extract_city(
+            question
+        ),
+
+        "market_date": market_date,
+
+        "market_type":
+            detect_market_type(
+                question
+            ),
+
+        "question": question,
+
+        "slug": market.get(
+            "slug"
+        ),
+
+        "group_title":
+            market.get(
+                "groupItemTitle"
+            ),
+
+        "group_threshold":
+            safe_float(
+                market.get(
+                    "groupItemThreshold"
+                )
+            ),
 
         "yes_price": yes_price,
+
         "no_price": no_price,
 
         "best_bid": best_bid,
+
         "best_ask": best_ask,
+
         "spread": spread,
 
         "yes_token": yes_token,
+
         "no_token": no_token,
 
-        "volume": safe_float(market.get("volume")),
-        "volume_24h": safe_float(market.get("volume24hr")),
+        "volume":
+            safe_float(
+                market.get(
+                    "volume"
+                )
+            ),
 
-        "liquidity": safe_float(market.get("liquidity")),
-        "liquidity_clob": safe_float(
-            market.get("liquidityClob")
-        ),
+        "volume_24h":
+            safe_float(
+                market.get(
+                    "volume24hr"
+                )
+            ),
 
-        "active": bool(market.get("active")),
-        "closed": bool(market.get("closed")),
-        "accepting_orders": bool(
-            market.get("acceptingOrders")
-        ),
-        "enable_order_book": bool(
-            market.get("enableOrderBook")
-        ),
+        "liquidity":
+            safe_float(
+                market.get(
+                    "liquidity"
+                )
+            ),
 
-        "approved": bool(market.get("approved")),
-        "archived": bool(market.get("archived")),
+        "liquidity_clob":
+            safe_float(
+                market.get(
+                    "liquidityClob"
+                )
+            ),
 
-        "resolution_source": market.get(
-            "resolutionSource"
-        ),
+        "active":
+            bool(
+                market.get(
+                    "active"
+                )
+            ),
 
-        "start_date": market.get("startDate"),
-        "end_date": market.get("endDate"),
+        "closed":
+            bool(
+                market.get(
+                    "closed"
+                )
+            ),
 
-        "condition_id": market.get("conditionId"),
+        "accepting_orders":
+            bool(
+                market.get(
+                    "acceptingOrders"
+                )
+            ),
 
-        "order_min_size": safe_float(
-            market.get("orderMinSize")
-        ),
+        "enable_order_book":
+            bool(
+                market.get(
+                    "enableOrderBook"
+                )
+            ),
 
-        "tick_size": safe_float(
-            market.get("orderPriceMinTickSize")
-        ),
+        "approved":
+            bool(
+                market.get(
+                    "approved"
+                )
+            ),
 
-        "spread_pct": (
-            spread / best_ask
-            if spread is not None
-            and best_ask
-            and best_ask > 0
-            else None
-        ),
+        "archived":
+            bool(
+                market.get(
+                    "archived"
+                )
+            ),
+
+        "resolution_source":
+            market.get(
+                "resolutionSource"
+            ),
+
+        "start_date":
+            market.get(
+                "startDate"
+            ),
+
+        "end_date":
+            market.get(
+                "endDate"
+            ),
+
+        "condition_id":
+            market.get(
+                "conditionId"
+            ),
+
+        "order_min_size":
+            safe_float(
+                market.get(
+                    "orderMinSize"
+                )
+            ),
+
+        "tick_size":
+            safe_float(
+                market.get(
+                    "orderPriceMinTickSize"
+                )
+            ),
     }
 
-    return record
-
 
 # ============================================================
-# CLASIFICACIÓN DE MERCADO ACTIVO
+# ACTIVE MARKET
 # ============================================================
 
-def is_future_market(record):
-    market_date = record.get("market_date")
+def is_active_candidate(
+    market
+):
 
-    if not market_date:
-        return False
-
-    try:
-        today = utc_now().date()
-        target = datetime.strptime(
-            market_date,
-            "%Y-%m-%d"
-        ).date()
-
-        return target >= today
-
-    except Exception:
-        return False
-
-
-def has_valid_prices(record):
     return (
-        record.get("yes_price") is not None
-        and record.get("no_price") is not None
+
+        market.get(
+            "active"
+        ) is True
+
+        and market.get(
+            "closed"
+        ) is False
+
+        and market.get(
+            "accepting_orders"
+        ) is True
+
+        and market.get(
+            "enable_order_book"
+        ) is True
+
+        and market.get(
+            "approved"
+        ) is True
+
+        and market.get(
+            "city"
+        ) is not None
+
+        and is_future_date(
+            market.get(
+                "market_date"
+            )
+        )
+
+        and market.get(
+            "yes_price"
+        ) is not None
+
+        and market.get(
+            "no_price"
+        ) is not None
+
+        and market.get(
+            "yes_token"
+        )
+
+        and market.get(
+            "no_token"
+        )
     )
 
 
-def has_valid_tokens(record):
-    return (
-        bool(record.get("yes_token"))
-        and bool(record.get("no_token"))
-    )
-
-
-def is_current_candidate(record):
-    return (
-        record.get("active") is True
-        and record.get("closed") is False
-        and record.get("accepting_orders") is True
-        and record.get("enable_order_book") is True
-        and record.get("city") is not None
-        and is_future_market(record)
-        and has_valid_prices(record)
-        and has_valid_tokens(record)
-    )
-
-
 # ============================================================
-# EXTRACCIÓN DE MERCADOS
+# COLLECT
 # ============================================================
 
-def collect_temperature_markets(events):
+def collect_markets(events):
 
-    all_markets = []
+    markets = []
 
     for event in events:
 
-        markets = event.get("markets", [])
+        event_markets = (
+            event.get(
+                "markets"
+            )
+            or []
+        )
 
-        if not markets:
-            continue
+        for market in event_markets:
 
-        for market in markets:
+            question = market.get(
+                "question",
+                ""
+            )
 
-            question = market.get("question", "")
+            if not is_temperature_market(
+                question
+            ):
 
-            if not is_temperature_market(question):
                 continue
 
-            record = normalize_market(
+            normalized = normalize_market(
                 event,
                 market
             )
 
-            all_markets.append(record)
+            markets.append(
+                normalized
+            )
 
-    return all_markets
+    return markets
 
 
 # ============================================================
-# ESTADÍSTICAS
+# STATS
 # ============================================================
 
-def calculate_stats(markets):
+def calculate_stats(
+    markets
+):
 
-    cities = sorted({
-        m["city"]
-        for m in markets
-        if m.get("city")
-    })
+    cities = sorted(
+        {
+            m.get("city")
+            for m in markets
+            if m.get("city")
+        }
+    )
 
-    with_prices = [
-        m for m in markets
-        if has_valid_prices(m)
-    ]
-
-    with_tokens = [
-        m for m in markets
-        if has_valid_tokens(m)
-    ]
-
-    with_bid_ask = [
+    prices = [
         m for m in markets
         if (
-            m.get("best_bid") is not None
-            and m.get("best_ask") is not None
+            m.get("yes_price")
+            is not None
+            and
+            m.get("no_price")
+            is not None
+        )
+    ]
+
+    tokens = [
+        m for m in markets
+        if (
+            m.get("yes_token")
+            and
+            m.get("no_token")
+        )
+    ]
+
+    bidask = [
+        m for m in markets
+        if (
+            m.get("best_bid")
+            is not None
+            and
+            m.get("best_ask")
+            is not None
         )
     ]
 
     active = [
         m for m in markets
-        if is_current_candidate(m)
+        if is_active_candidate(m)
     ]
 
     return {
-        "temperature_markets": len(markets),
-        "cities": len(cities),
-        "markets_with_prices": len(with_prices),
-        "markets_with_tokens": len(with_tokens),
-        "markets_with_bid_ask": len(with_bid_ask),
-        "active_candidates": len(active),
-        "city_names": cities,
+
+        "temperature_markets":
+            len(markets),
+
+        "cities":
+            len(cities),
+
+        "markets_with_prices":
+            len(prices),
+
+        "markets_with_tokens":
+            len(tokens),
+
+        "markets_with_bid_ask":
+            len(bidask),
+
+        "active_candidates":
+            len(active),
+
+        "cities_list":
+            cities,
     }
 
 
 # ============================================================
-# CSV HISTÓRICO
+# JSON
 # ============================================================
 
-CSV_FIELDS = [
-    "collected_at",
-    "event_id",
-    "event_title",
-    "event_slug",
-    "market_id",
-    "city",
-    "market_date",
-    "market_type",
-    "question",
-    "slug",
-    "group_title",
-    "group_threshold",
-    "yes_price",
-    "no_price",
-    "best_bid",
-    "best_ask",
-    "spread",
-    "spread_pct",
-    "yes_token",
-    "no_token",
-    "volume",
-    "volume_24h",
-    "liquidity",
-    "liquidity_clob",
-    "active",
-    "closed",
-    "accepting_orders",
-    "enable_order_book",
-    "approved",
-    "archived",
-    "resolution_source",
-    "start_date",
-    "end_date",
-    "condition_id",
-    "order_min_size",
-    "tick_size",
-]
-
-
-def append_history(markets):
-
-    exists = os.path.exists(HISTORY_FILE)
-
-    with open(
-        HISTORY_FILE,
-        "a",
-        newline="",
-        encoding="utf-8"
-    ) as f:
-
-        writer = csv.DictWriter(
-            f,
-            fieldnames=CSV_FIELDS,
-            extrasaction="ignore"
-        )
-
-        if not exists:
-            writer.writeheader()
-
-        for market in markets:
-            writer.writerow(market)
-
-
-# ============================================================
-# GUARDADO JSON
-# ============================================================
-
-def save_latest(markets, stats):
-
-    payload = {
-        "collector_version": "7.0",
-        "collected_at": utc_iso(),
-
-        "source": {
-            "exchange": "Polymarket",
-            "api": API_BASE,
-            "tag_id": TAG_ID,
-            "tag_slug": TAG_SLUG,
-        },
-
-        "stats": stats,
-
-        "markets": markets,
-    }
-
-    with open(
-        LATEST_FILE,
-        "w",
-        encoding="utf-8"
-    ) as f:
-
-        json.dump(
-            payload,
-            f,
-            indent=2,
-            ensure_ascii=False
-        )
-
-
-def save_snapshot(markets, stats):
-
-    now = utc_now()
-
-    day_dir = os.path.join(
-        SNAPSHOT_DIR,
-        now.strftime("%Y-%m-%d")
-    )
-
-    os.makedirs(day_dir, exist_ok=True)
-
-    filename = now.strftime(
-        "%H%M%S"
-    ) + ".json"
-
-    filepath = os.path.join(
-        day_dir,
-        filename
-    )
-
-    payload = {
-        "collector_version": "7.0",
-        "collected_at": utc_iso(),
-
-        "stats": stats,
-
-        "markets": markets,
-    }
+def save_json(
+    filepath,
+    payload
+):
 
     with open(
         filepath,
@@ -635,48 +767,297 @@ def save_snapshot(markets, stats):
             ensure_ascii=False
         )
 
+
+# ============================================================
+# LATEST
+# ============================================================
+
+def save_latest(
+    markets,
+    stats
+):
+
+    payload = {
+
+        "collector_version":
+            "8.0",
+
+        "collected_at":
+            utc_iso(),
+
+        "source": {
+
+            "platform":
+                "Polymarket",
+
+            "api":
+                API_BASE,
+
+            "tag_id":
+                TAG_ID,
+
+            "tag":
+                TAG_SLUG,
+        },
+
+        "stats":
+            stats,
+
+        "markets":
+            markets,
+    }
+
+    save_json(
+        LATEST_FILE,
+        payload
+    )
+
+
+# ============================================================
+# ACTIVE FILE
+# ============================================================
+
+def save_active(
+    markets,
+    stats
+):
+
+    active = [
+        m for m in markets
+        if is_active_candidate(m)
+    ]
+
+    payload = {
+
+        "collector_version":
+            "8.0",
+
+        "collected_at":
+            utc_iso(),
+
+        "count":
+            len(active),
+
+        "markets":
+            active,
+    }
+
+    save_json(
+        ACTIVE_FILE,
+        payload
+    )
+
+
+# ============================================================
+# SNAPSHOT
+# ============================================================
+
+def save_snapshot(
+    markets,
+    stats
+):
+
+    now = utc_now()
+
+    day_dir = os.path.join(
+        SNAPSHOT_DIR,
+        now.strftime(
+            "%Y-%m-%d"
+        )
+    )
+
+    os.makedirs(
+        day_dir,
+        exist_ok=True
+    )
+
+    filename = (
+        now.strftime(
+            "%H%M%S"
+        )
+        + ".json"
+    )
+
+    filepath = os.path.join(
+        day_dir,
+        filename
+    )
+
+    active = [
+        m for m in markets
+        if is_active_candidate(m)
+    ]
+
+    payload = {
+
+        "collector_version":
+            "8.0",
+
+        "collected_at":
+            utc_iso(),
+
+        "stats":
+            stats,
+
+        "active_markets":
+            active,
+    }
+
+    save_json(
+        filepath,
+        payload
+    )
+
     return filepath
 
 
 # ============================================================
-# VALIDACIÓN INTELIGENTE
+# HISTORY
 # ============================================================
 
-def validation_sort_key(market):
+HISTORY_FIELDS = [
 
-    volume = market.get("volume") or 0
-    liquidity = market.get("liquidity") or 0
+    "collected_at",
 
-    return (
-        volume,
-        liquidity
-    )
+    "event_id",
+
+    "market_id",
+
+    "city",
+
+    "market_date",
+
+    "market_type",
+
+    "question",
+
+    "group_title",
+
+    "group_threshold",
+
+    "yes_price",
+
+    "no_price",
+
+    "best_bid",
+
+    "best_ask",
+
+    "spread",
+
+    "volume",
+
+    "volume_24h",
+
+    "liquidity",
+
+    "active",
+
+    "closed",
+
+    "accepting_orders",
+
+    "enable_order_book",
+
+    "condition_id",
+]
 
 
-def print_validation(markets):
+def append_history(
+    markets
+):
 
-    candidates = [
+    active = [
         m for m in markets
-        if is_current_candidate(m)
+        if is_active_candidate(m)
     ]
 
-    candidates.sort(
-        key=validation_sort_key,
+    if not active:
+
+        return
+
+    exists = os.path.exists(
+        HISTORY_FILE
+    )
+
+    with open(
+        HISTORY_FILE,
+        "a",
+        newline="",
+        encoding="utf-8"
+    ) as f:
+
+        writer = csv.DictWriter(
+            f,
+            fieldnames=HISTORY_FIELDS
+        )
+
+        if not exists:
+
+            writer.writeheader()
+
+        for market in active:
+
+            writer.writerow(
+                {
+                    field:
+                    market.get(field)
+                    for field
+                    in HISTORY_FIELDS
+                }
+            )
+
+
+# ============================================================
+# VALIDATION
+# ============================================================
+
+def print_validation(
+    markets
+):
+
+    active = [
+        m for m in markets
+        if is_active_candidate(m)
+    ]
+
+    active.sort(
+        key=lambda m:
+        (
+            m.get(
+                "volume_24h"
+            )
+            or 0
+        ),
         reverse=True
     )
 
     print()
-    print("=" * 60)
-    print("VALIDATION")
-    print("=" * 60)
 
-    if not candidates:
-        print("No se encontraron mercados activos válidos.")
+    print(
+        "=" * 60
+    )
+
+    print(
+        "VALIDATION"
+    )
+
+    print(
+        "=" * 60
+    )
+
+    if not active:
+
+        print(
+            "No se encontraron mercados activos válidos."
+        )
+
         return
 
-    for market in candidates[:10]:
+    for market in active[:10]:
 
         print()
+
         print(
             f"{market['city']} | "
             f"{market['market_date']} | "
@@ -684,38 +1065,44 @@ def print_validation(markets):
         )
 
         print(
-            f"  Question: {market['question']}"
+            f"  Market ID: "
+            f"{market['market_id']}"
         )
 
         print(
-            f"  YES: {market['yes_price']} | "
-            f"NO: {market['no_price']}"
+            f"  YES: "
+            f"{market['yes_price']} | "
+            f"NO: "
+            f"{market['no_price']}"
         )
 
         print(
-            f"  Bid: {market['best_bid']} | "
-            f"Ask: {market['best_ask']} | "
-            f"Spread: {market['spread']}"
+            f"  Bid: "
+            f"{market['best_bid']} | "
+            f"Ask: "
+            f"{market['best_ask']} | "
+            f"Spread: "
+            f"{market['spread']}"
         )
 
         print(
-            f"  Volume: {market['volume']} | "
-            f"Liquidity: {market['liquidity']}"
+            f"  Volume 24h: "
+            f"{market['volume_24h']}"
         )
 
         print(
-            "  YES token: "
-            f"{str(market['yes_token'])[:20]}..."
+            f"  Liquidity: "
+            f"{market['liquidity']}"
         )
 
         print(
-            "  NO token: "
-            f"{str(market['no_token'])[:20]}..."
+            f"  YES token: "
+            f"{str(market['yes_token'])[:24]}..."
         )
 
         print(
-            f"  Active: {market['active']} | "
-            f"Accepting: {market['accepting_orders']}"
+            f"  NO token: "
+            f"{str(market['no_token'])[:24]}..."
         )
 
 
@@ -726,30 +1113,42 @@ def print_validation(markets):
 def main():
 
     print("=" * 60)
-    print("Polymarket Weather Edge Lab")
-    print("Temperature Collector V7.0")
+
+    print(
+        "Polymarket Weather Edge Lab"
+    )
+
+    print(
+        "Temperature Collector V8.0"
+    )
+
     print("=" * 60)
 
     print(
         f"UTC: {utc_iso()}"
     )
 
-    ensure_directories()
-
     print(
-        f"Weather tag: {TAG_ID} ({TAG_SLUG})"
+        f"Weather tag: "
+        f"{TAG_ID} ({TAG_SLUG})"
     )
+
+    ensure_directories()
 
     events = get_weather_events()
 
     print()
+
     print(
-        f"Weather events: {len(events)}"
+        f"Weather events: "
+        f"{len(events)}"
     )
 
-    print("=" * 60)
+    print(
+        "=" * 60
+    )
 
-    markets = collect_temperature_markets(
+    markets = collect_markets(
         events
     )
 
@@ -758,12 +1157,22 @@ def main():
     )
 
     print()
-    print("=" * 60)
-    print("COLLECTION COMPLETE")
-    print("=" * 60)
 
     print(
-        f"Events: {len(events)}"
+        "=" * 60
+    )
+
+    print(
+        "COLLECTION COMPLETE"
+    )
+
+    print(
+        "=" * 60
+    )
+
+    print(
+        f"Events: "
+        f"{len(events)}"
     )
 
     print(
@@ -801,6 +1210,11 @@ def main():
         stats
     )
 
+    save_active(
+        markets,
+        stats
+    )
+
     snapshot = save_snapshot(
         markets,
         stats
@@ -811,16 +1225,25 @@ def main():
     )
 
     print()
+
     print(
-        f"Latest: {LATEST_FILE}"
+        f"Latest: "
+        f"{LATEST_FILE}"
     )
 
     print(
-        f"Snapshot: {snapshot}"
+        f"Active: "
+        f"{ACTIVE_FILE}"
     )
 
     print(
-        f"History: {HISTORY_FILE}"
+        f"Snapshot: "
+        f"{snapshot}"
+    )
+
+    print(
+        f"History: "
+        f"{HISTORY_FILE}"
     )
 
     print_validation(
@@ -828,10 +1251,20 @@ def main():
     )
 
     print()
-    print("=" * 60)
-    print("COLLECTOR V7 COMPLETE")
-    print("=" * 60)
+
+    print(
+        "=" * 60
+    )
+
+    print(
+        "COLLECTOR V8 COMPLETE"
+    )
+
+    print(
+        "=" * 60
+    )
 
 
 if __name__ == "__main__":
+
     main()
