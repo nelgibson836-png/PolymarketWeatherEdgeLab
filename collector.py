@@ -2,53 +2,57 @@ import csv
 import json
 import os
 import re
-import urllib.parse
-import urllib.request
+import time
 from datetime import datetime, timezone
 
+import requests
 
-GAMMA_API = "https://gamma-api.polymarket.com"
 
-PAGE_SIZE = 100
+# ============================================================
+# POLYMARKET WEATHER EDGE LAB
+# Temperature Collector V7.0
+# ============================================================
+
+API_BASE = "https://gamma-api.polymarket.com"
+TAG_ID = 84
+TAG_SLUG = "weather"
 
 DATA_DIR = "data"
 SNAPSHOT_DIR = os.path.join(DATA_DIR, "snapshots")
 
-LATEST_JSON = os.path.join(
-    DATA_DIR,
-    "temperature_markets_latest.json"
-)
+LATEST_FILE = os.path.join(DATA_DIR, "temperature_markets_latest.json")
+HISTORY_FILE = os.path.join(DATA_DIR, "temperature_markets.csv")
 
-HISTORY_CSV = os.path.join(
-    DATA_DIR,
-    "temperature_markets.csv"
-)
+REQUEST_TIMEOUT = 30
+PAGE_SIZE = 100
 
-
-def get_json(url):
-
-    request = urllib.request.Request(
-        url,
-        headers={
-            "User-Agent":
-                "PolymarketWeatherEdgeLab/6.0",
-            "Accept":
-                "application/json",
-        },
-    )
-
-    with urllib.request.urlopen(
-        request,
-        timeout=30
-    ) as response:
-
-        return json.loads(
-            response.read().decode("utf-8")
-        )
+HEADERS = {
+    "User-Agent": "PolymarketWeatherEdgeLab/7.0"
+}
 
 
-def parse_json_field(value):
+# ============================================================
+# UTILIDADES
+# ============================================================
 
+def utc_now():
+    return datetime.now(timezone.utc)
+
+
+def utc_iso():
+    return utc_now().isoformat()
+
+
+def safe_float(value):
+    try:
+        if value is None or value == "":
+            return None
+        return float(value)
+    except (ValueError, TypeError):
+        return None
+
+
+def safe_json(value):
     if value is None:
         return None
 
@@ -56,772 +60,492 @@ def parse_json_field(value):
         return value
 
     if isinstance(value, str):
-
         try:
             return json.loads(value)
-
         except Exception:
-            return value
+            return None
 
-    return value
+    return None
 
 
-def get_weather_tag():
-
-    return get_json(
-        f"{GAMMA_API}/tags/slug/weather"
+def request_json(url, params=None):
+    response = requests.get(
+        url,
+        params=params,
+        headers=HEADERS,
+        timeout=REQUEST_TIMEOUT
     )
 
+    response.raise_for_status()
+    return response.json()
+
+
+def ensure_directories():
+    os.makedirs(DATA_DIR, exist_ok=True)
+    os.makedirs(SNAPSHOT_DIR, exist_ok=True)
+
+
+# ============================================================
+# DESCARGA DE EVENTOS
+# ============================================================
 
 def get_weather_events():
+    print("Consultando eventos Weather...")
 
     events = []
-
     offset = 0
 
     while True:
-
         params = {
-            "tag_slug": "weather",
-            "active": "true",
-            "closed": "false",
+            "tag_id": TAG_ID,
             "limit": PAGE_SIZE,
-            "offset": offset,
+            "offset": offset
         }
 
-        url = (
-            f"{GAMMA_API}/events?"
-            f"{urllib.parse.urlencode(params)}"
-        )
-
-        page = get_json(url)
-
-        if not page:
+        try:
+            batch = request_json(
+                f"{API_BASE}/events",
+                params=params
+            )
+        except Exception as e:
+            print(f"ERROR descargando eventos: {e}")
             break
 
-        events.extend(page)
+        if not batch:
+            break
 
-        print(
-            f"  Eventos descargados: "
-            f"{len(events)}",
-            end="\r"
-        )
+        events.extend(batch)
 
-        if len(page) < PAGE_SIZE:
+        print(f"  Eventos descargados: {len(events)}")
+
+        if len(batch) < PAGE_SIZE:
             break
 
         offset += PAGE_SIZE
-
-    print()
+        time.sleep(0.15)
 
     return events
 
 
-def is_temperature_market(market):
+# ============================================================
+# DETECCIÓN DE CIUDAD
+# ============================================================
 
-    question = (
-        market.get("question")
-        or ""
-    ).lower()
-
-    return (
-        "highest temperature" in question
-        or
-        "lowest temperature" in question
-    )
+TEMPERATURE_PATTERNS = [
+    r"highest temperature in (.+?) on",
+    r"highest temperature in (.+?) be",
+    r"temperature in (.+?) on",
+    r"temperature in (.+?) be",
+]
 
 
-def extract_city(text):
-
-    if not text:
+def extract_city(question):
+    if not question:
         return None
 
-    patterns = [
-
-        r"temperature in ([^?]+?) on "
-        r"(?:January|February|March|April|May|June|July|August|September|October|November|December)",
-
-        r"temperature in ([^?]+?) on "
-        r"\w+ \d+",
-
-    ]
-
-    for pattern in patterns:
-
-        match = re.search(
-            pattern,
-            text,
-            re.IGNORECASE
-        )
+    for pattern in TEMPERATURE_PATTERNS:
+        match = re.search(pattern, question, re.IGNORECASE)
 
         if match:
+            city = match.group(1).strip()
 
-            return (
-                match.group(1)
-                .strip()
-                .rstrip(" ,")
+            city = re.sub(
+                r"\s+on\s+.*$",
+                "",
+                city,
+                flags=re.IGNORECASE
             )
 
-    return None
+            city = re.sub(
+                r"\s+be$",
+                "",
+                city,
+                flags=re.IGNORECASE
+            )
 
-
-def extract_market_date(text):
-
-    if not text:
-        return None
-
-    match = re.search(
-        r"(January|February|March|April|May|June|July|August|September|October|November|December)"
-        r"\s+\d{1,2}",
-        text,
-        re.IGNORECASE
-    )
-
-    if match:
-
-        return match.group(0)
+            return city.strip()
 
     return None
 
 
-def extract_temperature(text):
+# ============================================================
+# DETECCIÓN DE FECHA
+# ============================================================
 
-    if not text:
-        return None
+def extract_market_date(market):
+    end_date = market.get("endDateIso")
 
-    match = re.search(
-        r"(-?\d+(?:\.\d+)?)"
-        r"\s*°([CF])",
-        text,
-        re.IGNORECASE
-    )
+    if end_date:
+        return end_date
 
-    if not match:
-        return None
+    end_date = market.get("endDate")
 
-    return {
-        "value":
-            float(match.group(1)),
+    if end_date:
+        try:
+            return end_date[:10]
+        except Exception:
+            pass
 
-        "unit":
-            match.group(2).upper()
-    }
+    return None
 
 
-def extract_token_ids(market):
+# ============================================================
+# DETECCIÓN DE TIPO
+# ============================================================
 
-    value = market.get(
-        "clobTokenIds"
-    )
+def detect_market_type(question):
+    if not question:
+        return "unknown"
 
-    parsed = parse_json_field(value)
+    q = question.lower()
 
-    if isinstance(parsed, list):
+    if "highest temperature" in q:
+        return "highest_temperature"
 
-        return parsed
+    if "lowest temperature" in q:
+        return "lowest_temperature"
 
-    return []
+    if "temperature" in q:
+        return "temperature"
 
-
-def extract_outcomes(market):
-
-    return parse_json_field(
-        market.get("outcomes")
-    )
-
-
-def extract_prices(market):
-
-    return parse_json_field(
-        market.get("outcomePrices")
-    )
+    return "unknown"
 
 
-def safe_float(value):
+# ============================================================
+# FILTRO DE TEMPERATURA
+# ============================================================
 
-    if value is None:
-        return None
+def is_temperature_market(question):
+    if not question:
+        return False
 
-    try:
+    q = question.lower()
 
-        return float(value)
-
-    except Exception:
-
-        return None
-
-
-def safe_int(value):
-
-    if value is None:
-        return None
-
-    try:
-
-        return int(value)
-
-    except Exception:
-
-        return None
-
-
-def normalize_market(
-    event,
-    market,
-    collected_at
-):
-
-    question = (
-        market.get("question")
-        or ""
-    )
-
-    group_title = (
-        market.get("groupItemTitle")
-        or ""
-    )
-
-    combined_text = (
-        question
-        + " "
-        + group_title
-    )
-
-    question_lower = question.lower()
-
-    if "highest temperature" in question_lower:
-
-        temperature_type = (
-            "highest_temperature"
+    return (
+        "temperature" in q
+        and (
+            "°c" in q
+            or "°f" in q
+            or "degrees" in q
         )
-
-    elif "lowest temperature" in question_lower:
-
-        temperature_type = (
-            "lowest_temperature"
-        )
-
-    else:
-
-        temperature_type = "unknown"
-
-    temperature = extract_temperature(
-        combined_text
     )
 
-    outcomes = extract_outcomes(
-        market
-    )
 
-    prices = extract_prices(
-        market
-    )
+# ============================================================
+# NORMALIZACIÓN DE MERCADO
+# ============================================================
 
-    token_ids = extract_token_ids(
-        market
-    )
+def normalize_market(event, market):
+    question = market.get("question", "")
+
+    outcomes = safe_json(market.get("outcomes"))
+    prices = safe_json(market.get("outcomePrices"))
+    tokens = safe_json(market.get("clobTokenIds"))
+
+    if not isinstance(outcomes, list):
+        outcomes = None
+
+    if not isinstance(prices, list):
+        prices = None
+
+    if not isinstance(tokens, list):
+        tokens = None
 
     yes_price = None
     no_price = None
 
-    if (
-        isinstance(outcomes, list)
-        and
-        isinstance(prices, list)
-    ):
+    if prices and len(prices) >= 2:
+        yes_price = safe_float(prices[0])
+        no_price = safe_float(prices[1])
 
-        for index, outcome in enumerate(
-            outcomes
-        ):
+    yes_token = None
+    no_token = None
 
-            if index >= len(prices):
-                continue
+    if tokens and len(tokens) >= 2:
+        yes_token = tokens[0]
+        no_token = tokens[1]
 
-            price = safe_float(
-                prices[index]
-            )
+    best_bid = safe_float(market.get("bestBid"))
+    best_ask = safe_float(market.get("bestAsk"))
 
-            if (
-                str(outcome).lower()
-                == "yes"
-            ):
+    spread = None
 
-                yes_price = price
+    if best_bid is not None and best_ask is not None:
+        spread = best_ask - best_bid
 
-            elif (
-                str(outcome).lower()
-                == "no"
-            ):
+    event_title = event.get("title")
+    event_slug = event.get("slug")
 
-                no_price = price
+    city = extract_city(question)
 
-    yes_token_id = None
-    no_token_id = None
+    record = {
+        "collected_at": utc_iso(),
 
-    if (
-        isinstance(outcomes, list)
-        and
-        isinstance(token_ids, list)
-    ):
+        "event_id": str(event.get("id")) if event.get("id") else None,
+        "event_title": event_title,
+        "event_slug": event_slug,
 
-        for index, outcome in enumerate(
-            outcomes
-        ):
+        "market_id": str(market.get("id")) if market.get("id") else None,
 
-            if index >= len(token_ids):
-                continue
+        "city": city,
+        "market_date": extract_market_date(market),
 
-            token = token_ids[index]
+        "market_type": detect_market_type(question),
 
-            if (
-                str(outcome).lower()
-                == "yes"
-            ):
+        "question": question,
+        "slug": market.get("slug"),
 
-                yes_token_id = token
+        "group_title": market.get("groupItemTitle"),
+        "group_threshold": safe_float(
+            market.get("groupItemThreshold")
+        ),
 
-            elif (
-                str(outcome).lower()
-                == "no"
-            ):
+        "outcomes": outcomes,
 
-                no_token_id = token
+        "yes_price": yes_price,
+        "no_price": no_price,
 
-    fee_schedule = parse_json_field(
-        market.get("feeSchedule")
+        "best_bid": best_bid,
+        "best_ask": best_ask,
+        "spread": spread,
+
+        "yes_token": yes_token,
+        "no_token": no_token,
+
+        "volume": safe_float(market.get("volume")),
+        "volume_24h": safe_float(market.get("volume24hr")),
+
+        "liquidity": safe_float(market.get("liquidity")),
+        "liquidity_clob": safe_float(
+            market.get("liquidityClob")
+        ),
+
+        "active": bool(market.get("active")),
+        "closed": bool(market.get("closed")),
+        "accepting_orders": bool(
+            market.get("acceptingOrders")
+        ),
+        "enable_order_book": bool(
+            market.get("enableOrderBook")
+        ),
+
+        "approved": bool(market.get("approved")),
+        "archived": bool(market.get("archived")),
+
+        "resolution_source": market.get(
+            "resolutionSource"
+        ),
+
+        "start_date": market.get("startDate"),
+        "end_date": market.get("endDate"),
+
+        "condition_id": market.get("conditionId"),
+
+        "order_min_size": safe_float(
+            market.get("orderMinSize")
+        ),
+
+        "tick_size": safe_float(
+            market.get("orderPriceMinTickSize")
+        ),
+
+        "spread_pct": (
+            spread / best_ask
+            if spread is not None
+            and best_ask
+            and best_ask > 0
+            else None
+        ),
+    }
+
+    return record
+
+
+# ============================================================
+# CLASIFICACIÓN DE MERCADO ACTIVO
+# ============================================================
+
+def is_future_market(record):
+    market_date = record.get("market_date")
+
+    if not market_date:
+        return False
+
+    try:
+        today = utc_now().date()
+        target = datetime.strptime(
+            market_date,
+            "%Y-%m-%d"
+        ).date()
+
+        return target >= today
+
+    except Exception:
+        return False
+
+
+def has_valid_prices(record):
+    return (
+        record.get("yes_price") is not None
+        and record.get("no_price") is not None
     )
 
+
+def has_valid_tokens(record):
+    return (
+        bool(record.get("yes_token"))
+        and bool(record.get("no_token"))
+    )
+
+
+def is_current_candidate(record):
+    return (
+        record.get("active") is True
+        and record.get("closed") is False
+        and record.get("accepting_orders") is True
+        and record.get("enable_order_book") is True
+        and record.get("city") is not None
+        and is_future_market(record)
+        and has_valid_prices(record)
+        and has_valid_tokens(record)
+    )
+
+
+# ============================================================
+# EXTRACCIÓN DE MERCADOS
+# ============================================================
+
+def collect_temperature_markets(events):
+
+    all_markets = []
+
+    for event in events:
+
+        markets = event.get("markets", [])
+
+        if not markets:
+            continue
+
+        for market in markets:
+
+            question = market.get("question", "")
+
+            if not is_temperature_market(question):
+                continue
+
+            record = normalize_market(
+                event,
+                market
+            )
+
+            all_markets.append(record)
+
+    return all_markets
+
+
+# ============================================================
+# ESTADÍSTICAS
+# ============================================================
+
+def calculate_stats(markets):
+
+    cities = sorted({
+        m["city"]
+        for m in markets
+        if m.get("city")
+    })
+
+    with_prices = [
+        m for m in markets
+        if has_valid_prices(m)
+    ]
+
+    with_tokens = [
+        m for m in markets
+        if has_valid_tokens(m)
+    ]
+
+    with_bid_ask = [
+        m for m in markets
+        if (
+            m.get("best_bid") is not None
+            and m.get("best_ask") is not None
+        )
+    ]
+
+    active = [
+        m for m in markets
+        if is_current_candidate(m)
+    ]
+
     return {
-
-        "collected_at":
-            collected_at,
-
-        "event_id":
-            event.get("id"),
-
-        "event_title":
-            event.get("title"),
-
-        "event_slug":
-            event.get("slug"),
-
-        "market_id":
-            market.get("id"),
-
-        "market_slug":
-            market.get("slug"),
-
-        "condition_id":
-            market.get("conditionId"),
-
-        "question_id":
-            market.get("questionID"),
-
-        "question":
-            question,
-
-        "city":
-            extract_city(question),
-
-        "market_date":
-            extract_market_date(question),
-
-        "temperature_type":
-            temperature_type,
-
-        "temperature":
-            (
-                temperature["value"]
-                if temperature
-                else None
-            ),
-
-        "temperature_unit":
-            (
-                temperature["unit"]
-                if temperature
-                else None
-            ),
-
-        "group_item_title":
-            group_title,
-
-        "group_item_threshold":
-            market.get(
-                "groupItemThreshold"
-            ),
-
-        "lower_bound":
-            market.get("lowerBound"),
-
-        "upper_bound":
-            market.get("upperBound"),
-
-        "outcomes":
-            outcomes,
-
-        "outcome_prices":
-            prices,
-
-        "yes_price":
-            yes_price,
-
-        "no_price":
-            no_price,
-
-        "clob_token_ids":
-            token_ids,
-
-        "yes_token_id":
-            yes_token_id,
-
-        "no_token_id":
-            no_token_id,
-
-        "best_bid":
-            safe_float(
-                market.get("bestBid")
-            ),
-
-        "best_ask":
-            safe_float(
-                market.get("bestAsk")
-            ),
-
-        "spread":
-            safe_float(
-                market.get("spread")
-            ),
-
-        "one_hour_price_change":
-            safe_float(
-                market.get(
-                    "oneHourPriceChange"
-                )
-            ),
-
-        "volume":
-            safe_float(
-                market.get("volume")
-            ),
-
-        "volume_24hr":
-            safe_float(
-                market.get("volume24hr")
-            ),
-
-        "volume_1wk":
-            safe_float(
-                market.get("volume1wk")
-            ),
-
-        "volume_1mo":
-            safe_float(
-                market.get("volume1mo")
-            ),
-
-        "volume_1yr":
-            safe_float(
-                market.get("volume1yr")
-            ),
-
-        "volume_clob":
-            safe_float(
-                market.get("volumeClob")
-            ),
-
-        "volume_24hr_clob":
-            safe_float(
-                market.get(
-                    "volume24hrClob"
-                )
-            ),
-
-        "liquidity":
-            safe_float(
-                market.get("liquidity")
-            ),
-
-        "liquidity_clob":
-            safe_float(
-                market.get(
-                    "liquidityClob"
-                )
-            ),
-
-        "order_min_size":
-            safe_float(
-                market.get(
-                    "orderMinSize"
-                )
-            ),
-
-        "order_price_min_tick_size":
-            safe_float(
-                market.get(
-                    "orderPriceMinTickSize"
-                )
-            ),
-
-        "maker_base_fee":
-            safe_int(
-                market.get(
-                    "makerBaseFee"
-                )
-            ),
-
-        "taker_base_fee":
-            safe_int(
-                market.get(
-                    "takerBaseFee"
-                )
-            ),
-
-        "fee_type":
-            market.get("feeType"),
-
-        "fee_schedule":
-            fee_schedule,
-
-        "active":
-            market.get("active"),
-
-        "closed":
-            market.get("closed"),
-
-        "accepting_orders":
-            market.get(
-                "acceptingOrders"
-            ),
-
-        "enable_order_book":
-            market.get(
-                "enableOrderBook"
-            ),
-
-        "neg_risk":
-            market.get("negRisk"),
-
-        "resolution_source":
-            market.get(
-                "resolutionSource"
-            ),
-
-        "start_date":
-            market.get("startDate"),
-
-        "end_date":
-            market.get("endDate"),
-
-        "updated_at":
-            market.get("updatedAt"),
-
-        "created_at":
-            market.get("createdAt"),
-
-        "seconds_delay":
-            safe_int(
-                market.get(
-                    "secondsDelay"
-                )
-            ),
-
-        "rewards_min_size":
-            safe_float(
-                market.get(
-                    "rewardsMinSize"
-                )
-            ),
-
-        "rewards_max_spread":
-            safe_float(
-                market.get(
-                    "rewardsMaxSpread"
-                )
-            ),
-
-        "competitive":
-            safe_float(
-                market.get(
-                    "competitive"
-                )
-            ),
+        "temperature_markets": len(markets),
+        "cities": len(cities),
+        "markets_with_prices": len(with_prices),
+        "markets_with_tokens": len(with_tokens),
+        "markets_with_bid_ask": len(with_bid_ask),
+        "active_candidates": len(active),
+        "city_names": cities,
     }
 
 
-def save_latest(data):
-
-    os.makedirs(
-        DATA_DIR,
-        exist_ok=True
-    )
-
-    with open(
-        LATEST_JSON,
-        "w",
-        encoding="utf-8"
-    ) as file:
-
-        json.dump(
-            data,
-            file,
-            ensure_ascii=False,
-            indent=2
-        )
-
-
-def save_snapshot(
-    data,
-    now
-):
-
-    date_dir = os.path.join(
-        SNAPSHOT_DIR,
-        now.strftime(
-            "%Y-%m-%d"
-        )
-    )
-
-    os.makedirs(
-        date_dir,
-        exist_ok=True
-    )
-
-    filename = (
-        now.strftime("%H%M%S")
-        + ".json"
-    )
-
-    filepath = os.path.join(
-        date_dir,
-        filename
-    )
-
-    with open(
-        filepath,
-        "w",
-        encoding="utf-8"
-    ) as file:
-
-        json.dump(
-            data,
-            file,
-            ensure_ascii=False,
-            indent=2
-        )
-
-    return filepath
-
+# ============================================================
+# CSV HISTÓRICO
+# ============================================================
 
 CSV_FIELDS = [
-
     "collected_at",
-
     "event_id",
     "event_title",
     "event_slug",
-
     "market_id",
-    "market_slug",
-    "condition_id",
-    "question_id",
-
-    "question",
-
     "city",
     "market_date",
-
-    "temperature_type",
-    "temperature",
-    "temperature_unit",
-
-    "group_item_title",
-    "group_item_threshold",
-
-    "lower_bound",
-    "upper_bound",
-
-    "outcomes",
-    "outcome_prices",
-
+    "market_type",
+    "question",
+    "slug",
+    "group_title",
+    "group_threshold",
     "yes_price",
     "no_price",
-
-    "clob_token_ids",
-    "yes_token_id",
-    "no_token_id",
-
     "best_bid",
     "best_ask",
     "spread",
-
-    "one_hour_price_change",
-
+    "spread_pct",
+    "yes_token",
+    "no_token",
     "volume",
-    "volume_24hr",
-    "volume_1wk",
-    "volume_1mo",
-    "volume_1yr",
-
-    "volume_clob",
-    "volume_24hr_clob",
-
+    "volume_24h",
     "liquidity",
     "liquidity_clob",
-
-    "order_min_size",
-    "order_price_min_tick_size",
-
-    "maker_base_fee",
-    "taker_base_fee",
-
-    "fee_type",
-    "fee_schedule",
-
     "active",
     "closed",
     "accepting_orders",
     "enable_order_book",
-
-    "neg_risk",
-
+    "approved",
+    "archived",
     "resolution_source",
-
     "start_date",
     "end_date",
-
-    "updated_at",
-    "created_at",
-
-    "seconds_delay",
-
-    "rewards_min_size",
-    "rewards_max_spread",
-
-    "competitive",
+    "condition_id",
+    "order_min_size",
+    "tick_size",
 ]
 
 
-def save_csv(markets):
+def append_history(markets):
 
-    os.makedirs(
-        DATA_DIR,
-        exist_ok=True
-    )
-
-    exists = os.path.exists(
-        HISTORY_CSV
-    )
+    exists = os.path.exists(HISTORY_FILE)
 
     with open(
-        HISTORY_CSV,
+        HISTORY_FILE,
         "a",
         newline="",
         encoding="utf-8"
-    ) as file:
+    ) as f:
 
         writer = csv.DictWriter(
-            file,
+            f,
             fieldnames=CSV_FIELDS,
             extrasaction="ignore"
         )
@@ -830,242 +554,137 @@ def save_csv(markets):
             writer.writeheader()
 
         for market in markets:
-
-            row = market.copy()
-
-            for field in [
-                "outcomes",
-                "outcome_prices",
-                "clob_token_ids",
-                "fee_schedule",
-            ]:
-
-                row[field] = json.dumps(
-                    row[field],
-                    ensure_ascii=False
-                )
-
-            writer.writerow(row)
+            writer.writerow(market)
 
 
-def main():
+# ============================================================
+# GUARDADO JSON
+# ============================================================
 
-    now = datetime.now(
-        timezone.utc
-    )
+def save_latest(markets, stats):
 
-    collected_at = now.isoformat()
+    payload = {
+        "collector_version": "7.0",
+        "collected_at": utc_iso(),
 
-    print("=" * 60)
-    print(
-        "Polymarket Weather Edge Lab"
-    )
-    print(
-        "Temperature Collector v6.0"
-    )
-    print("=" * 60)
+        "source": {
+            "exchange": "Polymarket",
+            "api": API_BASE,
+            "tag_id": TAG_ID,
+            "tag_slug": TAG_SLUG,
+        },
 
-    print()
+        "stats": stats,
 
-    print(
-        f"UTC: {collected_at}"
-    )
-
-    print()
-
-    weather_tag = get_weather_tag()
-
-    print(
-        "Weather tag: "
-        f"{weather_tag.get('id')} "
-        f"({weather_tag.get('slug')})"
-    )
-
-    print()
-
-    print(
-        "Consultando eventos Weather..."
-    )
-
-    events = get_weather_events()
-
-    print(
-        f"Weather events: {len(events)}"
-    )
-
-    markets = []
-
-    seen = set()
-
-    for event in events:
-
-        event_markets = (
-            event.get("markets")
-            or []
-        )
-
-        for market in event_markets:
-
-            market_id = market.get(
-                "id"
-            )
-
-            if not market_id:
-                continue
-
-            if market_id in seen:
-                continue
-
-            seen.add(market_id)
-
-            if not is_temperature_market(
-                market
-            ):
-                continue
-
-            markets.append(
-                normalize_market(
-                    event,
-                    market,
-                    collected_at
-                )
-            )
-
-    data = {
-
-        "collector_version":
-            "6.0",
-
-        "collected_at":
-            collected_at,
-
-        "weather_tag":
-            weather_tag,
-
-        "events_analyzed":
-            len(events),
-
-        "temperature_markets":
-            len(markets),
-
-        "cities":
-            len({
-                m["city"]
-                for m in markets
-                if m["city"]
-            }),
-
-        "markets":
-            markets,
+        "markets": markets,
     }
 
-    save_latest(data)
+    with open(
+        LATEST_FILE,
+        "w",
+        encoding="utf-8"
+    ) as f:
 
-    snapshot = save_snapshot(
-        data,
-        now
+        json.dump(
+            payload,
+            f,
+            indent=2,
+            ensure_ascii=False
+        )
+
+
+def save_snapshot(markets, stats):
+
+    now = utc_now()
+
+    day_dir = os.path.join(
+        SNAPSHOT_DIR,
+        now.strftime("%Y-%m-%d")
     )
 
-    save_csv(markets)
+    os.makedirs(day_dir, exist_ok=True)
 
-    cities = sorted({
-        m["city"]
-        for m in markets
-        if m["city"]
-    })
+    filename = now.strftime(
+        "%H%M%S"
+    ) + ".json"
 
-    with_prices = sum(
-        1
-        for m in markets
-        if (
-            m["yes_price"] is not None
-            and
-            m["no_price"] is not None
-        )
+    filepath = os.path.join(
+        day_dir,
+        filename
     )
 
-    with_tokens = sum(
-        1
-        for m in markets
-        if (
-            m["yes_token_id"]
-            and
-            m["no_token_id"]
+    payload = {
+        "collector_version": "7.0",
+        "collected_at": utc_iso(),
+
+        "stats": stats,
+
+        "markets": markets,
+    }
+
+    with open(
+        filepath,
+        "w",
+        encoding="utf-8"
+    ) as f:
+
+        json.dump(
+            payload,
+            f,
+            indent=2,
+            ensure_ascii=False
         )
+
+    return filepath
+
+
+# ============================================================
+# VALIDACIÓN INTELIGENTE
+# ============================================================
+
+def validation_sort_key(market):
+
+    volume = market.get("volume") or 0
+    liquidity = market.get("liquidity") or 0
+
+    return (
+        volume,
+        liquidity
     )
 
-    with_orderbook = sum(
-        1
-        for m in markets
-        if (
-            m["best_bid"] is not None
-            and
-            m["best_ask"] is not None
-        )
+
+def print_validation(markets):
+
+    candidates = [
+        m for m in markets
+        if is_current_candidate(m)
+    ]
+
+    candidates.sort(
+        key=validation_sort_key,
+        reverse=True
     )
 
     print()
-
-    print("=" * 60)
-    print("COLLECTION COMPLETE")
-    print("=" * 60)
-
-    print(
-        f"Events: {len(events)}"
-    )
-
-    print(
-        f"Temperature markets: "
-        f"{len(markets)}"
-    )
-
-    print(
-        f"Cities: {len(cities)}"
-    )
-
-    print(
-        f"Markets with prices: "
-        f"{with_prices}"
-    )
-
-    print(
-        f"Markets with YES/NO tokens: "
-        f"{with_tokens}"
-    )
-
-    print(
-        f"Markets with bid/ask: "
-        f"{with_orderbook}"
-    )
-
-    print()
-
-    print(
-        f"Latest: {LATEST_JSON}"
-    )
-
-    print(
-        f"Snapshot: {snapshot}"
-    )
-
-    print(
-        f"History: {HISTORY_CSV}"
-    )
-
-    print()
-
     print("=" * 60)
     print("VALIDATION")
     print("=" * 60)
 
-    for market in markets[:10]:
+    if not candidates:
+        print("No se encontraron mercados activos válidos.")
+        return
+
+    for market in candidates[:10]:
 
         print()
-
         print(
             f"{market['city']} | "
             f"{market['market_date']} | "
-            f"{market['group_item_title']}"
+            f"{market['group_title']}"
+        )
+
+        print(
+            f"  Question: {market['question']}"
         )
 
         print(
@@ -1085,14 +704,133 @@ def main():
         )
 
         print(
-            f"  YES token: "
-            f"{str(market['yes_token_id'])[:25]}..."
+            "  YES token: "
+            f"{str(market['yes_token'])[:20]}..."
         )
 
         print(
-            f"  NO token: "
-            f"{str(market['no_token_id'])[:25]}..."
+            "  NO token: "
+            f"{str(market['no_token'])[:20]}..."
         )
+
+        print(
+            f"  Active: {market['active']} | "
+            f"Accepting: {market['accepting_orders']}"
+        )
+
+
+# ============================================================
+# MAIN
+# ============================================================
+
+def main():
+
+    print("=" * 60)
+    print("Polymarket Weather Edge Lab")
+    print("Temperature Collector V7.0")
+    print("=" * 60)
+
+    print(
+        f"UTC: {utc_iso()}"
+    )
+
+    ensure_directories()
+
+    print(
+        f"Weather tag: {TAG_ID} ({TAG_SLUG})"
+    )
+
+    events = get_weather_events()
+
+    print()
+    print(
+        f"Weather events: {len(events)}"
+    )
+
+    print("=" * 60)
+
+    markets = collect_temperature_markets(
+        events
+    )
+
+    stats = calculate_stats(
+        markets
+    )
+
+    print()
+    print("=" * 60)
+    print("COLLECTION COMPLETE")
+    print("=" * 60)
+
+    print(
+        f"Events: {len(events)}"
+    )
+
+    print(
+        f"Temperature markets: "
+        f"{stats['temperature_markets']}"
+    )
+
+    print(
+        f"Cities: "
+        f"{stats['cities']}"
+    )
+
+    print(
+        f"Markets with prices: "
+        f"{stats['markets_with_prices']}"
+    )
+
+    print(
+        f"Markets with YES/NO tokens: "
+        f"{stats['markets_with_tokens']}"
+    )
+
+    print(
+        f"Markets with bid/ask: "
+        f"{stats['markets_with_bid_ask']}"
+    )
+
+    print(
+        f"Active candidates: "
+        f"{stats['active_candidates']}"
+    )
+
+    save_latest(
+        markets,
+        stats
+    )
+
+    snapshot = save_snapshot(
+        markets,
+        stats
+    )
+
+    append_history(
+        markets
+    )
+
+    print()
+    print(
+        f"Latest: {LATEST_FILE}"
+    )
+
+    print(
+        f"Snapshot: {snapshot}"
+    )
+
+    print(
+        f"History: {HISTORY_FILE}"
+    )
+
+    print_validation(
+        markets
+    )
+
+    print()
+    print("=" * 60)
+    print("COLLECTOR V7 COMPLETE")
+    print("=" * 60)
 
 
 if __name__ == "__main__":
