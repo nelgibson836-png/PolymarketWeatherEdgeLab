@@ -30,7 +30,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-      - name: Run Weather Collector V10
+      - name: Run Weather Collector V10.1
         run: |
           python collector.py
 
