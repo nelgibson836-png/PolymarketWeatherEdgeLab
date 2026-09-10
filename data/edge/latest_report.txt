@@ -1,309 +1,412 @@
-POLYMARKET WEATHER EDGE ENGINE V1.1
+POLYMARKET WEATHER EDGE ENGINE V1.2
 RESEARCH / PAPER TRADING ONLY
 NO ORDERS SENT
+UTC: 2026-09-10T22:01:10.257635+00:00
 
-UTC: 2026-09-10T21:56:29.762023+00:00
 Current markets: 2750
 Families: 250
 Signals evaluated: 2486
-PAPER_BUY candidates: 499
+Signals retained: 100
+PAPER_BUY candidates: 111
+Skipped without station: 264
+Skipped without forecast: 0
 
-Los Angeles | KLAX | 2026-09-10
-  94°F or higher
-  model=0.7707 entry=0.0100
-  gross_edge=0.7607 fee=0.00049
-  net_ev=0.7602
+Los Angeles | KLAX | 2026-09-12 | highest_temperature
+  bucket=or_higher value=88.0 low=88.0 high=None
+  model=0.34515 market=0.035 ask=0.05
+  family_sum=0.954291 family_status=PASS
+  edge=0.29515 net_ev=0.292775
+  forecast_mean=29.5C sigma=2.7886C
+  signal=PAPER_BUY
 
-Los Angeles | KLAX | 2026-09-11
-  90°F or higher
-  model=0.4833 entry=0.0370
-  gross_edge=0.4463 fee=0.00178
-  net_ev=0.4445
+Manila | RPLL | 2026-09-12 | highest_temperature
+  bucket=exact value=28.0 low=28.0 high=28.0
+  model=0.311792 market=0.025 ask=0.04
+  family_sum=0.99155 family_status=PASS
+  edge=0.271792 net_ev=0.269872
+  forecast_mean=28.3667C sigma=1.2C
+  signal=PAPER_BUY
 
-Austin | KAUS | 2026-09-10
-  96-97°F
-  model=0.3561 entry=0.0010
-  gross_edge=0.3551 fee=0.00005
-  net_ev=0.3550
+Wellington | NZWN | 2026-09-11 | highest_temperature
+  bucket=exact value=13.0 low=13.0 high=13.0
+  model=0.309357 market=0.0355 ask=0.041
+  family_sum=0.999355 family_status=PASS
+  edge=0.268357 net_ev=0.266391
+  forecast_mean=13.3667C sigma=1.2C
+  signal=PAPER_BUY
 
-Miami | KMIA | 2026-09-10
-  78-79°F
-  model=0.3414 entry=0.0010
-  gross_edge=0.3404 fee=0.00005
-  net_ev=0.3404
+Guangzhou | ZGGG | 2026-09-11 | highest_temperature
+  bucket=exact value=30.0 low=30.0 high=30.0
+  model=0.283381 market=0.025 ask=0.03
+  family_sum=0.999689 family_status=PASS
+  edge=0.253381 net_ev=0.251926
+  forecast_mean=30.6333C sigma=1.2C
+  signal=PAPER_BUY
 
-Austin | KAUS | 2026-09-10
-  76-77°F
-  model=0.3346 entry=0.0010
-  gross_edge=0.3336 fee=0.00005
-  net_ev=0.3335
+Singapore | WSSS | 2026-09-12 | highest_temperature
+  bucket=exact value=30.0 low=30.0 high=30.0
+  model=0.289577 market=0.03 ask=0.04
+  family_sum=0.964506 family_status=PASS
+  edge=0.249577 net_ev=0.247657
+  forecast_mean=30.6667C sigma=1.2C
+  signal=PAPER_BUY
 
-Houston | KHOU | 2026-09-10
-  90-91°F
-  model=0.3534 entry=0.0200
-  gross_edge=0.3334 fee=0.00098
-  net_ev=0.3324
+Munich | EDDM | 2026-09-12 | highest_temperature
+  bucket=exact value=21.0 low=21.0 high=21.0
+  model=0.299117 market=0.045 ask=0.06
+  family_sum=0.959941 family_status=PASS
+  edge=0.239117 net_ev=0.236297
+  forecast_mean=21.6C sigma=1.2C
+  signal=PAPER_BUY
 
-Dallas | KDAL | 2026-09-10
-  96-97°F
-  model=0.3253 entry=0.0010
-  gross_edge=0.3243 fee=0.00005
-  net_ev=0.3242
+Panama City | MPMG | 2026-09-11 | highest_temperature
+  bucket=exact value=30.0 low=30.0 high=30.0
+  model=0.276246 market=0.035 ask=0.04
+  family_sum=0.987803 family_status=PASS
+  edge=0.236246 net_ev=0.234326
+  forecast_mean=30.4333C sigma=1.3623C
+  signal=PAPER_BUY
 
-Buenos Aires | SAEZ | 2026-09-10
-  9°C
-  model=0.3231 entry=0.0010
-  gross_edge=0.3221 fee=0.00005
-  net_ev=0.3220
+Ankara | LTAC | 2026-09-11 | highest_temperature
+  bucket=exact value=29.0 low=29.0 high=29.0
+  model=0.262233 market=0.025 ask=0.03
+  family_sum=0.998972 family_status=PASS
+  edge=0.232233 net_ev=0.230778
+  forecast_mean=29.8C sigma=1.2C
+  signal=PAPER_BUY
 
-London | EGLC | 2026-09-10
-  20°C
-  model=0.3220 entry=0.0010
-  gross_edge=0.3210 fee=0.00005
-  net_ev=0.3210
+Wuhan | ZHHH | 2026-09-11 | highest_temperature
+  bucket=exact value=27.0 low=27.0 high=27.0
+  model=0.308999 market=0.075 ask=0.08
+  family_sum=0.992168 family_status=PASS
+  edge=0.228999 net_ev=0.225319
+  forecast_mean=27.4C sigma=1.2C
+  signal=PAPER_BUY
 
-Panama City | MPMG | 2026-09-10
-  30°C
-  model=0.3220 entry=0.0010
-  gross_edge=0.3210 fee=0.00005
-  net_ev=0.3210
+Manila | RPLL | 2026-09-12 | highest_temperature
+  bucket=exact value=29.0 low=29.0 high=29.0
+  model=0.285707 market=0.05 ask=0.06
+  family_sum=0.99155 family_status=PASS
+  edge=0.225707 net_ev=0.222887
+  forecast_mean=28.3667C sigma=1.2C
+  signal=PAPER_BUY
 
-Madrid | LEMD | 2026-09-10
-  27°C
-  model=0.3212 entry=0.0010
-  gross_edge=0.3202 fee=0.00005
-  net_ev=0.3202
+Qingdao | ZSQD | 2026-09-12 | highest_temperature
+  bucket=exact value=29.0 low=29.0 high=29.0
+  model=0.284662 market=0.05 ask=0.06
+  family_sum=0.966623 family_status=PASS
+  edge=0.224662 net_ev=0.221842
+  forecast_mean=28.3C sigma=1.2C
+  signal=PAPER_BUY
 
-Chongqing | ZUCK | 2026-09-11
-  20°C
-  model=0.3202 entry=0.0010
-  gross_edge=0.3192 fee=0.00005
-  net_ev=0.3191
+Shanghai | ZSPD | 2026-09-12 | highest_temperature
+  bucket=exact value=27.0 low=27.0 high=27.0
+  model=0.282653 market=0.04 ask=0.06
+  family_sum=0.96467 family_status=PASS
+  edge=0.222653 net_ev=0.219833
+  forecast_mean=27.7C sigma=1.217C
+  signal=PAPER_BUY
 
-Qingdao | ZSQD | 2026-09-11
-  15°C
-  model=0.3189 entry=0.0010
-  gross_edge=0.3179 fee=0.00005
-  net_ev=0.3178
+Panama City | MPMG | 2026-09-10 | lowest_temperature
+  bucket=exact value=24.0 low=24.0 high=24.0
+  model=0.297804 market=0.04 ask=0.08
+  family_sum=0.999555 family_status=PASS
+  edge=0.217804 net_ev=0.214124
+  forecast_mean=24.5C sigma=1.2C
+  signal=PAPER_BUY
 
-Warsaw | EPWA | 2026-09-10
-  13°C
-  model=0.3174 entry=0.0010
-  gross_edge=0.3164 fee=0.00005
-  net_ev=0.3163
+Mexico City | MMMX | 2026-09-10 | highest_temperature
+  bucket=exact value=26.0 low=26.0 high=26.0
+  model=0.225405 market=0.008 ask=0.014
+  family_sum=0.917567 family_status=PASS
+  edge=0.211405 net_ev=0.210715
+  forecast_mean=24.8333C sigma=1.2C
+  signal=PAPER_BUY
 
-Wellington | NZWN | 2026-09-11
-  7°C
-  model=0.3156 entry=0.0010
-  gross_edge=0.3146 fee=0.00005
-  net_ev=0.3146
+Shanghai | ZSPD | 2026-09-11 | lowest_temperature
+  bucket=exact value=22.0 low=22.0 high=22.0
+  model=0.313133 market=0.07 ask=0.1
+  family_sum=0.989294 family_status=PASS
+  edge=0.213133 net_ev=0.208633
+  forecast_mean=22.3C sigma=1.217C
+  signal=PAPER_BUY
 
-Amsterdam | EHAM | 2026-09-10
-  19°C
-  model=0.3115 entry=0.0010
-  gross_edge=0.3105 fee=0.00005
-  net_ev=0.3105
+Toronto | CYYZ | 2026-09-12 | highest_temperature
+  bucket=exact value=27.0 low=27.0 high=27.0
+  model=0.322458 market=0.1 ask=0.11
+  family_sum=0.998647 family_status=PASS
+  edge=0.212458 net_ev=0.207563
+  forecast_mean=26.9C sigma=1.2C
+  signal=PAPER_BUY
 
-Munich | EDDM | 2026-09-10
-  10°C
-  model=0.3092 entry=0.0010
-  gross_edge=0.3082 fee=0.00005
-  net_ev=0.3081
+Milan | LIMC | 2026-09-11 | highest_temperature
+  bucket=exact value=24.0 low=24.0 high=24.0
+  model=0.32103 market=0.1 ask=0.11
+  family_sum=0.997262 family_status=PASS
+  edge=0.21103 net_ev=0.206135
+  forecast_mean=24.1667C sigma=1.2C
+  signal=PAPER_BUY
 
-Zhengzhou | ZHCC | 2026-09-11
-  18°C
-  model=0.3092 entry=0.0010
-  gross_edge=0.3082 fee=0.00005
-  net_ev=0.3081
+Guangzhou | ZGGG | 2026-09-11 | highest_temperature
+  bucket=exact value=31.0 low=31.0 high=31.0
+  model=0.309253 market=0.09 ask=0.1
+  family_sum=0.999689 family_status=PASS
+  edge=0.209253 net_ev=0.204753
+  forecast_mean=30.6333C sigma=1.2C
+  signal=PAPER_BUY
 
-Austin | KAUS | 2026-09-10
-  78-79°F
-  model=0.3089 entry=0.0010
-  gross_edge=0.3079 fee=0.00005
-  net_ev=0.3078
+Manila | RPLL | 2026-09-11 | highest_temperature
+  bucket=exact value=28.0 low=28.0 high=28.0
+  model=0.294451 market=0.085 ask=0.09
+  family_sum=0.999594 family_status=PASS
+  edge=0.204451 net_ev=0.200356
+  forecast_mean=28.5333C sigma=1.2C
+  signal=PAPER_BUY
 
-Milan | LIMC | 2026-09-10
-  17°C
-  model=0.3038 entry=0.0010
-  gross_edge=0.3028 fee=0.00005
-  net_ev=0.3028
+Wuhan | ZHHH | 2026-09-12 | highest_temperature
+  bucket=exact value=29.0 low=29.0 high=29.0
+  model=0.283381 market=0.07 ask=0.08
+  family_sum=0.999689 family_status=PASS
+  edge=0.203381 net_ev=0.199701
+  forecast_mean=29.6333C sigma=1.2C
+  signal=PAPER_BUY
 
-New York City | KLGA | 2026-09-10
-  70-71°F
-  model=0.3201 entry=0.0200
-  gross_edge=0.3001 fee=0.00098
-  net_ev=0.2992
+Singapore | WSSS | 2026-09-12 | lowest_temperature
+  bucket=exact value=25.0 low=25.0 high=25.0
+  model=0.239009 market=0.03 ask=0.04
+  family_sum=0.993743 family_status=PASS
+  edge=0.199009 net_ev=0.197089
+  forecast_mean=25.8667C sigma=1.3477C
+  signal=PAPER_BUY
 
-Atlanta | KATL | 2026-09-10
-  88-89°F
-  model=0.2981 entry=0.0010
-  gross_edge=0.2971 fee=0.00005
-  net_ev=0.2971
+Kuala Lumpur | WMKK | 2026-09-11 | highest_temperature
+  bucket=exact value=29.0 low=29.0 high=29.0
+  model=0.279497 market=0.075 ask=0.08
+  family_sum=0.999291 family_status=PASS
+  edge=0.199497 net_ev=0.195817
+  forecast_mean=29.6667C sigma=1.2C
+  signal=PAPER_BUY
 
-Miami | KMIA | 2026-09-10
-  76-77°F
-  model=0.2981 entry=0.0010
-  gross_edge=0.2971 fee=0.00005
-  net_ev=0.2971
+Milan | LIMC | 2026-09-12 | highest_temperature
+  bucket=exact value=24.0 low=24.0 high=24.0
+  model=0.310558 market=0.095 ask=0.11
+  family_sum=0.995487 family_status=PASS
+  edge=0.200558 net_ev=0.195663
+  forecast_mean=24.3667C sigma=1.2C
+  signal=PAPER_BUY
 
-Sao Paulo | SBGR | 2026-09-10
-  18°C
-  model=0.2977 entry=0.0010
-  gross_edge=0.2967 fee=0.00005
-  net_ev=0.2966
+Singapore | WSSS | 2026-09-11 | highest_temperature
+  bucket=exact value=29.0 low=29.0 high=29.0
+  model=0.203463 market=0.005 ask=0.008
+  family_sum=0.966766 family_status=PASS
+  edge=0.195463 net_ev=0.195066
+  forecast_mean=29.8333C sigma=1.8049C
+  signal=PAPER_BUY
 
-Munich | EDDM | 2026-09-10
-  19°C
-  model=0.2943 entry=0.0010
-  gross_edge=0.2933 fee=0.00005
-  net_ev=0.2933
+Lucknow | VILK | 2026-09-12 | highest_temperature
+  bucket=exact value=31.0 low=31.0 high=31.0
+  model=0.243216 market=0.04 ask=0.05
+  family_sum=0.998519 family_status=PASS
+  edge=0.193216 net_ev=0.190841
+  forecast_mean=31.9333C sigma=1.2C
+  signal=PAPER_BUY
 
-Cape Town | FACT | 2026-09-10
-  15°C
-  model=0.2871 entry=0.0010
-  gross_edge=0.2861 fee=0.00005
-  net_ev=0.2861
+Guangzhou | ZGGG | 2026-09-12 | highest_temperature
+  bucket=exact value=32.0 low=32.0 high=32.0
+  model=0.323018 market=0.12 ask=0.13
+  family_sum=0.999822 family_status=PASS
+  edge=0.193018 net_ev=0.187363
+  forecast_mean=31.9667C sigma=1.2C
+  signal=PAPER_BUY
 
-Cape Town | FACT | 2026-09-10
-  20°C
-  model=0.2871 entry=0.0010
-  gross_edge=0.2861 fee=0.00005
-  net_ev=0.2861
+Guangzhou | ZGGG | 2026-09-12 | highest_temperature
+  bucket=exact value=31.0 low=31.0 high=31.0
+  model=0.23791 market=0.04 ask=0.05
+  family_sum=0.999822 family_status=PASS
+  edge=0.18791 net_ev=0.185535
+  forecast_mean=31.9667C sigma=1.2C
+  signal=PAPER_BUY
 
-Tokyo | RJTT | 2026-09-11
-  20°C
-  model=0.2833 entry=0.0010
-  gross_edge=0.2823 fee=0.00005
-  net_ev=0.2822
+Madrid | LEMD | 2026-09-11 | highest_temperature
+  bucket=exact value=29.0 low=29.0 high=29.0
+  model=0.196301 market=0.0145 ask=0.018
+  family_sum=0.999771 family_status=PASS
+  edge=0.178301 net_ev=0.177417
+  forecast_mean=30.2333C sigma=1.2C
+  signal=PAPER_BUY
 
-Warsaw | EPWA | 2026-09-10
-  19°C
-  model=0.2788 entry=0.0010
-  gross_edge=0.2778 fee=0.00005
-  net_ev=0.2777
+Los Angeles | KLAX | 2026-09-12 | highest_temperature
+  bucket=range value=None low=84.0 high=85.0
+  model=0.228614 market=0.04 ask=0.05
+  family_sum=0.954291 family_status=PASS
+  edge=0.178614 net_ev=0.176239
+  forecast_mean=29.5C sigma=2.7886C
+  signal=PAPER_BUY
 
-Los Angeles | KLAX | 2026-09-12
-  88°F or higher
-  model=0.3163 entry=0.0400
-  gross_edge=0.2763 fee=0.00192
-  net_ev=0.2744
+Milan | LIMC | 2026-09-11 | highest_temperature
+  bucket=exact value=23.0 low=23.0 high=23.0
+  model=0.207392 market=0.02 ask=0.03
+  family_sum=0.997262 family_status=PASS
+  edge=0.177392 net_ev=0.175937
+  forecast_mean=24.1667C sigma=1.2C
+  signal=PAPER_BUY
 
-New York City | KLGA | 2026-09-10
-  90-91°F
-  model=0.2745 entry=0.0010
-  gross_edge=0.2735 fee=0.00005
-  net_ev=0.2734
+Qingdao | ZSQD | 2026-09-11 | highest_temperature
+  bucket=exact value=29.0 low=29.0 high=29.0
+  model=0.215121 market=0.03 ask=0.04
+  family_sum=0.985898 family_status=PASS
+  edge=0.175121 net_ev=0.173201
+  forecast_mean=27.8667C sigma=1.2C
+  signal=PAPER_BUY
 
-Wellington | NZWN | 2026-09-11
-  6°C
-  model=0.2709 entry=0.0010
-  gross_edge=0.2699 fee=0.00005
-  net_ev=0.2698
+Los Angeles | KLAX | 2026-09-12 | highest_temperature
+  bucket=range value=None low=86.0 high=87.0
+  model=0.22165 market=0.025 ask=0.05
+  family_sum=0.954291 family_status=PASS
+  edge=0.17165 net_ev=0.169275
+  forecast_mean=29.5C sigma=2.7886C
+  signal=PAPER_BUY
 
-Manila | RPLL | 2026-09-11
-  26°C
-  model=0.2709 entry=0.0010
-  gross_edge=0.2699 fee=0.00005
-  net_ev=0.2698
+Beijing | ZBAA | 2026-09-11 | highest_temperature
+  bucket=exact value=30.0 low=30.0 high=30.0
+  model=0.233224 market=0.065 ask=0.07
+  family_sum=0.998229 family_status=PASS
+  edge=0.163224 net_ev=0.159969
+  forecast_mean=31.0C sigma=1.2C
+  signal=PAPER_BUY
 
-New York City | KLGA | 2026-09-11
-  66-67°F
-  model=0.3215 entry=0.0500
-  gross_edge=0.2715 fee=0.00237
-  net_ev=0.2691
+Ankara | LTAC | 2026-09-12 | highest_temperature
+  bucket=exact value=30.0 low=30.0 high=30.0
+  model=0.243216 market=0.06 ask=0.08
+  family_sum=0.998519 family_status=PASS
+  edge=0.163216 net_ev=0.159536
+  forecast_mean=30.9333C sigma=1.2C
+  signal=PAPER_BUY
 
-New York City | KLGA | 2026-09-10
-  88-89°F
-  model=0.3515 entry=0.0800
-  gross_edge=0.2715 fee=0.00368
-  net_ev=0.2678
+Qingdao | ZSQD | 2026-09-11 | highest_temperature
+  bucket=exact value=28.0 low=28.0 high=28.0
+  model=0.325796 market=0.135 ask=0.16
+  family_sum=0.985898 family_status=PASS
+  edge=0.165796 net_ev=0.159076
+  forecast_mean=27.8667C sigma=1.2C
+  signal=PAPER_BUY
 
-Manila | RPLL | 2026-09-12
-  28°C
-  model=0.3092 entry=0.0400
-  gross_edge=0.2692 fee=0.00192
-  net_ev=0.2672
+Singapore | WSSS | 2026-09-12 | highest_temperature
+  bucket=exact value=31.0 low=31.0 high=31.0
+  model=0.322994 market=0.15 ask=0.16
+  family_sum=0.964506 family_status=PASS
+  edge=0.162994 net_ev=0.156274
+  forecast_mean=30.6667C sigma=1.2C
+  signal=PAPER_BUY
 
-London | EGLC | 2026-09-10
-  15°C or higher
-  model=0.2683 entry=0.0010
-  gross_edge=0.2673 fee=0.00005
-  net_ev=0.2672
+Manila | RPLL | 2026-09-12 | highest_temperature
+  bucket=exact value=27.0 low=27.0 high=27.0
+  model=0.176665 market=0.015 ask=0.02
+  family_sum=0.99155 family_status=PASS
+  edge=0.156665 net_ev=0.155685
+  forecast_mean=28.3667C sigma=1.2C
+  signal=PAPER_BUY
 
-New York City | KLGA | 2026-09-12
-  60-61°F
-  model=0.3084 entry=0.0400
-  gross_edge=0.2684 fee=0.00192
-  net_ev=0.2665
+Toronto | CYYZ | 2026-09-12 | highest_temperature
+  bucket=exact value=28.0 low=28.0 high=28.0
+  model=0.217621 market=0.04 ask=0.06
+  family_sum=0.998647 family_status=PASS
+  edge=0.157621 net_ev=0.154801
+  forecast_mean=26.9C sigma=1.2C
+  signal=PAPER_BUY
 
-Madrid | LEMD | 2026-09-10
-  12°C
-  model=0.2668 entry=0.0010
-  gross_edge=0.2658 fee=0.00005
-  net_ev=0.2658
+Wellington | NZWN | 2026-09-12 | highest_temperature
+  bucket=exact value=12.0 low=12.0 high=12.0
+  model=0.185734 market=0.025 ask=0.03
+  family_sum=0.999736 family_status=PASS
+  edge=0.155734 net_ev=0.154279
+  forecast_mean=13.3C sigma=1.2C
+  signal=PAPER_BUY
 
-Warsaw | EPWA | 2026-09-10
-  14°C
-  model=0.2665 entry=0.0010
-  gross_edge=0.2655 fee=0.00005
-  net_ev=0.2654
+London | EGLC | 2026-09-11 | highest_temperature
+  bucket=exact value=21.0 low=21.0 high=21.0
+  model=0.20419 market=0.045 ask=0.05
+  family_sum=0.988435 family_status=PASS
+  edge=0.15419 net_ev=0.151815
+  forecast_mean=22.1C sigma=1.495C
+  signal=PAPER_BUY
 
-London | EGLC | 2026-09-10
-  13°C
-  model=0.2654 entry=0.0010
-  gross_edge=0.2644 fee=0.00005
-  net_ev=0.2643
+Sao Paulo | SBGR | 2026-09-11 | highest_temperature
+  bucket=exact value=30.0 low=30.0 high=30.0
+  model=0.297804 market=0.135 ask=0.14
+  family_sum=0.999555 family_status=PASS
+  edge=0.157804 net_ev=0.151784
+  forecast_mean=29.5C sigma=1.2C
+  signal=PAPER_BUY
 
-Wellington | NZWN | 2026-09-11
-  13°C
-  model=0.3092 entry=0.0430
-  gross_edge=0.2662 fee=0.00206
-  net_ev=0.2641
+Seoul (Incheon) | RKSI | 2026-09-11 | highest_temperature
+  bucket=exact value=23.0 low=23.0 high=23.0
+  model=0.24337 market=0.085 ask=0.09
+  family_sum=0.997887 family_status=PASS
+  edge=0.15337 net_ev=0.149275
+  forecast_mean=23.9333C sigma=1.2C
+  signal=PAPER_BUY
 
-Miami | KMIA | 2026-09-11
-  84-85°F
-  model=0.2849 entry=0.0200
-  gross_edge=0.2649 fee=0.00098
-  net_ev=0.2639
+Qingdao | ZSQD | 2026-09-12 | highest_temperature
+  bucket=exact value=28.0 low=28.0 high=28.0
+  model=0.324523 market=0.16 ask=0.17
+  family_sum=0.966623 family_status=PASS
+  edge=0.154523 net_ev=0.147468
+  forecast_mean=28.3C sigma=1.2C
+  signal=PAPER_BUY
 
-Mexico City | MMMX | 2026-09-10
-  24°C
-  model=0.2573 entry=0.0010
-  gross_edge=0.2563 fee=0.00005
-  net_ev=0.2563
+Wuhan | ZHHH | 2026-09-11 | highest_temperature
+  bucket=exact value=26.0 low=26.0 high=26.0
+  model=0.171296 market=0.0165 ask=0.023
+  family_sum=0.992168 family_status=PASS
+  edge=0.148296 net_ev=0.147173
+  forecast_mean=27.4C sigma=1.2C
+  signal=PAPER_BUY
 
-Austin | KAUS | 2026-09-11
-  96-97°F
-  model=0.3289 entry=0.0700
-  gross_edge=0.2589 fee=0.00326
-  net_ev=0.2557
+Shanghai | ZSPD | 2026-09-11 | highest_temperature
+  bucket=exact value=26.0 low=26.0 high=26.0
+  model=0.157106 market=0.007 ask=0.011
+  family_sum=0.906056 family_status=PASS
+  edge=0.146106 net_ev=0.145562
+  forecast_mean=27.7C sigma=1.6705C
+  signal=PAPER_BUY
 
-Guangzhou | ZGGG | 2026-09-11
-  30°C
-  model=0.2833 entry=0.0300
-  gross_edge=0.2533 fee=0.00145
-  net_ev=0.2518
+Milan | LIMC | 2026-09-12 | highest_temperature
+  bucket=exact value=23.0 low=23.0 high=23.0
+  model=0.175966 market=0.02 ask=0.03
+  family_sum=0.995487 family_status=PASS
+  edge=0.145966 net_ev=0.144511
+  forecast_mean=24.3667C sigma=1.2C
+  signal=PAPER_BUY
 
-Madrid | LEMD | 2026-09-10
-  26°C
-  model=0.2526 entry=0.0010
-  gross_edge=0.2516 fee=0.00005
-  net_ev=0.2515
+Lucknow | VILK | 2026-09-11 | highest_temperature
+  bucket=exact value=31.0 low=31.0 high=31.0
+  model=0.228138 market=0.07 ask=0.08
+  family_sum=0.998065 family_status=PASS
+  edge=0.148138 net_ev=0.144458
+  forecast_mean=32.0333C sigma=1.2C
+  signal=PAPER_BUY
 
-Toronto | CYYZ | 2026-09-10
-  26°C
-  model=0.2634 entry=0.0130
-  gross_edge=0.2504 fee=0.00064
-  net_ev=0.2497
+Toronto | CYYZ | 2026-09-11 | highest_temperature
+  bucket=exact value=25.0 low=25.0 high=25.0
+  model=0.19644 market=0.045 ask=0.05
+  family_sum=0.999062 family_status=PASS
+  edge=0.14644 net_ev=0.144065
+  forecast_mean=23.7667C sigma=1.2C
+  signal=PAPER_BUY
 
-Milan | LIMC | 2026-09-10
-  21°C
-  model=0.2478 entry=0.0010
-  gross_edge=0.2468 fee=0.00005
-  net_ev=0.2467
+Helsinki | EFHK | 2026-09-11 | highest_temperature
+  bucket=exact value=18.0 low=18.0 high=18.0
+  model=0.248139 market=0.09 ask=0.1
+  family_sum=0.978709 family_status=PASS
+  edge=0.148139 net_ev=0.143639
+  forecast_mean=17.0667C sigma=1.2C
+  signal=PAPER_BUY
 
-Panama City | MPMG | 2026-09-10
-  29°C
-  model=0.2478 entry=0.0010
-  gross_edge=0.2468 fee=0.00005
-  net_ev=0.2467
+Buenos Aires | SAEZ | 2026-09-11 | highest_temperature
+  bucket=exact value=18.0 low=18.0 high=18.0
+  model=0.257383 market=0.1 ask=0.11
+  family_sum=0.999797 family_status=PASS
+  edge=0.147383 net_ev=0.142488
+  forecast_mean=18.8333C sigma=1.2C
+  signal=PAPER_BUY
