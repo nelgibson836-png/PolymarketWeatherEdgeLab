@@ -1,0 +1,10 @@
+{
+  "collector_version": "10.0",
+  "schema_version": "10.0",
+  "collected_at": "2026-09-10T20:31:40.769294+00:00",
+  "observations_count": 45,
+  "forecast_rows_count": 255,
+  "observation_file": "data/weather/history/observations.csv",
+  "forecast_file": "data/weather/history/forecasts.csv",
+  "station_registry": "data/weather/station_registry.json"
+}

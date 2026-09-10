@@ -1,0 +1,452 @@
+{
+  "CYYZ": {
+    "station": "CYYZ",
+    "latitude": 43.679,
+    "longitude": -79.629,
+    "name": "Toronto/Pearson Intl",
+    "country": "CA",
+    "elevation_m": 171.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:10:52.410938+00:00"
+  },
+  "EDDM": {
+    "station": "EDDM",
+    "latitude": 48.348,
+    "longitude": 11.813,
+    "name": "Munich Intl",
+    "country": "DE",
+    "elevation_m": 445.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:10:52.747879+00:00"
+  },
+  "EFHK": {
+    "station": "EFHK",
+    "latitude": 60.327,
+    "longitude": 24.957,
+    "name": "Helsinki/Vantaa Arpt",
+    "country": "FI",
+    "elevation_m": 56.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:10:57.756516+00:00"
+  },
+  "EGLC": {
+    "station": "EGLC",
+    "latitude": 51.505,
+    "longitude": 0.055,
+    "name": "London City Arpt",
+    "country": "GB",
+    "elevation_m": 10.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:10:58.031280+00:00"
+  },
+  "EHAM": {
+    "station": "EHAM",
+    "latitude": 52.315,
+    "longitude": 4.79,
+    "name": "Amsterdam/Schiphol Arpt",
+    "country": "NL",
+    "elevation_m": -2.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:00.790439+00:00"
+  },
+  "EPWA": {
+    "station": "EPWA",
+    "latitude": 52.163,
+    "longitude": 20.961,
+    "name": "Warsaw/Chopin Arpt",
+    "country": "PL",
+    "elevation_m": 107.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:01.296678+00:00"
+  },
+  "FACT": {
+    "station": "FACT",
+    "latitude": -33.965,
+    "longitude": 18.602,
+    "name": "Capetown Intl",
+    "country": "ZA",
+    "elevation_m": 48.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:01.582267+00:00"
+  },
+  "KATL": {
+    "station": "KATL",
+    "latitude": 33.62972,
+    "longitude": -84.44223,
+    "name": "Atlanta/Hartsfield-Jackson Intl",
+    "country": "US",
+    "elevation_m": 309.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:02.149515+00:00"
+  },
+  "KAUS": {
+    "station": "KAUS",
+    "latitude": 30.1831,
+    "longitude": -97.68063,
+    "name": "Austin/Bergstrom Intl",
+    "country": "US",
+    "elevation_m": 148.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:03.956242+00:00"
+  },
+  "KBKF": {
+    "station": "KBKF",
+    "latitude": 39.713,
+    "longitude": -104.758,
+    "name": "Buckley SFB",
+    "country": "US",
+    "elevation_m": 1703.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:04.303269+00:00"
+  },
+  "KDAL": {
+    "station": "KDAL",
+    "latitude": 32.83836,
+    "longitude": -96.83584,
+    "name": "Dallas/Love Fld",
+    "country": "US",
+    "elevation_m": 148.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:04.581923+00:00"
+  },
+  "KHOU": {
+    "station": "KHOU",
+    "latitude": 29.64582,
+    "longitude": -95.28214,
+    "name": "Houston/Hobby Arpt",
+    "country": "US",
+    "elevation_m": 13.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:04.964013+00:00"
+  },
+  "KLAX": {
+    "station": "KLAX",
+    "latitude": 33.93817,
+    "longitude": -118.3866,
+    "name": "Los Angeles Intl",
+    "country": "US",
+    "elevation_m": 30.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:05.236067+00:00"
+  },
+  "KLGA": {
+    "station": "KLGA",
+    "latitude": 40.77945,
+    "longitude": -73.88027,
+    "name": "New York/La Guardia Arpt",
+    "country": "US",
+    "elevation_m": 9.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:05.557369+00:00"
+  },
+  "KMIA": {
+    "station": "KMIA",
+    "latitude": 25.78806,
+    "longitude": -80.31692,
+    "name": "Miami Intl",
+    "country": "US",
+    "elevation_m": 1.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:05.892435+00:00"
+  },
+  "KORD": {
+    "station": "KORD",
+    "latitude": 41.96017,
+    "longitude": -87.93161,
+    "name": "Chicago/O'Hare Intl",
+    "country": "US",
+    "elevation_m": 202.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:07.395617+00:00"
+  },
+  "KSEA": {
+    "station": "KSEA",
+    "latitude": 47.44467,
+    "longitude": -122.31442,
+    "name": "Seattle-Tacoma Intl",
+    "country": "US",
+    "elevation_m": 115.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:08.716553+00:00"
+  },
+  "KSFO": {
+    "station": "KSFO",
+    "latitude": 37.61961,
+    "longitude": -122.36561,
+    "name": "San Francisco Intl",
+    "country": "US",
+    "elevation_m": 2.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:08.968013+00:00"
+  },
+  "LEMD": {
+    "station": "LEMD",
+    "latitude": 40.466,
+    "longitude": -3.555,
+    "name": "Madrid/Barajas Arpt",
+    "country": "ES",
+    "elevation_m": 589.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:09.282969+00:00"
+  },
+  "LFPB": {
+    "station": "LFPB",
+    "latitude": 48.967,
+    "longitude": 2.428,
+    "name": "Paris/Le Bourge Arpt",
+    "country": "FR",
+    "elevation_m": 50.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:09.579584+00:00"
+  },
+  "LIMC": {
+    "station": "LIMC",
+    "latitude": 45.631,
+    "longitude": 8.728,
+    "name": "Milan/Malpensa Arpt",
+    "country": "IT",
+    "elevation_m": 221.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:28.826488+00:00"
+  },
+  "LTAC": {
+    "station": "LTAC",
+    "latitude": 40.128,
+    "longitude": 32.995,
+    "name": "Ankara/Esenboğa Intl",
+    "country": "TR",
+    "elevation_m": 952.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:29.117821+00:00"
+  },
+  "MMMX": {
+    "station": "MMMX",
+    "latitude": 19.436,
+    "longitude": -99.072,
+    "name": "Mexico City Intl",
+    "country": "MX",
+    "elevation_m": 2224.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:29.535848+00:00"
+  },
+  "MPMG": {
+    "station": "MPMG",
+    "latitude": 8.967,
+    "longitude": -79.555,
+    "name": "Panama/Gelabert Intl",
+    "country": "PA",
+    "elevation_m": 6.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:29.919816+00:00"
+  },
+  "NZWN": {
+    "station": "NZWN",
+    "latitude": -41.331,
+    "longitude": 174.806,
+    "name": "Wellington Intl",
+    "country": "NZ",
+    "elevation_m": 12.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:30.308848+00:00"
+  },
+  "OEJN": {
+    "station": "OEJN",
+    "latitude": 21.685,
+    "longitude": 39.166,
+    "name": "Jeddah/King Abdulaziz Intl",
+    "country": "SA",
+    "elevation_m": 8.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:30.668761+00:00"
+  },
+  "OPKC": {
+    "station": "OPKC",
+    "latitude": 24.902,
+    "longitude": 67.139,
+    "name": "Karachi/Jinnah Intl",
+    "country": "PK",
+    "elevation_m": 20.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:31.033249+00:00"
+  },
+  "RJTT": {
+    "station": "RJTT",
+    "latitude": 35.553,
+    "longitude": 139.781,
+    "name": "Tokyo/Haneda Intl",
+    "country": "JP",
+    "elevation_m": 5.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:31.386858+00:00"
+  },
+  "RKPK": {
+    "station": "RKPK",
+    "latitude": 35.179,
+    "longitude": 128.938,
+    "name": "Busan/Gimhae Intl",
+    "country": "KR",
+    "elevation_m": 3.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:31.739136+00:00"
+  },
+  "RKSI": {
+    "station": "RKSI",
+    "latitude": 37.469,
+    "longitude": 126.451,
+    "name": "Seoul/Incheon Intl",
+    "country": "KR",
+    "elevation_m": 7.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:32.086053+00:00"
+  },
+  "RPLL": {
+    "station": "RPLL",
+    "latitude": 14.507,
+    "longitude": 121.004,
+    "name": "Manila/Aquino Intl",
+    "country": "PH",
+    "elevation_m": 15.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:32.440436+00:00"
+  },
+  "SAEZ": {
+    "station": "SAEZ",
+    "latitude": -34.822,
+    "longitude": -58.536,
+    "name": "Buenos Aires/Pistarini Arpt",
+    "country": "AR",
+    "elevation_m": 16.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:32.827051+00:00"
+  },
+  "SBGR": {
+    "station": "SBGR",
+    "latitude": -23.432,
+    "longitude": -46.469,
+    "name": "Sao Paulo Intl",
+    "country": "BR",
+    "elevation_m": 745.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:34.121429+00:00"
+  },
+  "VILK": {
+    "station": "VILK",
+    "latitude": 26.761,
+    "longitude": 80.889,
+    "name": "Lucknow/Singh Arpt",
+    "country": "IN",
+    "elevation_m": 121.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:34.542571+00:00"
+  },
+  "WMKK": {
+    "station": "WMKK",
+    "latitude": 2.747,
+    "longitude": 101.714,
+    "name": "Kuala Lumpur Intl",
+    "country": "MY",
+    "elevation_m": 21.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:34.899656+00:00"
+  },
+  "WSSS": {
+    "station": "WSSS",
+    "latitude": 1.368,
+    "longitude": 103.982,
+    "name": "Singapore/Changi Intl",
+    "country": "SG",
+    "elevation_m": 17.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:35.255361+00:00"
+  },
+  "ZBAA": {
+    "station": "ZBAA",
+    "latitude": 40.082,
+    "longitude": 116.603,
+    "name": "Beijing Intl",
+    "country": "CN",
+    "elevation_m": 31.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:35.625346+00:00"
+  },
+  "ZGGG": {
+    "station": "ZGGG",
+    "latitude": 23.392,
+    "longitude": 113.307,
+    "name": "Guangzhou/Baiyun Intl",
+    "country": "CN",
+    "elevation_m": 11.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:35.981997+00:00"
+  },
+  "ZGSZ": {
+    "station": "ZGSZ",
+    "latitude": 22.639,
+    "longitude": 113.803,
+    "name": "Shenzhen/Boan Intl",
+    "country": "CN",
+    "elevation_m": 18.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:36.345849+00:00"
+  },
+  "ZHCC": {
+    "station": "ZHCC",
+    "latitude": 34.52,
+    "longitude": 113.834,
+    "name": "Zhengzhou/Xinzheng Arpt",
+    "country": "CN",
+    "elevation_m": 149.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:37.747373+00:00"
+  },
+  "ZHHH": {
+    "station": "ZHHH",
+    "latitude": 30.783,
+    "longitude": 114.205,
+    "name": "Wuhan/Tianhe Intl",
+    "country": "CN",
+    "elevation_m": 33.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:38.099305+00:00"
+  },
+  "ZSPD": {
+    "station": "ZSPD",
+    "latitude": 31.146,
+    "longitude": 121.8,
+    "name": "Shanghai/Pudong Intl",
+    "country": "CN",
+    "elevation_m": 4.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:38.455066+00:00"
+  },
+  "ZSQD": {
+    "station": "ZSQD",
+    "latitude": 36.362,
+    "longitude": 120.087,
+    "name": "Qingdao/Jiaodong Arpt",
+    "country": "CN",
+    "elevation_m": 2.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:38.883476+00:00"
+  },
+  "ZUCK": {
+    "station": "ZUCK",
+    "latitude": 29.718,
+    "longitude": 106.639,
+    "name": "Chongqing/Jiangbei Intl",
+    "country": "CN",
+    "elevation_m": 416.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:39.250172+00:00"
+  },
+  "ZUUU": {
+    "station": "ZUUU",
+    "latitude": 30.576,
+    "longitude": 103.95,
+    "name": "Chengdu/Shuangliu Intl",
+    "country": "CN",
+    "elevation_m": 494.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-09-10T20:11:39.829146+00:00"
+  }
+}
