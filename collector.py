@@ -11,13 +11,14 @@ import requests
 
 # ============================================================
 # POLYMARKET WEATHER EDGE LAB
-# Temperature + Weather Collector V10.1
+# Temperature + Weather Collector V10.2
 # ============================================================
 
-COLLECTOR_VERSION = "10.1"
-SCHEMA_VERSION = "10.1"
+COLLECTOR_VERSION = "10.2"
+SCHEMA_VERSION = "10.2"
 
 POLYMARKET_API = "https://gamma-api.polymarket.com"
+
 WEATHER_TAG_ID = 84
 WEATHER_TAG_SLUG = "weather"
 
@@ -89,16 +90,22 @@ REQUEST_TIMEOUT = 15
 EVENT_PAGE_SIZE = 100
 MAX_EVENT_PAGES = 20
 
+# Open-Meteo supports multiple coordinates.
+# 40 per batch keeps URLs/responses manageable.
 OPEN_METEO_BATCH_SIZE = 40
 
 HEADERS = {
     "User-Agent": (
-        "PolymarketWeatherEdgeLab/10.1 "
+        "PolymarketWeatherEdgeLab/10.2 "
         "(research project)"
     ),
     "Accept": "application/json",
 }
 
+
+# ============================================================
+# FILE SCHEMAS
+# ============================================================
 
 MARKET_HISTORY_FIELDS = [
     "collected_at",
@@ -171,6 +178,10 @@ def utc_iso():
     return utc_now().isoformat()
 
 
+def utc_date_string():
+    return utc_now().strftime("%Y-%m-%d")
+
+
 def safe_float(value):
     try:
         if value in (None, ""):
@@ -192,10 +203,15 @@ def safe_json(value):
     ):
         return value
 
-    if isinstance(value, str):
+    if isinstance(
+        value,
+        str,
+    ):
 
         try:
-            return json.loads(value)
+            return json.loads(
+                value
+            )
 
         except Exception:
             return None
@@ -256,67 +272,6 @@ def ensure_directories():
         )
 
 
-def write_json(
-    path,
-    payload,
-):
-
-    tmp_path = (
-        f"{path}.tmp"
-    )
-
-    with open(
-        tmp_path,
-        "w",
-        encoding="utf-8",
-    ) as handle:
-
-        json.dump(
-            payload,
-            handle,
-            ensure_ascii=False,
-            indent=2,
-        )
-
-    os.replace(
-        tmp_path,
-        path,
-    )
-
-
-def append_csv(
-    path,
-    fields,
-    rows,
-):
-
-    if not rows:
-        return
-
-    exists = os.path.exists(
-        path
-    )
-
-    with open(
-        path,
-        "a",
-        newline="",
-        encoding="utf-8",
-    ) as handle:
-
-        writer = csv.DictWriter(
-            handle,
-            fieldnames=fields,
-            extrasaction="ignore",
-        )
-
-        if not exists:
-            writer.writeheader()
-
-        for row in rows:
-            writer.writerow(row)
-
-
 def request_json(
     url,
     params=None,
@@ -348,7 +303,7 @@ def get_weather_events():
 
     offset = 0
 
-    for _ in range(
+    for page in range(
         MAX_EVENT_PAGES
     ):
 
@@ -401,10 +356,12 @@ def get_weather_events():
 
 
 # ============================================================
-# CITY / DATE / MARKET TYPE
+# QUESTION PARSING
 # ============================================================
 
-def extract_city(question):
+def extract_city(
+    question,
+):
 
     if not question:
         return None
@@ -413,13 +370,13 @@ def extract_city(question):
         question
     )
 
-    # Normal weather-market forms:
+    # Primary pattern:
     #
-    # "Will the highest temperature in London be 20°C?"
-    # "Will the lowest temperature in London be 5°C or below?"
-    # "What will the highest temperature in Tokyo be?"
+    # Will the highest temperature in London be 20°C?
+    # Will the lowest temperature in Munich be 7°C?
     #
-    # We first isolate the text after "temperature in".
+    # Everything after "temperature in" is a candidate,
+    # then we remove the market-specific portion.
     match = re.search(
         r"temperature\s+in\s+(.+)",
         q,
@@ -428,19 +385,39 @@ def extract_city(question):
 
     if match:
 
-        city = match.group(1).strip()
+        city = (
+            match.group(1)
+            .strip()
+        )
 
-        # Remove everything beginning with
-        # "be", "on", "at", "for" when followed
-        # by the market's temperature/date/rule.
+        # The city ends before "be".
+        #
+        # Example:
+        # London be 8°C
+        # London be 8°C or below
+        # Tokyo be 31°C
+        city_match = re.match(
+            r"(.+?)\s+\bbe\b",
+            city,
+            re.IGNORECASE,
+        )
+
+        if city_match:
+
+            city = (
+                city_match.group(1)
+                .strip()
+            )
+
+        # Safety fallback if a date appears.
         city = re.split(
-            r"\s+\b(?:be|on|at|for)\b\s+",
+            r"\s+\bon\b\s+\d{4}-\d{2}-\d{2}",
             city,
             maxsplit=1,
             flags=re.IGNORECASE,
         )[0]
 
-        # Safety cleanup for temperature buckets.
+        # Remove trailing temperature expression.
         city = re.split(
             r"\s+-?\d+(?:\.\d+)?\s*°?\s*[CF]\b",
             city,
@@ -448,17 +425,17 @@ def extract_city(question):
             flags=re.IGNORECASE,
         )[0]
 
-        city = re.sub(
-            r"\s*[-–]\s*$",
-            "",
-            city,
-        ).strip(" ?!")
+        city = city.strip(
+            " ?!"
+        )
 
         if city:
-            return clean_text(city)
 
-    # Fallback:
-    # everything between "in" and "be/on".
+            return clean_text(
+                city
+            )
+
+    # Fallback for unusual wording.
     match = re.search(
         r"\bin\s+(.+?)(?:\s+\b(?:be|on|at|for)\b|\?|$)",
         q,
@@ -472,6 +449,7 @@ def extract_city(question):
         )
 
         if city:
+
             return city
 
     return None
@@ -481,6 +459,7 @@ def extract_market_date(
     market,
 ):
 
+    # Prefer explicit market metadata.
     for key in (
         "endDateIso",
         "endDate",
@@ -492,7 +471,10 @@ def extract_market_date(
         )
 
         if value:
-            return str(value)[:10]
+
+            return str(
+                value
+            )[:10]
 
     question = (
         market.get(
@@ -501,14 +483,16 @@ def extract_market_date(
         or ""
     )
 
-    # ISO date directly in question.
     match = re.search(
         r"(\d{4}-\d{2}-\d{2})",
         question,
     )
 
     if match:
-        return match.group(1)
+
+        return match.group(
+            1
+        )
 
     return None
 
@@ -566,6 +550,7 @@ def detect_temperature_unit(
         or "degrees f" in text
         or "fahrenheit" in text
     ):
+
         return "F"
 
     if (
@@ -573,13 +558,14 @@ def detect_temperature_unit(
         or "degrees c" in text
         or "celsius" in text
     ):
+
         return "C"
 
     return None
 
 
 # ============================================================
-# RESOLUTION STATION
+# RESOLUTION SOURCE / STATION
 # ============================================================
 
 def extract_resolution_station(
@@ -592,7 +578,9 @@ def extract_resolution_station(
     try:
 
         parsed = urlparse(
-            str(resolution_source)
+            str(
+                resolution_source
+            )
         )
 
         query = parse_qs(
@@ -615,7 +603,6 @@ def extract_resolution_station(
 
             raw = values[0]
 
-            # Prefer a station-like token.
             candidates = re.findall(
                 r"[A-Za-z0-9]{4,6}",
                 raw,
@@ -636,14 +623,17 @@ def extract_resolution_station(
 
         path_match = re.search(
             r"(?:site|station)[=/\-]([A-Za-z0-9]{4,6})",
-            str(resolution_source),
+            str(
+                resolution_source
+            ),
             re.IGNORECASE,
         )
 
         if path_match:
 
             return (
-                path_match.group(1)
+                path_match
+                .group(1)
                 .upper()
             )
 
@@ -661,7 +651,9 @@ def detect_resolution_provider(
         return None
 
     text = (
-        str(resolution_source)
+        str(
+            resolution_source
+        )
         .lower()
     )
 
@@ -678,7 +670,7 @@ def detect_resolution_provider(
 
 
 # ============================================================
-# BUCKET PARSER
+# BUCKET PARSING
 # ============================================================
 
 def extract_bucket(
@@ -694,20 +686,37 @@ def extract_bucket(
         or ""
     )
 
-    text = (
-        f"{question or ''} "
-        f"{title}"
+    text = clean_text(
+        f"{question or ''} {title}"
     )
 
-    # Explicit lower bound.
+    # --------------------------------------------------------
+    # LOWER / OR BELOW
+    # --------------------------------------------------------
+
     lower_match = re.search(
-        r"(?:or below|or lower|or less|or under|below|<=)\s*(-?\d+(?:\.\d+)?)",
-        text,
+        r"(-?\d+(?:\.\d+)?)"
+        r"\s*°?\s*[CF]?"
+        r"\s*"
+        r"(?:or\s+below|or\s+lower|or\s+less|or\s+under)",
+        title,
         re.IGNORECASE,
     )
 
+    if not lower_match:
+
+        lower_match = re.search(
+            r"(?:below|under|<=)"
+            r"\s*"
+            r"(-?\d+(?:\.\d+)?)",
+            text,
+            re.IGNORECASE,
+        )
+
     if lower_match:
 
+        # With the first pattern the number is group 1.
+        # With the fallback it is also group 1.
         value = safe_float(
             lower_match.group(1)
         )
@@ -719,12 +728,28 @@ def extract_bucket(
             value,
         )
 
-    # Explicit upper bound.
+    # --------------------------------------------------------
+    # HIGHER / OR ABOVE
+    # --------------------------------------------------------
+
     higher_match = re.search(
-        r"(?:or higher|or above|or more|or over|above|>=)\s*(-?\d+(?:\.\d+)?)",
-        text,
+        r"(-?\d+(?:\.\d+)?)"
+        r"\s*°?\s*[CF]?"
+        r"\s*"
+        r"(?:or\s+higher|or\s+above|or\s+more|or\s+over)",
+        title,
         re.IGNORECASE,
     )
+
+    if not higher_match:
+
+        higher_match = re.search(
+            r"(?:above|over|>=)"
+            r"\s*"
+            r"(-?\d+(?:\.\d+)?)",
+            text,
+            re.IGNORECASE,
+        )
 
     if higher_match:
 
@@ -739,9 +764,14 @@ def extract_bucket(
             None,
         )
 
-    # Ranges.
+    # --------------------------------------------------------
+    # RANGE
+    # --------------------------------------------------------
+
     range_match = re.search(
-        r"(-?\d+(?:\.\d+)?)\s*(?:to|[-–])\s*(-?\d+(?:\.\d+)?)",
+        r"(-?\d+(?:\.\d+)?)"
+        r"\s*(?:to|[-–])\s*"
+        r"(-?\d+(?:\.\d+)?)",
         title,
         re.IGNORECASE,
     )
@@ -763,9 +793,13 @@ def extract_bucket(
             high,
         )
 
-    # Exact temperature.
+    # --------------------------------------------------------
+    # EXACT
+    # --------------------------------------------------------
+
     exact_match = re.search(
-        r"(-?\d+(?:\.\d+)?)\s*°?\s*[CF]\b",
+        r"(-?\d+(?:\.\d+)?)"
+        r"\s*°?\s*[CF]\b",
         title,
         re.IGNORECASE,
     )
@@ -783,7 +817,10 @@ def extract_bucket(
             value,
         )
 
-    # Numeric threshold field supplied by Polymarket.
+    # --------------------------------------------------------
+    # POLYMARKET NUMERIC THRESHOLD
+    # --------------------------------------------------------
+
     threshold = safe_float(
         group_threshold
     )
@@ -850,7 +887,8 @@ def normalize_market(
             prices,
             list,
         )
-        and len(prices) >= 2
+        and
+        len(prices) >= 2
     ):
 
         yes_price = safe_float(
@@ -866,10 +904,12 @@ def normalize_market(
             tokens,
             list,
         )
-        and len(tokens) >= 2
+        and
+        len(tokens) >= 2
     ):
 
         yes_token = tokens[0]
+
         no_token = tokens[1]
 
     best_bid = safe_float(
@@ -888,7 +928,8 @@ def normalize_market(
 
     if (
         best_bid is not None
-        and best_ask is not None
+        and
+        best_ask is not None
     ):
 
         spread = (
@@ -902,8 +943,10 @@ def normalize_market(
         )
     )
 
-    station = extract_resolution_station(
-        resolution_source
+    station = (
+        extract_resolution_station(
+            resolution_source
+        )
     )
 
     provider = (
@@ -912,12 +955,16 @@ def normalize_market(
         )
     )
 
-    market_date = extract_market_date(
-        market
+    market_date = (
+        extract_market_date(
+            market
+        )
     )
 
-    market_type = detect_market_type(
-        question
+    market_type = (
+        detect_market_type(
+            question
+        )
     )
 
     temperature_unit = (
@@ -949,6 +996,7 @@ def normalize_market(
             normalize_name(
                 city
             ),
+
             str(
                 market_date
                 or "unknown"
@@ -956,11 +1004,14 @@ def normalize_market(
                 "-",
                 "_",
             ),
+
             market_type,
+
             (
                 temperature_unit
                 or "unknown"
             ).lower(),
+
             (
                 station
                 or "unknown"
@@ -1190,7 +1241,23 @@ def collect_markets(
     return markets
 
 
-def is_active_candidate(
+# ============================================================
+# CURRENT / TRADEABLE MARKET FILTER
+# ============================================================
+
+def is_current_market_date(
+    market_date,
+):
+
+    if not market_date:
+        return False
+
+    today = utc_date_string()
+
+    return market_date >= today
+
+
+def is_current_candidate(
     market,
 ):
 
@@ -1198,39 +1265,45 @@ def is_active_candidate(
         market.get(
             "active"
         ) is True
-        and
-        market.get(
+
+        and market.get(
             "closed"
         ) is False
-        and
-        market.get(
+
+        and market.get(
             "accepting_orders"
         ) is True
-        and
-        market.get(
+
+        and market.get(
             "enable_order_book"
         ) is True
-        and
-        market.get(
+
+        and market.get(
             "approved"
         ) is True
-        and
-        market.get(
+
+        and market.get(
             "city"
         ) is not None
-        and
-        market.get(
+
+        and market.get(
             "market_date"
         ) is not None
-        and
-        market.get(
+
+        and is_current_market_date(
+            market.get(
+                "market_date"
+            )
+        )
+
+        and market.get(
             "bucket_type"
         ) != "unknown"
     )
 
 
 # ============================================================
-# MARKET HISTORY
+# HISTORICAL FILES
 # ============================================================
 
 def write_market_history(
@@ -1255,7 +1328,8 @@ def write_market_history(
                 field: market.get(
                     field
                 )
-                for field in MARKET_HISTORY_FIELDS
+                for field
+                in MARKET_HISTORY_FIELDS
             }
         )
 
@@ -1293,12 +1367,15 @@ def write_snapshot(
         "collector_version": (
             COLLECTOR_VERSION
         ),
+
         "schema_version": (
             SCHEMA_VERSION
         ),
+
         "collected_at": (
             utc_iso()
         ),
+
         "markets": markets,
     }
 
@@ -1319,6 +1396,7 @@ def load_station_registry():
     if not os.path.exists(
         STATION_REGISTRY_FILE
     ):
+
         return {}
 
     try:
@@ -1416,6 +1494,7 @@ def get_station_info(
         records = []
 
     if not records:
+
         return None
 
     record = records[0]
@@ -1540,10 +1619,16 @@ def refresh_station_registry(
                     station
                 ] = {
                     "station": station,
+
                     "latitude": None,
+
                     "longitude": None,
+
                     "status": "not_found",
-                    "updated_at": utc_iso(),
+
+                    "updated_at": (
+                        utc_iso()
+                    ),
                 }
 
         except Exception as exc:
@@ -1561,7 +1646,7 @@ def refresh_station_registry(
 
 
 # ============================================================
-# METAR - ONE BATCH
+# METAR - BATCH QUERY
 # ============================================================
 
 def collect_metar_batch(
@@ -1570,13 +1655,14 @@ def collect_metar_batch(
 
     stations = sorted(
         {
-            s
-            for s in stations
-            if s
+            station
+            for station in stations
+            if station
         }
     )
 
     if not stations:
+
         return []
 
     ids = ",".join(
@@ -1590,7 +1676,8 @@ def collect_metar_batch(
 
     print(
         "Consultando METAR en una sola "
-        f"petición para {len(stations)} estaciones..."
+        f"petición para "
+        f"{len(stations)} estaciones..."
     )
 
     try:
@@ -1669,8 +1756,9 @@ def collect_metar_batch(
                 ),
 
                 "station": (
-                    str(station)
-                    .upper()
+                    str(
+                        station
+                    ).upper()
                 ),
 
                 "observation_time": (
@@ -1736,10 +1824,10 @@ def collect_metar_batch(
 
 
 # ============================================================
-# OPEN-METEO MULTI-LOCATION FORECAST
+# OPEN-METEO
 # ============================================================
 
-def build_location_batches(
+def build_location_list(
     registry,
     stations,
 ):
@@ -1771,15 +1859,25 @@ def build_location_batches(
             latitude is None
             or longitude is None
         ):
+
             continue
 
         locations.append(
             {
                 "station": station,
+
                 "latitude": latitude,
+
                 "longitude": longitude,
             }
         )
+
+    return locations
+
+
+def build_batches(
+    locations,
+):
 
     batches = []
 
@@ -1792,7 +1890,8 @@ def build_location_batches(
         batches.append(
             locations[
                 index:
-                index + OPEN_METEO_BATCH_SIZE
+                index
+                + OPEN_METEO_BATCH_SIZE
             ]
         )
 
@@ -1812,10 +1911,21 @@ def extract_target_dates(
             if m.get(
                 "market_date"
             )
+            and
+            is_current_market_date(
+                m.get(
+                    "market_date"
+                )
+            )
         }
     )
 
-    return dates
+    # Current weather markets normally need only
+    # the immediate upcoming dates.
+    #
+    # We keep a small horizon to avoid unnecessary API
+    # traffic if Polymarket suddenly lists many future dates.
+    return dates[:3]
 
 
 def parse_open_meteo_batch(
@@ -1852,18 +1962,19 @@ def parse_open_meteo_batch(
         responses
     ):
 
-        if index >= len(locations):
+        if index >= len(
+            locations
+        ):
+
             break
 
         location = locations[
             index
         ]
 
-        station = (
-            location[
-                "station"
-            ]
-        )
+        station = location[
+            "station"
+        ]
 
         daily = (
             data.get(
@@ -1902,14 +2013,18 @@ def parse_open_meteo_batch(
         ):
 
             if date_value not in target_dates:
+
                 continue
 
             max_value = None
 
             min_value = None
 
-            if row_index < len(
-                max_values
+            if (
+                row_index
+                < len(
+                    max_values
+                )
             ):
 
                 max_value = safe_float(
@@ -1918,8 +2033,11 @@ def parse_open_meteo_batch(
                     ]
                 )
 
-            if row_index < len(
-                min_values
+            if (
+                row_index
+                < len(
+                    min_values
+                )
             ):
 
                 min_value = safe_float(
@@ -1970,34 +2088,20 @@ def parse_open_meteo_batch(
 def collect_forecast_model(
     model_name,
     endpoint,
-    locations,
+    batches,
     target_dates,
 ):
 
     rows = []
 
-    if not locations:
-        return rows
-
-    start_date = min(
-        target_dates
+    total_batches = len(
+        batches
     )
 
-    end_date = max(
-        target_dates
-    )
-
-    for batch_index in range(
-        0,
-        len(locations),
-        OPEN_METEO_BATCH_SIZE,
+    for batch_index, batch in enumerate(
+        batches,
+        start=1,
     ):
-
-        batch = locations[
-            batch_index:
-            batch_index
-            + OPEN_METEO_BATCH_SIZE
-        ]
 
         latitudes = ",".join(
             f"{x['latitude']:.6f}"
@@ -2021,9 +2125,13 @@ def collect_forecast_model(
 
             "timezone": "auto",
 
-            "start_date": start_date,
+            "start_date": min(
+                target_dates
+            ),
 
-            "end_date": end_date,
+            "end_date": max(
+                target_dates
+            ),
         }
 
         try:
@@ -2057,7 +2165,8 @@ def collect_forecast_model(
                 f"  Forecast "
                 f"{model_name}: "
                 f"batch "
-                f"{batch_index // OPEN_METEO_BATCH_SIZE + 1} "
+                f"{batch_index}/"
+                f"{total_batches} "
                 f"({len(batch)} estaciones) OK"
             )
 
@@ -2067,7 +2176,8 @@ def collect_forecast_model(
                 f"  Forecast "
                 f"{model_name}: "
                 f"batch "
-                f"{batch_index // OPEN_METEO_BATCH_SIZE + 1} "
+                f"{batch_index}/"
+                f"{total_batches} "
                 f"ERROR: {exc}"
             )
 
@@ -2091,10 +2201,8 @@ def collect_forecasts(
         }
     )
 
-    target_dates = (
-        extract_target_dates(
-            markets
-        )
+    target_dates = extract_target_dates(
+        markets
     )
 
     if not stations:
@@ -2103,17 +2211,17 @@ def collect_forecasts(
     if not target_dates:
         return []
 
-    locations_batches = (
-        build_location_batches(
-            registry,
-            stations,
-        )
+    locations = build_location_list(
+        registry,
+        stations,
     )
 
-    if not locations_batches:
-        return []
+    batches = build_batches(
+        locations
+    )
 
-    all_rows = []
+    if not batches:
+        return []
 
     sources = [
         (
@@ -2132,25 +2240,25 @@ def collect_forecasts(
         ),
     ]
 
+    all_rows = []
+
     for (
         model_name,
         endpoint,
     ) in sources:
 
-        for batch in locations_batches:
-
-            rows = (
-                collect_forecast_model(
-                    model_name,
-                    endpoint,
-                    batch,
-                    target_dates,
-                )
+        rows = (
+            collect_forecast_model(
+                model_name,
+                endpoint,
+                batches,
+                target_dates,
             )
+        )
 
-            all_rows.extend(
-                rows
-            )
+        all_rows.extend(
+            rows
+        )
 
     return all_rows
 
@@ -2163,10 +2271,27 @@ def summarize(
     markets,
 ):
 
-    active = [
+    current_candidates = [
         m
         for m in markets
-        if is_active_candidate(m)
+        if is_current_candidate(
+            m
+        )
+    ]
+
+    historical_past = [
+        m
+        for m in markets
+        if (
+            m.get(
+                "market_date"
+            )
+            and
+            m.get(
+                "market_date"
+            )
+            < utc_date_string()
+        )
     ]
 
     with_prices = [
@@ -2176,6 +2301,7 @@ def summarize(
             m.get(
                 "yes_price"
             ) is not None
+
             and
             m.get(
                 "no_price"
@@ -2190,6 +2316,7 @@ def summarize(
             m.get(
                 "yes_token"
             )
+
             and
             m.get(
                 "no_token"
@@ -2204,6 +2331,7 @@ def summarize(
             m.get(
                 "best_bid"
             ) is not None
+
             and
             m.get(
                 "best_ask"
@@ -2345,6 +2473,16 @@ def summarize(
     )
 
     print(
+        f"Current trade candidates: "
+        f"{len(current_candidates)}"
+    )
+
+    print(
+        f"Past-date markets retained: "
+        f"{len(historical_past)}"
+    )
+
+    print(
         f"Markets with prices: "
         f"{len(with_prices)}"
     )
@@ -2357,11 +2495,6 @@ def summarize(
     print(
         "Markets with bid/ask: "
         f"{len(with_bid_ask)}"
-    )
-
-    print(
-        f"Active candidates: "
-        f"{len(active)}"
     )
 
     bucket_types = sorted(
@@ -2439,24 +2572,50 @@ def summarize(
         "markets_total": len(
             markets
         ),
-        "active_candidates": len(
-            active
+
+        "current_candidates": len(
+            current_candidates
         ),
+
+        "past_date_markets": len(
+            historical_past
+        ),
+
         "cities": len(
             cities
         ),
+
         "stations": len(
             stations
         ),
+
         "event_keys": len(
             event_keys
         ),
-        "missing_city": missing_city,
-        "missing_market_date": missing_date,
-        "missing_unit": missing_unit,
-        "missing_station": missing_station,
-        "missing_prices": missing_prices,
-        "unknown_bucket": unknown_bucket,
+
+        "missing_city": (
+            missing_city
+        ),
+
+        "missing_market_date": (
+            missing_date
+        ),
+
+        "missing_unit": (
+            missing_unit
+        ),
+
+        "missing_station": (
+            missing_station
+        ),
+
+        "missing_prices": (
+            missing_prices
+        ),
+
+        "unknown_bucket": (
+            unknown_bucket
+        ),
     }
 
 
@@ -2470,27 +2629,40 @@ def print_validation(
 
     print("")
     print("=" * 70)
-    print("VALIDATION V10.1")
+    print("VALIDATION V10.2")
     print("=" * 70)
 
     grouped = {}
 
-    for market in markets:
+    # Only show current markets first.
+    validation_markets = [
+        m
+        for m in markets
+        if is_current_candidate(
+            m
+        )
+    ]
+
+    for market in validation_markets:
 
         key = (
-            market.get("city"),
+            market.get(
+                "city"
+            ),
+
             market.get(
                 "resolution_station"
             ),
+
             market.get(
                 "market_date"
             ),
         )
 
-        if key not in grouped:
-            grouped[key] = []
-
-        grouped[key].append(
+        grouped.setdefault(
+            key,
+            [],
+        ).append(
             market
         )
 
@@ -2516,6 +2688,7 @@ def print_validation(
         )
 
         print("")
+
         print(
             f"{city} | "
             f"{station} | "
@@ -2534,18 +2707,23 @@ def print_validation(
             f"{first.get('temperature_unit')}"
         )
 
-        for row in rows[:5]:
+        for row in rows[:8]:
 
             print(
-                f"  "
+                "  "
                 f"{row.get('group_title')} | "
-                f"bucket={row.get('bucket_type')} | "
-                f"YES={row.get('yes_price')} | "
-                f"Ask={row.get('best_ask')}"
+                f"bucket="
+                f"{row.get('bucket_type')} | "
+                f"value="
+                f"{row.get('bucket_value')} | "
+                f"YES="
+                f"{row.get('yes_price')} | "
+                f"Ask="
+                f"{row.get('best_ask')}"
             )
 
         print(
-            f"Resolution: "
+            "Resolution: "
             f"{first.get('resolution_source')}"
         )
 
@@ -2566,7 +2744,7 @@ def main():
     print("")
     print("=" * 70)
     print("Polymarket Weather Edge Lab")
-    print("Temperature + Weather Collector V10.1")
+    print("Temperature + Weather Collector V10.2")
     print("=" * 70)
 
     print(
@@ -2577,6 +2755,11 @@ def main():
         f"Weather tag: "
         f"{WEATHER_TAG_ID} "
         f"({WEATHER_TAG_SLUG})"
+    )
+
+    print(
+        f"Current UTC date: "
+        f"{utc_date_string()}"
     )
 
     if os.path.exists(
@@ -2607,20 +2790,23 @@ def main():
         )
 
         print(
-            "  V10.1 NO lo modifica."
+            "  V10.2 NO lo modifica."
         )
 
-    # --------------------------------------------------------
+    # ========================================================
     # POLYMARKET
-    # --------------------------------------------------------
+    # ========================================================
 
     events = get_weather_events()
 
     GLOBALS[
         "events_count"
-    ] = len(events)
+    ] = len(
+        events
+    )
 
     print("")
+
     print(
         f"Weather events: "
         f"{len(events)}"
@@ -2630,29 +2816,36 @@ def main():
         events
     )
 
+    # Latest = ALL observed markets,
+    # including historical ones.
     write_json(
         LATEST_FILE,
         {
             "collector_version": (
                 COLLECTOR_VERSION
             ),
+
             "schema_version": (
                 SCHEMA_VERSION
             ),
+
             "collected_at": (
                 utc_iso()
             ),
+
             "events_count": (
                 len(events)
             ),
+
             "markets": markets,
         },
     )
 
-    active = [
+    # Active file = CURRENT candidates only.
+    current_candidates = [
         m
         for m in markets
-        if is_active_candidate(
+        if is_current_candidate(
             m
         )
     ]
@@ -2663,16 +2856,22 @@ def main():
             "collector_version": (
                 COLLECTOR_VERSION
             ),
+
             "schema_version": (
                 SCHEMA_VERSION
             ),
+
             "collected_at": (
                 utc_iso()
             ),
-            "markets": active,
+
+            "markets": (
+                current_candidates
+            ),
         },
     )
 
+    # Preserve ALL market observations in history.
     write_market_history(
         markets
     )
@@ -2696,7 +2895,7 @@ def main():
     )
 
     print(
-        f"  Active: "
+        f"  Current: "
         f"{ACTIVE_FILE}"
     )
 
@@ -2710,15 +2909,18 @@ def main():
         f"{os.path.join(HISTORY_DIR, utc_now().strftime('%Y-%m') + '.csv')}"
     )
 
-    # --------------------------------------------------------
-    # WEATHER
-    # --------------------------------------------------------
+    # ========================================================
+    # WEATHER LAYER
+    # ========================================================
 
     print("")
     print("=" * 70)
-    print("WEATHER LAYER V10.1")
+    print("WEATHER LAYER V10.2")
     print("=" * 70)
 
+    # Registry uses all identified stations so the registry
+    # remains useful even when a city temporarily has no
+    # current candidate.
     registry = refresh_station_registry(
         markets
     )
@@ -2728,7 +2930,7 @@ def main():
             m.get(
                 "resolution_station"
             )
-            for m in active
+            for m in current_candidates
             if m.get(
                 "resolution_station"
             )
@@ -2736,13 +2938,13 @@ def main():
     )
 
     print(
-        f"Stations activas con ID: "
+        f"Current stations with ID: "
         f"{len(stations)}"
     )
 
-    # --------------------------------------------------------
+    # ========================================================
     # METAR
-    # --------------------------------------------------------
+    # ========================================================
 
     observations = (
         collect_metar_batch(
@@ -2763,12 +2965,12 @@ def main():
         f"{len(observations)}"
     )
 
-    # --------------------------------------------------------
-    # FORECAST
-    # --------------------------------------------------------
+    # ========================================================
+    # FORECASTS
+    # ========================================================
 
     forecasts = collect_forecasts(
-        active,
+        current_candidates,
         registry,
     )
 
@@ -2785,6 +2987,10 @@ def main():
         f"{len(forecasts)}"
     )
 
+    # ========================================================
+    # WEATHER LATEST
+    # ========================================================
+
     latest_weather = {
         "collector_version": (
             COLLECTOR_VERSION
@@ -2796,6 +3002,12 @@ def main():
 
         "collected_at": (
             utc_iso()
+        ),
+
+        "current_candidates": (
+            len(
+                current_candidates
+            )
         ),
 
         "stations_requested": (
@@ -2859,7 +3071,7 @@ def main():
 
     print("")
     print("=" * 70)
-    print("V10.1 STATUS")
+    print("V10.2 STATUS")
     print("=" * 70)
 
     print(
