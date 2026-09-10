@@ -1,9 +1,9 @@
 POLYMARKET WEATHER CALIBRATION V1.3
 HISTORICAL FORECAST ERROR ANALYSIS
 
-UTC: 2026-09-10T22:07:19.024741+00:00
+UTC: 2026-09-10T23:48:00.761138+00:00
 
-Historical forecast rows: 3495
+Historical forecast rows: 3900
 Observed station-days: 45
 Calibration records: 0
 
