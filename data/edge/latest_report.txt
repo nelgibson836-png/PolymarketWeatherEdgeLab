@@ -1,149 +1,309 @@
-POLYMARKET WEATHER EDGE ENGINE V1.0
+POLYMARKET WEATHER EDGE ENGINE V1.1
 RESEARCH / PAPER TRADING ONLY
 NO ORDERS SENT
-UTC: 2026-09-10T21:54:54.643845+00:00
 
+UTC: 2026-09-10T21:56:29.762023+00:00
 Current markets: 2750
 Families: 250
-Signals evaluated: 100
-PAPER_BUY candidates: 448
+Signals evaluated: 2486
+PAPER_BUY candidates: 499
 
 Los Angeles | KLAX | 2026-09-10
   94°F or higher
-  model=0.8161 entry=0.0100
-  gross_edge=0.8061 fee=0.00049
-  net_ev=0.8056
-  signal=PAPER_BUY
-
-Austin | KAUS | 2026-09-10
-  96-97°F
-  model=0.4825 entry=0.0010
-  gross_edge=0.4815 fee=0.00005
-  net_ev=0.4814
-  signal=PAPER_BUY
+  model=0.7707 entry=0.0100
+  gross_edge=0.7607 fee=0.00049
+  net_ev=0.7602
 
 Los Angeles | KLAX | 2026-09-11
   90°F or higher
-  model=0.5167 entry=0.0370
-  gross_edge=0.4797 fee=0.00178
-  net_ev=0.4779
-  signal=PAPER_BUY
+  model=0.4833 entry=0.0370
+  gross_edge=0.4463 fee=0.00178
+  net_ev=0.4445
+
+Austin | KAUS | 2026-09-10
+  96-97°F
+  model=0.3561 entry=0.0010
+  gross_edge=0.3551 fee=0.00005
+  net_ev=0.3550
 
 Miami | KMIA | 2026-09-10
   78-79°F
-  model=0.4639 entry=0.0010
-  gross_edge=0.4629 fee=0.00005
-  net_ev=0.4629
-  signal=PAPER_BUY
+  model=0.3414 entry=0.0010
+  gross_edge=0.3404 fee=0.00005
+  net_ev=0.3404
+
+Austin | KAUS | 2026-09-10
+  76-77°F
+  model=0.3346 entry=0.0010
+  gross_edge=0.3336 fee=0.00005
+  net_ev=0.3335
 
 Houston | KHOU | 2026-09-10
   90-91°F
-  model=0.4791 entry=0.0200
-  gross_edge=0.4591 fee=0.00098
-  net_ev=0.4581
-  signal=PAPER_BUY
-
-Austin | KAUS | 2026-09-10
-  76-77°F
-  model=0.4552 entry=0.0010
-  gross_edge=0.4542 fee=0.00005
-  net_ev=0.4541
-  signal=PAPER_BUY
+  model=0.3534 entry=0.0200
+  gross_edge=0.3334 fee=0.00098
+  net_ev=0.3324
 
 Dallas | KDAL | 2026-09-10
   96-97°F
-  model=0.4434 entry=0.0010
-  gross_edge=0.4424 fee=0.00005
-  net_ev=0.4424
-  signal=PAPER_BUY
-
-Austin | KAUS | 2026-09-10
-  78-79°F
-  model=0.4225 entry=0.0010
-  gross_edge=0.4215 fee=0.00005
-  net_ev=0.4215
-  signal=PAPER_BUY
-
-New York City | KLGA | 2026-09-10
-  70-71°F
-  model=0.4369 entry=0.0200
-  gross_edge=0.4169 fee=0.00098
-  net_ev=0.4159
-  signal=PAPER_BUY
-
-Atlanta | KATL | 2026-09-10
-  88-89°F
-  model=0.4088 entry=0.0010
-  gross_edge=0.4078 fee=0.00005
-  net_ev=0.4077
-  signal=PAPER_BUY
-
-Miami | KMIA | 2026-09-10
-  76-77°F
-  model=0.4088 entry=0.0010
-  gross_edge=0.4078 fee=0.00005
-  net_ev=0.4077
-  signal=PAPER_BUY
-
-New York City | KLGA | 2026-09-10
-  88-89°F
-  model=0.4767 entry=0.0800
-  gross_edge=0.3967 fee=0.00368
-  net_ev=0.3930
-  signal=PAPER_BUY
-
-New York City | KLGA | 2026-09-11
-  66-67°F
-  model=0.4385 entry=0.0500
-  gross_edge=0.3885 fee=0.00237
-  net_ev=0.3862
-  signal=PAPER_BUY
-
-New York City | KLGA | 2026-09-12
-  60-61°F
-  model=0.4215 entry=0.0400
-  gross_edge=0.3815 fee=0.00192
-  net_ev=0.3795
-  signal=PAPER_BUY
-
-New York City | KLGA | 2026-09-10
-  90-91°F
-  model=0.3784 entry=0.0010
-  gross_edge=0.3774 fee=0.00005
-  net_ev=0.3774
-  signal=PAPER_BUY
-
-Austin | KAUS | 2026-09-11
-  96-97°F
-  model=0.4481 entry=0.0700
-  gross_edge=0.3780 fee=0.00326
-  net_ev=0.3748
-  signal=PAPER_BUY
-
-Miami | KMIA | 2026-09-11
-  84-85°F
-  model=0.3918 entry=0.0200
-  gross_edge=0.3718 fee=0.00098
-  net_ev=0.3709
-  signal=PAPER_BUY
-
-Miami | KMIA | 2026-09-11
-  86-87°F
-  model=0.4720 entry=0.1300
-  gross_edge=0.3420 fee=0.00566
-  net_ev=0.3364
-  signal=PAPER_BUY
+  model=0.3253 entry=0.0010
+  gross_edge=0.3243 fee=0.00005
+  net_ev=0.3242
 
 Buenos Aires | SAEZ | 2026-09-10
   9°C
   model=0.3231 entry=0.0010
   gross_edge=0.3221 fee=0.00005
   net_ev=0.3220
-  signal=PAPER_BUY
 
 London | EGLC | 2026-09-10
   20°C
   model=0.3220 entry=0.0010
   gross_edge=0.3210 fee=0.00005
   net_ev=0.3210
-  signal=PAPER_BUY
+
+Panama City | MPMG | 2026-09-10
+  30°C
+  model=0.3220 entry=0.0010
+  gross_edge=0.3210 fee=0.00005
+  net_ev=0.3210
+
+Madrid | LEMD | 2026-09-10
+  27°C
+  model=0.3212 entry=0.0010
+  gross_edge=0.3202 fee=0.00005
+  net_ev=0.3202
+
+Chongqing | ZUCK | 2026-09-11
+  20°C
+  model=0.3202 entry=0.0010
+  gross_edge=0.3192 fee=0.00005
+  net_ev=0.3191
+
+Qingdao | ZSQD | 2026-09-11
+  15°C
+  model=0.3189 entry=0.0010
+  gross_edge=0.3179 fee=0.00005
+  net_ev=0.3178
+
+Warsaw | EPWA | 2026-09-10
+  13°C
+  model=0.3174 entry=0.0010
+  gross_edge=0.3164 fee=0.00005
+  net_ev=0.3163
+
+Wellington | NZWN | 2026-09-11
+  7°C
+  model=0.3156 entry=0.0010
+  gross_edge=0.3146 fee=0.00005
+  net_ev=0.3146
+
+Amsterdam | EHAM | 2026-09-10
+  19°C
+  model=0.3115 entry=0.0010
+  gross_edge=0.3105 fee=0.00005
+  net_ev=0.3105
+
+Munich | EDDM | 2026-09-10
+  10°C
+  model=0.3092 entry=0.0010
+  gross_edge=0.3082 fee=0.00005
+  net_ev=0.3081
+
+Zhengzhou | ZHCC | 2026-09-11
+  18°C
+  model=0.3092 entry=0.0010
+  gross_edge=0.3082 fee=0.00005
+  net_ev=0.3081
+
+Austin | KAUS | 2026-09-10
+  78-79°F
+  model=0.3089 entry=0.0010
+  gross_edge=0.3079 fee=0.00005
+  net_ev=0.3078
+
+Milan | LIMC | 2026-09-10
+  17°C
+  model=0.3038 entry=0.0010
+  gross_edge=0.3028 fee=0.00005
+  net_ev=0.3028
+
+New York City | KLGA | 2026-09-10
+  70-71°F
+  model=0.3201 entry=0.0200
+  gross_edge=0.3001 fee=0.00098
+  net_ev=0.2992
+
+Atlanta | KATL | 2026-09-10
+  88-89°F
+  model=0.2981 entry=0.0010
+  gross_edge=0.2971 fee=0.00005
+  net_ev=0.2971
+
+Miami | KMIA | 2026-09-10
+  76-77°F
+  model=0.2981 entry=0.0010
+  gross_edge=0.2971 fee=0.00005
+  net_ev=0.2971
+
+Sao Paulo | SBGR | 2026-09-10
+  18°C
+  model=0.2977 entry=0.0010
+  gross_edge=0.2967 fee=0.00005
+  net_ev=0.2966
+
+Munich | EDDM | 2026-09-10
+  19°C
+  model=0.2943 entry=0.0010
+  gross_edge=0.2933 fee=0.00005
+  net_ev=0.2933
+
+Cape Town | FACT | 2026-09-10
+  15°C
+  model=0.2871 entry=0.0010
+  gross_edge=0.2861 fee=0.00005
+  net_ev=0.2861
+
+Cape Town | FACT | 2026-09-10
+  20°C
+  model=0.2871 entry=0.0010
+  gross_edge=0.2861 fee=0.00005
+  net_ev=0.2861
+
+Tokyo | RJTT | 2026-09-11
+  20°C
+  model=0.2833 entry=0.0010
+  gross_edge=0.2823 fee=0.00005
+  net_ev=0.2822
+
+Warsaw | EPWA | 2026-09-10
+  19°C
+  model=0.2788 entry=0.0010
+  gross_edge=0.2778 fee=0.00005
+  net_ev=0.2777
+
+Los Angeles | KLAX | 2026-09-12
+  88°F or higher
+  model=0.3163 entry=0.0400
+  gross_edge=0.2763 fee=0.00192
+  net_ev=0.2744
+
+New York City | KLGA | 2026-09-10
+  90-91°F
+  model=0.2745 entry=0.0010
+  gross_edge=0.2735 fee=0.00005
+  net_ev=0.2734
+
+Wellington | NZWN | 2026-09-11
+  6°C
+  model=0.2709 entry=0.0010
+  gross_edge=0.2699 fee=0.00005
+  net_ev=0.2698
+
+Manila | RPLL | 2026-09-11
+  26°C
+  model=0.2709 entry=0.0010
+  gross_edge=0.2699 fee=0.00005
+  net_ev=0.2698
+
+New York City | KLGA | 2026-09-11
+  66-67°F
+  model=0.3215 entry=0.0500
+  gross_edge=0.2715 fee=0.00237
+  net_ev=0.2691
+
+New York City | KLGA | 2026-09-10
+  88-89°F
+  model=0.3515 entry=0.0800
+  gross_edge=0.2715 fee=0.00368
+  net_ev=0.2678
+
+Manila | RPLL | 2026-09-12
+  28°C
+  model=0.3092 entry=0.0400
+  gross_edge=0.2692 fee=0.00192
+  net_ev=0.2672
+
+London | EGLC | 2026-09-10
+  15°C or higher
+  model=0.2683 entry=0.0010
+  gross_edge=0.2673 fee=0.00005
+  net_ev=0.2672
+
+New York City | KLGA | 2026-09-12
+  60-61°F
+  model=0.3084 entry=0.0400
+  gross_edge=0.2684 fee=0.00192
+  net_ev=0.2665
+
+Madrid | LEMD | 2026-09-10
+  12°C
+  model=0.2668 entry=0.0010
+  gross_edge=0.2658 fee=0.00005
+  net_ev=0.2658
+
+Warsaw | EPWA | 2026-09-10
+  14°C
+  model=0.2665 entry=0.0010
+  gross_edge=0.2655 fee=0.00005
+  net_ev=0.2654
+
+London | EGLC | 2026-09-10
+  13°C
+  model=0.2654 entry=0.0010
+  gross_edge=0.2644 fee=0.00005
+  net_ev=0.2643
+
+Wellington | NZWN | 2026-09-11
+  13°C
+  model=0.3092 entry=0.0430
+  gross_edge=0.2662 fee=0.00206
+  net_ev=0.2641
+
+Miami | KMIA | 2026-09-11
+  84-85°F
+  model=0.2849 entry=0.0200
+  gross_edge=0.2649 fee=0.00098
+  net_ev=0.2639
+
+Mexico City | MMMX | 2026-09-10
+  24°C
+  model=0.2573 entry=0.0010
+  gross_edge=0.2563 fee=0.00005
+  net_ev=0.2563
+
+Austin | KAUS | 2026-09-11
+  96-97°F
+  model=0.3289 entry=0.0700
+  gross_edge=0.2589 fee=0.00326
+  net_ev=0.2557
+
+Guangzhou | ZGGG | 2026-09-11
+  30°C
+  model=0.2833 entry=0.0300
+  gross_edge=0.2533 fee=0.00145
+  net_ev=0.2518
+
+Madrid | LEMD | 2026-09-10
+  26°C
+  model=0.2526 entry=0.0010
+  gross_edge=0.2516 fee=0.00005
+  net_ev=0.2515
+
+Toronto | CYYZ | 2026-09-10
+  26°C
+  model=0.2634 entry=0.0130
+  gross_edge=0.2504 fee=0.00064
+  net_ev=0.2497
+
+Milan | LIMC | 2026-09-10
+  21°C
+  model=0.2478 entry=0.0010
+  gross_edge=0.2468 fee=0.00005
+  net_ev=0.2467
+
+Panama City | MPMG | 2026-09-10
+  29°C
+  model=0.2478 entry=0.0010
+  gross_edge=0.2468 fee=0.00005
+  net_ev=0.2467
