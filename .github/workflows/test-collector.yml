@@ -30,11 +30,15 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-      - name: Run Weather Collector V10.2
+      - name: Run Weather Collector V10.2.1
         run: |
           python collector.py
 
-      - name: Commit collected data
+      - name: Run Edge Engine V1.0
+        run: |
+          python edge_engine.py
+
+      - name: Commit collected data and edge signals
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -42,8 +46,8 @@ jobs:
           git add data/
 
           if git diff --cached --quiet; then
-            echo "No new data to commit"
+            echo "No new data or signals to commit"
           else
-            git commit -m "data: weather snapshot $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+            git commit -m "data: weather and edge snapshot $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
             git push
           fi
