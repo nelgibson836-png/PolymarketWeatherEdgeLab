@@ -5,15 +5,7 @@ import os
 from datetime import datetime, timezone
 
 
-# ============================================================
-# POLYMARKET WEATHER EDGE LAB
-# Edge Engine V1.0
-#
-# RESEARCH / PAPER TRADING ONLY
-# NO ORDERS ARE SENT
-# ============================================================
-
-ENGINE_VERSION = "1.0"
+ENGINE_VERSION = "1.1"
 
 DATA_DIR = "data"
 
@@ -68,31 +60,20 @@ PAPER_SIGNAL_FILE = os.path.join(
 
 
 # ============================================================
-# STRATEGY PARAMETERS
+# PARAMETERS
 # ============================================================
 
-# Current Polymarket Weather taker fee rate.
 DEFAULT_WEATHER_FEE_RATE = 0.05
 
-# Initial heuristic uncertainty.
-#
-# IMPORTANT:
-# This is NOT a calibrated weather probability model.
-# It is a first research model that converts the three
-# forecast point estimates into a temperature distribution.
 DEFAULT_SIGMA_C = 1.20
-
 MIN_SIGMA_C = 0.90
 MAX_SIGMA_C = 3.00
 
-# Minimum gross model edge required.
 MIN_EDGE = 0.03
-
-# Minimum expected value per share after estimated fee.
 MIN_EV = 0.015
 
-# Maximum signals retained in output.
 MAX_SIGNALS_PER_RUN = 100
+MAX_PAPER_SIGNALS_PER_RUN = 1000
 
 
 SIGNAL_FIELDS = [
@@ -130,21 +111,25 @@ SIGNAL_FIELDS = [
 
 
 # ============================================================
-# BASIC HELPERS
+# HELPERS
 # ============================================================
 
-def now_utc():
+def iso_now():
     return datetime.now(
         timezone.utc
-    )
+    ).isoformat()
 
 
-def iso_now():
-    return now_utc().isoformat()
+def utc_date_string():
+    return datetime.now(
+        timezone.utc
+    ).strftime("%Y-%m-%d")
 
 
 def safe_float(value):
+
     try:
+
         if value in (
             None,
             "",
@@ -159,6 +144,7 @@ def safe_float(value):
         ValueError,
         TypeError,
     ):
+
         return None
 
 
@@ -180,6 +166,7 @@ def read_csv(path):
     if not os.path.exists(
         path
     ):
+
         return []
 
     with open(
@@ -205,20 +192,18 @@ def write_json(
         path
     )
 
-    if directory:
+    os.makedirs(
+        directory,
+        exist_ok=True,
+    )
 
-        os.makedirs(
-            directory,
-            exist_ok=True,
-        )
-
-    temporary = (
+    temp_path = (
         path
         + ".tmp"
     )
 
     with open(
-        temporary,
+        temp_path,
         "w",
         encoding="utf-8",
     ) as handle:
@@ -235,7 +220,7 @@ def write_json(
         )
 
     os.replace(
-        temporary,
+        temp_path,
         path,
     )
 
@@ -253,12 +238,10 @@ def append_csv(
         path
     )
 
-    if directory:
-
-        os.makedirs(
-            directory,
-            exist_ok=True,
-        )
+    os.makedirs(
+        directory,
+        exist_ok=True,
+    )
 
     exists = os.path.exists(
         path
@@ -281,15 +264,13 @@ def append_csv(
 
             writer.writeheader()
 
-        for row in rows:
-
-            writer.writerow(
-                row
-            )
+        writer.writerows(
+            rows
+        )
 
 
 # ============================================================
-# MATHEMATICS
+# PROBABILITY
 # ============================================================
 
 def normal_cdf(
@@ -305,151 +286,289 @@ def normal_cdf(
         * math.sqrt(2.0)
     )
 
-    return 0.5 * (
+    return (
+        0.5
+        * (
+            1.0
+            + math.erf(z)
+        )
+    )
+
+
+def probability_exact(
+    value,
+    mean_c,
+    sigma_c,
+    unit,
+):
+
+    if unit == "F":
+
+        center_c = (
+            value - 32.0
+        ) * 5.0 / 9.0
+
+        half_width_c = (
+            0.5
+            * 5.0
+            / 9.0
+        )
+
+    else:
+
+        center_c = value
+
+        half_width_c = 0.5
+
+    probability = (
+        normal_cdf(
+            center_c
+            + half_width_c,
+            mean_c,
+            sigma_c,
+        )
+        -
+        normal_cdf(
+            center_c
+            - half_width_c,
+            mean_c,
+            sigma_c,
+        )
+    )
+
+    return max(
+        0.0,
+        min(
+            1.0,
+            probability,
+        ),
+    )
+
+
+def probability_lower(
+    value,
+    mean_c,
+    sigma_c,
+    unit,
+):
+
+    if unit == "F":
+
+        threshold_c = (
+            value - 32.0
+        ) * 5.0 / 9.0
+
+        half_unit_c = (
+            0.5
+            * 5.0
+            / 9.0
+        )
+
+    else:
+
+        threshold_c = value
+        half_unit_c = 0.5
+
+    probability = normal_cdf(
+        threshold_c
+        + half_unit_c,
+        mean_c,
+        sigma_c,
+    )
+
+    return max(
+        0.0,
+        min(
+            1.0,
+            probability,
+        ),
+    )
+
+
+def probability_higher(
+    value,
+    mean_c,
+    sigma_c,
+    unit,
+):
+
+    if unit == "F":
+
+        threshold_c = (
+            value - 32.0
+        ) * 5.0 / 9.0
+
+        half_unit_c = (
+            0.5
+            * 5.0
+            / 9.0
+        )
+
+    else:
+
+        threshold_c = value
+        half_unit_c = 0.5
+
+    probability = (
         1.0
-        + math.erf(z)
+        -
+        normal_cdf(
+            threshold_c
+            - half_unit_c,
+            mean_c,
+            sigma_c,
+        )
+    )
+
+    return max(
+        0.0,
+        min(
+            1.0,
+            probability,
+        ),
+    )
+
+
+def probability_range(
+    low,
+    high,
+    mean_c,
+    sigma_c,
+    unit,
+):
+
+    if unit == "F":
+
+        low_c = (
+            low - 32.0
+        ) * 5.0 / 9.0
+
+        high_c = (
+            high - 32.0
+        ) * 5.0 / 9.0
+
+        half_unit_c = (
+            0.5
+            * 5.0
+            / 9.0
+        )
+
+    else:
+
+        low_c = low
+        high_c = high
+        half_unit_c = 0.5
+
+    probability = (
+        normal_cdf(
+            high_c
+            + half_unit_c,
+            mean_c,
+            sigma_c,
+        )
+        -
+        normal_cdf(
+            low_c
+            - half_unit_c,
+            mean_c,
+            sigma_c,
+        )
+    )
+
+    return max(
+        0.0,
+        min(
+            1.0,
+            probability,
+        ),
     )
 
 
 def bucket_probability(
-    bucket_type,
-    bucket_value,
-    bucket_low,
-    bucket_high,
+    market,
     mean_c,
     sigma_c,
 ):
 
-    if (
-        mean_c is None
-        or
-        sigma_c <= 0
-    ):
+    bucket_type = (
+        market.get(
+            "bucket_type"
+        )
+    )
 
-        return None
-
-    # --------------------------------------------------------
-    # EXACT INTEGER TEMPERATURE
-    #
-    # Example:
-    # 10°C = [9.5, 10.5)
-    # --------------------------------------------------------
+    unit = (
+        market.get(
+            "temperature_unit"
+        )
+        or "C"
+    ).upper()
 
     if bucket_type == "exact":
 
         value = safe_float(
-            bucket_value
+            market.get(
+                "bucket_value"
+            )
         )
 
         if value is None:
             return None
 
-        low = (
-            value - 0.5
+        return probability_exact(
+            value,
+            mean_c,
+            sigma_c,
+            unit,
         )
-
-        high = (
-            value + 0.5
-        )
-
-        probability = (
-            normal_cdf(
-                high,
-                mean_c,
-                sigma_c,
-            )
-            -
-            normal_cdf(
-                low,
-                mean_c,
-                sigma_c,
-            )
-        )
-
-        return max(
-            0.0,
-            min(
-                1.0,
-                probability,
-            ),
-        )
-
-    # --------------------------------------------------------
-    # OR LOWER
-    #
-    # Example:
-    # <= 5°C
-    # --------------------------------------------------------
 
     if bucket_type == "or_lower":
 
-        threshold = safe_float(
-            bucket_value
-        )
-
-        if threshold is None:
-            return None
-
-        probability = normal_cdf(
-            threshold + 0.5,
-            mean_c,
-            sigma_c,
-        )
-
-        return max(
-            0.0,
-            min(
-                1.0,
-                probability,
-            ),
-        )
-
-    # --------------------------------------------------------
-    # OR HIGHER
-    #
-    # Example:
-    # >= 30°C
-    # --------------------------------------------------------
-
-    if bucket_type == "or_higher":
-
-        threshold = safe_float(
-            bucket_value
-        )
-
-        if threshold is None:
-            return None
-
-        probability = (
-            1.0
-            -
-            normal_cdf(
-                threshold - 0.5,
-                mean_c,
-                sigma_c,
+        value = safe_float(
+            market.get(
+                "bucket_value"
             )
         )
 
-        return max(
-            0.0,
-            min(
-                1.0,
-                probability,
-            ),
+        if value is None:
+            return None
+
+        return probability_lower(
+            value,
+            mean_c,
+            sigma_c,
+            unit,
         )
 
-    # --------------------------------------------------------
-    # RANGE
-    # --------------------------------------------------------
+    if bucket_type == "or_higher":
+
+        value = safe_float(
+            market.get(
+                "bucket_value"
+            )
+        )
+
+        if value is None:
+            return None
+
+        return probability_higher(
+            value,
+            mean_c,
+            sigma_c,
+            unit,
+        )
 
     if bucket_type == "range":
 
         low = safe_float(
-            bucket_low
+            market.get(
+                "bucket_low"
+            )
         )
 
         high = safe_float(
-            bucket_high
+            market.get(
+                "bucket_high"
+            )
         )
 
         if (
@@ -460,99 +579,22 @@ def bucket_probability(
 
             return None
 
-        probability = (
-            normal_cdf(
-                high + 0.5,
-                mean_c,
-                sigma_c,
-            )
-            -
-            normal_cdf(
-                low - 0.5,
-                mean_c,
-                sigma_c,
-            )
-        )
-
-        return max(
-            0.0,
-            min(
-                1.0,
-                probability,
-            ),
+        return probability_range(
+            low,
+            high,
+            mean_c,
+            sigma_c,
+            unit,
         )
 
     return None
 
 
 # ============================================================
-# TEMPERATURE UNIT
+# LATEST WEATHER
 # ============================================================
 
-def fahrenheit_to_celsius(
-    value,
-):
-
-    return (
-        value - 32.0
-    ) * 5.0 / 9.0
-
-
-def normalize_bucket_to_celsius(
-    market,
-):
-
-    normalized = dict(
-        market
-    )
-
-    unit = (
-        market.get(
-            "temperature_unit"
-        )
-        or "C"
-    ).upper()
-
-    if unit != "F":
-
-        return normalized
-
-    for key in (
-        "bucket_value",
-        "bucket_low",
-        "bucket_high",
-    ):
-
-        value = safe_float(
-            market.get(
-                key
-            )
-        )
-
-        if value is None:
-
-            normalized[
-                key
-            ] = None
-
-        else:
-
-            normalized[
-                key
-            ] = (
-                fahrenheit_to_celsius(
-                    value
-                )
-            )
-
-    return normalized
-
-
-# ============================================================
-# LATEST WEATHER RECORDS
-# ============================================================
-
-def select_latest_forecasts(
+def latest_forecasts(
     rows,
 ):
 
@@ -560,33 +602,14 @@ def select_latest_forecasts(
 
     for row in rows:
 
-        station = row.get(
-            "station"
-        )
-
-        market_date = row.get(
-            "market_date"
-        )
-
-        model = row.get(
-            "model"
-        )
-
-        if (
-            not station
-            or
-            not market_date
-            or
-            not model
-        ):
-
-            continue
-
         key = (
-            station,
-            market_date,
-            model,
+            row.get("station"),
+            row.get("market_date"),
+            row.get("model"),
         )
+
+        if None in key:
+            continue
 
         previous = latest.get(
             key
@@ -615,7 +638,7 @@ def select_latest_forecasts(
     )
 
 
-def select_latest_observations(
+def latest_observations(
     rows,
 ):
 
@@ -659,14 +682,15 @@ def select_latest_observations(
 # FORECAST CONSENSUS
 # ============================================================
 
-def build_forecast_stats(
+def forecast_stats(
     forecasts,
     station,
     market_date,
     market_type,
 ):
 
-    matching = []
+    values = []
+    models = []
 
     for row in forecasts:
 
@@ -692,50 +716,45 @@ def build_forecast_stats(
             "highest_temperature"
         ):
 
-            value = safe_float(
-                row.get(
-                    "temperature_max_c"
-                )
+            field = (
+                "temperature_max_c"
             )
 
         elif market_type == (
             "lowest_temperature"
         ):
 
-            value = safe_float(
-                row.get(
-                    "temperature_min_c"
-                )
+            field = (
+                "temperature_min_c"
             )
 
         else:
 
-            value = safe_float(
-                row.get(
-                    "temperature_max_c"
-                )
+            field = (
+                "temperature_max_c"
             )
+
+        value = safe_float(
+            row.get(
+                field
+            )
+        )
 
         if value is not None:
 
-            matching.append(
-                (
-                    row.get(
-                        "model"
-                    )
-                    or "unknown",
-                    value,
-                )
+            values.append(
+                value
             )
 
-    if not matching:
+            models.append(
+                row.get(
+                    "model"
+                )
+                or "unknown"
+            )
 
+    if not values:
         return None
-
-    values = [
-        item[1]
-        for item in matching
-    ]
 
     mean_c = (
         sum(values)
@@ -763,13 +782,6 @@ def build_forecast_stats(
 
         std_c = 0.0
 
-    #
-    # We do not pretend the raw 3-model dispersion
-    # is a calibrated forecast distribution.
-    #
-    # Instead we use a conservative floor and cap.
-    #
-
     sigma_c = max(
         MIN_SIGMA_C,
         min(
@@ -783,33 +795,24 @@ def build_forecast_stats(
 
     return {
         "values": values,
-
-        "models": [
-            item[0]
-            for item in matching
-        ],
-
+        "models": models,
         "mean_c": mean_c,
-
         "min_c": min(
             values
         ),
-
         "max_c": max(
             values
         ),
-
         "std_c": std_c,
-
         "sigma_c": sigma_c,
     }
 
 
 # ============================================================
-# MARKET ENTRY / FEES
+# MARKET PRICING / FEES
 # ============================================================
 
-def candidate_entry_price(
+def entry_price(
     market,
 ):
 
@@ -825,7 +828,6 @@ def candidate_entry_price(
         )
     )
 
-    # Prefer executable ask.
     if (
         ask is not None
         and
@@ -837,7 +839,6 @@ def candidate_entry_price(
             "ask",
         )
 
-    # Fallback only for research.
     if (
         yes_price is not None
         and
@@ -852,17 +853,6 @@ def candidate_entry_price(
     return (
         None,
         "none",
-    )
-
-
-def market_probability(
-    market,
-):
-
-    return safe_float(
-        market.get(
-            "yes_price"
-        )
     )
 
 
@@ -932,121 +922,52 @@ def get_fee_rate(
 
 
 def fee_per_share(
-    entry_price,
-    fee_rate,
+    price,
+    rate,
 ):
 
     if (
-        entry_price is None
+        price is None
         or
-        fee_rate <= 0
+        rate <= 0
     ):
 
         return 0.0
 
     return (
-        fee_rate
-        *
-        entry_price
-        *
-        (
+        rate
+        * price
+        * (
             1.0
-            -
-            entry_price
+            - price
         )
     )
 
 
 # ============================================================
-# FAMILY GROUPING
+# SIGNAL
 # ============================================================
 
-def group_market_families(
-    markets,
-):
-
-    groups = {}
-
-    for market in markets:
-
-        key = market.get(
-            "event_key"
-        )
-
-        if not key:
-            continue
-
-        groups.setdefault(
-            key,
-            []
-        ).append(
-            market
-        )
-
-    return groups
-
-
-# ============================================================
-# SIGNAL CREATION
-# ============================================================
-
-def create_signal(
+def evaluate_market(
     market,
-    forecast_stats,
+    stats,
     observation,
 ):
 
-    normalized = (
-        normalize_bucket_to_celsius(
-            market
-        )
-    )
-
-    mean_c = (
-        forecast_stats[
-            "mean_c"
-        ]
-    )
-
-    sigma_c = (
-        forecast_stats[
-            "sigma_c"
-        ]
-    )
-
     model_probability = (
         bucket_probability(
-            normalized.get(
-                "bucket_type"
-            ),
-            safe_float(
-                normalized.get(
-                    "bucket_value"
-                )
-            ),
-            safe_float(
-                normalized.get(
-                    "bucket_low"
-                )
-            ),
-            safe_float(
-                normalized.get(
-                    "bucket_high"
-                )
-            ),
-            mean_c,
-            sigma_c,
+            market,
+            stats[
+                "mean_c"
+            ],
+            stats[
+                "sigma_c"
+            ],
         )
     )
 
-    entry_price, entry_source = (
-        candidate_entry_price(
-            market
-        )
-    )
-
-    current_probability = (
-        market_probability(
+    price, entry_source = (
+        entry_price(
             market
         )
     )
@@ -1054,7 +975,7 @@ def create_signal(
     if (
         model_probability is None
         or
-        entry_price is None
+        price is None
     ):
 
         return None
@@ -1066,14 +987,14 @@ def create_signal(
     )
 
     fee = fee_per_share(
-        entry_price,
+        price,
         fee_rate,
     )
 
     gross_edge = (
         model_probability
         -
-        entry_price
+        price
     )
 
     net_ev = (
@@ -1082,15 +1003,19 @@ def create_signal(
         fee
     )
 
-    if entry_price > 0:
+    if price > 0:
 
         net_return_if_win = (
-            1.0
-            -
-            entry_price
-            -
-            fee
-        ) / entry_price
+            (
+                1.0
+                -
+                price
+                -
+                fee
+            )
+            /
+            price
+        )
 
     else:
 
@@ -1101,41 +1026,17 @@ def create_signal(
         and
         net_ev >= MIN_EV
         and
-        model_probability > entry_price
+        model_probability > price
     ):
 
-        signal = "PAPER_BUY"
-
-        reason = (
-            "model_probability="
-            f"{model_probability:.4f}; "
-            "entry="
-            f"{entry_price:.4f}; "
-            "gross_edge="
-            f"{gross_edge:.4f}; "
-            "fee="
-            f"{fee:.5f}; "
-            "net_ev="
-            f"{net_ev:.4f}; "
-            "entry_source="
-            f"{entry_source}; "
-            "fee_source="
-            f"{fee_source}"
+        signal = (
+            "PAPER_BUY"
         )
 
     else:
 
-        signal = "NO_TRADE"
-
-        reason = (
-            "gross_edge="
-            f"{gross_edge:.4f}; "
-            "net_ev="
-            f"{net_ev:.4f}; "
-            "entry_source="
-            f"{entry_source}; "
-            "fee_source="
-            f"{fee_source}"
+        signal = (
+            "NO_TRADE"
         )
 
     observation_temperature = None
@@ -1213,17 +1114,15 @@ def create_signal(
             6,
         ),
 
-        "market_probability": (
-            current_probability
+        "market_probability": safe_float(
+            market.get(
+                "yes_price"
+            )
         ),
 
-        "entry_price": (
-            entry_price
-        ),
+        "entry_price": price,
 
-        "fee_rate": (
-            fee_rate
-        ),
+        "fee_rate": fee_rate,
 
         "fee_per_share": round(
             fee,
@@ -1246,37 +1145,40 @@ def create_signal(
                 6,
             )
             if
-            net_return_if_win is not None
+            net_return_if_win
+            is not None
             else None
         ),
 
         "forecast_count": len(
-            forecast_stats[
+            stats[
                 "values"
             ]
         ),
 
         "forecast_mean_c": round(
-            mean_c,
+            stats[
+                "mean_c"
+            ],
             4,
         ),
 
         "forecast_min_c": round(
-            forecast_stats[
+            stats[
                 "min_c"
             ],
             4,
         ),
 
         "forecast_max_c": round(
-            forecast_stats[
+            stats[
                 "max_c"
             ],
             4,
         ),
 
         "forecast_std_c": round(
-            forecast_stats[
+            stats[
                 "std_c"
             ],
             4,
@@ -1292,12 +1194,17 @@ def create_signal(
 
         "signal": signal,
 
-        "reason": reason,
+        "reason": (
+            f"entry={entry_source}; "
+            f"fee_source={fee_source}; "
+            f"gross_edge={gross_edge:.4f}; "
+            f"net_ev={net_ev:.4f}"
+        ),
     }
 
 
 # ============================================================
-# CONSOLE OUTPUT
+# CONSOLE
 # ============================================================
 
 def print_signal(
@@ -1321,15 +1228,23 @@ def print_signal(
         f"{signal['model_probability']:.2%}"
     )
 
-    print(
-        "  Market probability: "
-        f"{signal['market_probability']:.2%}"
-        if
-        signal["market_probability"]
+    if (
+        signal[
+            "market_probability"
+        ]
         is not None
-        else
-        "  Market probability: None"
-    )
+    ):
+
+        print(
+            "  Market probability: "
+            f"{signal['market_probability']:.2%}"
+        )
+
+    else:
+
+        print(
+            "  Market probability: None"
+        )
 
     print(
         "  Entry price: "
@@ -1352,21 +1267,21 @@ def print_signal(
     )
 
     print(
-        "  Forecast: "
+        "  Forecast mean: "
         f"{signal['forecast_mean_c']:.2f} C"
         " | range "
-        f"{signal['forecast_min_c']:.2f}–"
+        f"{signal['forecast_min_c']:.2f}-"
         f"{signal['forecast_max_c']:.2f} C"
     )
 
     print(
-        "  Current observation: "
-        f"{signal['observation_temperature_c']}"
-        " C"
+        "  Observation: "
+        f"{signal['observation_temperature_c']} C"
     )
 
     print(
-        f"  SIGNAL: {signal['signal']}"
+        f"  SIGNAL: "
+        f"{signal['signal']}"
     )
 
 
@@ -1386,11 +1301,15 @@ def main():
     )
 
     print(
-        "POLYMARKET WEATHER EDGE ENGINE V1.0"
+        "POLYMARKET WEATHER EDGE ENGINE V1.1"
     )
 
     print(
         "RESEARCH / PAPER TRADING ONLY"
+    )
+
+    print(
+        "NO ORDERS SENT"
     )
 
     print(
@@ -1428,21 +1347,38 @@ def main():
         )
     )
 
-    forecast_rows = (
-        select_latest_forecasts(
+    forecasts = (
+        latest_forecasts(
             read_csv(
                 FORECAST_FILE
             )
         )
     )
 
-    observation_rows = (
-        select_latest_observations(
+    observations = (
+        latest_observations(
             read_csv(
                 OBSERVATION_FILE
             )
         )
     )
+
+    families = {}
+
+    for market in markets:
+
+        key = market.get(
+            "event_key"
+        )
+
+        if key:
+
+            families.setdefault(
+                key,
+                [],
+            ).append(
+                market
+            )
 
     print(
         f"Current markets: "
@@ -1450,19 +1386,13 @@ def main():
     )
 
     print(
-        f"Latest forecast records: "
-        f"{len(forecast_rows)}"
+        f"Forecast records: "
+        f"{len(forecasts)}"
     )
 
     print(
-        f"Latest observations: "
-        f"{len(observation_rows)}"
-    )
-
-    families = (
-        group_market_families(
-            markets
-        )
+        f"Observation records: "
+        f"{len(observations)}"
     )
 
     print(
@@ -1470,13 +1400,9 @@ def main():
         f"{len(families)}"
     )
 
-    signals = []
+    all_signals = []
 
-    paper_candidates = []
-
-    # --------------------------------------------------------
-    # EVALUATE FAMILY BY FAMILY
-    # --------------------------------------------------------
+    paper_signals = []
 
     for (
         event_key,
@@ -1506,10 +1432,6 @@ def main():
             )
         )
 
-        #
-        # Without an exact resolution station we do not
-        # generate a weather signal.
-        #
         if (
             not station
             or
@@ -1518,20 +1440,19 @@ def main():
 
             continue
 
-        stats = (
-            build_forecast_stats(
-                forecast_rows,
-                station,
-                market_date,
-                market_type,
-            )
+        stats = forecast_stats(
+            forecasts,
+            station,
+            market_date,
+            market_type,
         )
 
         if not stats:
+
             continue
 
         observation = (
-            observation_rows.get(
+            observations.get(
                 station
             )
         )
@@ -1540,10 +1461,12 @@ def main():
 
         for market in family:
 
-            signal = create_signal(
-                market,
-                stats,
-                observation,
+            signal = (
+                evaluate_market(
+                    market,
+                    stats,
+                    observation,
+                )
             )
 
             if signal:
@@ -1552,9 +1475,6 @@ def main():
                     signal
                 )
 
-        #
-        # Keep strongest 3 opportunities per family.
-        #
         family_signals.sort(
             key=lambda item:
                 item[
@@ -1563,29 +1483,26 @@ def main():
             reverse=True,
         )
 
-        for signal in (
-            family_signals[:3]
-        ):
+        all_signals.extend(
+            family_signals
+        )
 
-            signals.append(
-                signal
-            )
+        family_paper = [
+            signal
+            for signal
+            in family_signals
+            if signal[
+                "signal"
+            ]
+            ==
+            "PAPER_BUY"
+        ]
 
-            if (
-                signal["signal"]
-                ==
-                "PAPER_BUY"
-            ):
+        paper_signals.extend(
+            family_paper[:5]
+        )
 
-                paper_candidates.append(
-                    signal
-                )
-
-    # --------------------------------------------------------
-    # GLOBAL SORT
-    # --------------------------------------------------------
-
-    signals.sort(
+    all_signals.sort(
         key=lambda item:
             item[
                 "net_ev_per_share"
@@ -1593,9 +1510,25 @@ def main():
         reverse=True,
     )
 
-    signals = signals[
-        :MAX_SIGNALS_PER_RUN
-    ]
+    paper_signals.sort(
+        key=lambda item:
+            item[
+                "net_ev_per_share"
+            ],
+        reverse=True,
+    )
+
+    top_signals = (
+        all_signals[
+            :MAX_SIGNALS_PER_RUN
+        ]
+    )
+
+    paper_signals = (
+        paper_signals[
+            :MAX_PAPER_SIGNALS_PER_RUN
+        ]
+    )
 
     print("")
 
@@ -1611,24 +1544,21 @@ def main():
         "=" * 70
     )
 
-    for signal in signals[
-        :20
-    ]:
+    for signal in top_signals[:20]:
 
         print_signal(
             signal
         )
 
-    # --------------------------------------------------------
-    # LATEST JSON
-    # --------------------------------------------------------
-
-    paper_candidates.sort(
-        key=lambda item:
-            item[
-                "net_ev_per_share"
-            ],
-        reverse=True,
+    paper_count = sum(
+        1
+        for signal
+        in all_signals
+        if signal[
+            "signal"
+        ]
+        ==
+        "PAPER_BUY"
     )
 
     payload = {
@@ -1650,21 +1580,16 @@ def main():
 
         "parameters": {
             "min_edge": MIN_EDGE,
-
             "min_ev": MIN_EV,
-
             "default_weather_fee_rate": (
                 DEFAULT_WEATHER_FEE_RATE
             ),
-
             "default_sigma_c": (
                 DEFAULT_SIGMA_C
             ),
-
             "min_sigma_c": (
                 MIN_SIGMA_C
             ),
-
             "max_sigma_c": (
                 MAX_SIGMA_C
             ),
@@ -1679,22 +1604,26 @@ def main():
         ),
 
         "forecast_records": (
-            len(forecast_rows)
+            len(forecasts)
         ),
 
         "observation_records": (
-            len(observation_rows)
+            len(observations)
         ),
 
         "signals_evaluated": (
-            len(signals)
+            len(all_signals)
         ),
 
-        "paper_buy_candidates": (
-            len(paper_candidates)
+        "signals_with_edge": (
+            paper_count
         ),
 
-        "signals": signals,
+        "signals_saved_top": (
+            len(top_signals)
+        ),
+
+        "signals": top_signals,
     }
 
     write_json(
@@ -1702,29 +1631,32 @@ def main():
         payload,
     )
 
-    # --------------------------------------------------------
-    # TEXT REPORT
-    # --------------------------------------------------------
+    append_csv(
+        SIGNAL_HISTORY_FILE,
+        SIGNAL_FIELDS,
+        all_signals,
+    )
+
+    append_csv(
+        PAPER_SIGNAL_FILE,
+        SIGNAL_FIELDS,
+        paper_signals,
+    )
 
     report_lines = [
-        "POLYMARKET WEATHER EDGE ENGINE V1.0",
+        "POLYMARKET WEATHER EDGE ENGINE V1.1",
         "RESEARCH / PAPER TRADING ONLY",
         "NO ORDERS SENT",
-        f"UTC: {payload['run_at']}",
         "",
+        f"UTC: {payload['run_at']}",
         f"Current markets: {len(markets)}",
         f"Families: {len(families)}",
-        f"Signals evaluated: {len(signals)}",
-        (
-            "PAPER_BUY candidates: "
-            f"{len(paper_candidates)}"
-        ),
+        f"Signals evaluated: {len(all_signals)}",
+        f"PAPER_BUY candidates: {paper_count}",
         "",
     ]
 
-    for signal in paper_candidates[
-        :20
-    ]:
+    for signal in paper_signals[:50]:
 
         report_lines.extend(
             [
@@ -1758,11 +1690,6 @@ def main():
                     f"{signal['net_ev_per_share']:.4f}"
                 ),
 
-                (
-                    "  signal="
-                    f"{signal['signal']}"
-                ),
-
                 "",
             ]
         )
@@ -1778,34 +1705,6 @@ def main():
                 report_lines
             )
         )
-
-    # --------------------------------------------------------
-    # HISTORICAL SIGNAL LOG
-    # --------------------------------------------------------
-
-    append_csv(
-        SIGNAL_HISTORY_FILE,
-        SIGNAL_FIELDS,
-        signals,
-    )
-
-    # --------------------------------------------------------
-    # PAPER SIGNAL LOG
-    #
-    # These are signal observations, not executed trades.
-    # --------------------------------------------------------
-
-    if paper_candidates:
-
-        append_csv(
-            PAPER_SIGNAL_FILE,
-            SIGNAL_FIELDS,
-            paper_candidates,
-        )
-
-    # --------------------------------------------------------
-    # FINAL STATUS
-    # --------------------------------------------------------
 
     print("")
 
@@ -1823,12 +1722,12 @@ def main():
 
     print(
         f"Signals evaluated: "
-        f"{len(signals)}"
+        f"{len(all_signals)}"
     )
 
     print(
         f"PAPER_BUY candidates: "
-        f"{len(paper_candidates)}"
+        f"{paper_count}"
     )
 
     print(
