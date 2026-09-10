@@ -1,12 +1,12 @@
 POLYMARKET WEATHER EDGE ENGINE V1.0
 RESEARCH / PAPER TRADING ONLY
 NO ORDERS SENT
-UTC: 2026-09-10T21:49:08.087018+00:00
+UTC: 2026-09-10T21:54:54.643845+00:00
 
-Current markets: 2772
+Current markets: 2750
 Families: 250
 Signals evaluated: 100
-PAPER_BUY candidates: 449
+PAPER_BUY candidates: 448
 
 Los Angeles | KLAX | 2026-09-10
   94°F or higher
@@ -50,13 +50,6 @@ Austin | KAUS | 2026-09-10
   net_ev=0.4541
   signal=PAPER_BUY
 
-New York City | KLGA | 2026-09-10
-  88-89°F
-  model=0.4767 entry=0.0300
-  gross_edge=0.4467 fee=0.00145
-  net_ev=0.4452
-  signal=PAPER_BUY
-
 Dallas | KDAL | 2026-09-10
   96-97°F
   model=0.4434 entry=0.0010
@@ -90,6 +83,13 @@ Miami | KMIA | 2026-09-10
   model=0.4088 entry=0.0010
   gross_edge=0.4078 fee=0.00005
   net_ev=0.4077
+  signal=PAPER_BUY
+
+New York City | KLGA | 2026-09-10
+  88-89°F
+  model=0.4767 entry=0.0800
+  gross_edge=0.3967 fee=0.00368
+  net_ev=0.3930
   signal=PAPER_BUY
 
 New York City | KLGA | 2026-09-11
@@ -128,22 +128,22 @@ Miami | KMIA | 2026-09-11
   signal=PAPER_BUY
 
 Miami | KMIA | 2026-09-11
-  76-77°F
-  model=0.4767 entry=0.1200
-  gross_edge=0.3567 fee=0.00528
-  net_ev=0.3514
-  signal=PAPER_BUY
-
-Seattle | KSEA | 2026-09-10
-  68-69°F
-  model=0.4128 entry=0.0600
-  gross_edge=0.3528 fee=0.00282
-  net_ev=0.3500
-  signal=PAPER_BUY
-
-Miami | KMIA | 2026-09-11
   86-87°F
-  model=0.4720 entry=0.1400
-  gross_edge=0.3320 fee=0.00602
-  net_ev=0.3260
+  model=0.4720 entry=0.1300
+  gross_edge=0.3420 fee=0.00566
+  net_ev=0.3364
+  signal=PAPER_BUY
+
+Buenos Aires | SAEZ | 2026-09-10
+  9°C
+  model=0.3231 entry=0.0010
+  gross_edge=0.3221 fee=0.00005
+  net_ev=0.3220
+  signal=PAPER_BUY
+
+London | EGLC | 2026-09-10
+  20°C
+  model=0.3220 entry=0.0010
+  gross_edge=0.3210 fee=0.00005
+  net_ev=0.3210
   signal=PAPER_BUY
