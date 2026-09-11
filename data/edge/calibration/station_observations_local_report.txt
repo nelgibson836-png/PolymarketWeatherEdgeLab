@@ -1,0 +1,42 @@
+POLYMARKET WEATHER STATION LOCALIZER V1.0
+
+UTC: 2026-09-11T14:51:05.119087+00:00
+
+Stations: 45
+Raw observations: 47295
+Local daily records: 1722
+Stations with local daily data: 29
+
+Daily date is calculated using the station's local timezone.
+
+STATION COVERAGE
+
+CYYZ: 7 days | America/Toronto
+EDDM: 89 days | Europe/Berlin
+EFHK: 89 days | Europe/Helsinki
+EGLC: 89 days | Europe/London
+EHAM: 89 days | Europe/Amsterdam
+EPWA: 89 days | Europe/Warsaw
+FACT: 6 days | Africa/Johannesburg
+KDAL: 1 days | America/Chicago
+KHOU: 1 days | America/Chicago
+KLGA: 2 days | America/New_York
+KORD: 4 days | America/Chicago
+KSEA: 1 days | America/Los_Angeles
+LEMD: 89 days | Europe/Madrid
+LFPB: 89 days | Europe/Paris
+LIMC: 88 days | Europe/Rome
+LTAC: 89 days | Europe/Istanbul
+MMMX: 11 days | America/Mexico_City
+NZWN: 88 days | Pacific/Auckland
+OPKC: 89 days | Asia/Karachi
+RJTT: 88 days | Asia/Tokyo
+RKPK: 3 days | Asia/Seoul
+RKSI: 88 days | Asia/Seoul
+SAEZ: 2 days | America/Argentina/Buenos_Aires
+VILK: 89 days | Asia/Kolkata
+WMKK: 88 days | Asia/Kuala_Lumpur
+WSSS: 88 days | Asia/Singapore
+ZBAA: 89 days | Asia/Shanghai
+ZGGG: 89 days | Asia/Shanghai
+ZSPD: 88 days | Asia/Shanghai
