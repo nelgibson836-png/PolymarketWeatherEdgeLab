@@ -1,0 +1,48 @@
+POLYMARKET WEATHER STATION OBSERVATION BOOTSTRAP V1.0
+NO TRADING
+
+UTC: 2026-09-11T14:42:26.570958+00:00
+
+Stations requested: 45
+Stations successful: 39
+Stations empty: 6
+Stations failed: 0
+Raw observations: 47295
+Daily station records: 1734
+Stations with daily data: 29
+
+SOURCE NOTE: IEM maintains an archive of ASOS/AWOS/METAR observations from around the world.
+Daily min/max are calculated from the available observations.
+Days with fewer than 18 observations are excluded.
+
+STATION COVERAGE
+
+CYYZ: 6 days
+EDDM: 89 days
+EFHK: 89 days
+EGLC: 89 days
+EHAM: 89 days
+EPWA: 89 days
+FACT: 6 days
+KDAL: 1 days
+KHOU: 2 days
+KLGA: 2 days
+KORD: 5 days
+KSEA: 1 days
+LEMD: 89 days
+LFPB: 89 days
+LIMC: 88 days
+LTAC: 89 days
+MMMX: 14 days
+NZWN: 89 days
+OPKC: 89 days
+RJTT: 89 days
+RKPK: 4 days
+RKSI: 89 days
+SAEZ: 3 days
+VILK: 89 days
+WMKK: 89 days
+WSSS: 89 days
+ZBAA: 89 days
+ZGGG: 89 days
+ZSPD: 89 days
