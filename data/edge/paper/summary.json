@@ -1,0 +1,20 @@
+{
+  "updated_at": "2026-09-11T16:03:48.811473+00:00",
+  "trial_days": 15,
+  "trial_start": "2026-09-11T16:03:48.809958+00:00",
+  "trial_end": "2026-09-26T16:03:48.809958+00:00",
+  "trial_active": true,
+  "virtual_bankroll_initial": 1000.0,
+  "stake_per_trade": 10.0,
+  "max_open_trades": 50,
+  "total_trades": 50,
+  "open_trades": 50,
+  "closed_trades": 0,
+  "wins": 0,
+  "losses": 0,
+  "win_rate": null,
+  "closed_pnl": 0,
+  "closed_roi": null,
+  "open_stake": 500.0,
+  "virtual_equity_after_closed": 1000.0
+}
