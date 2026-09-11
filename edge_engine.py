@@ -3,24 +3,15 @@ import json
 import math
 import os
 from datetime import datetime, timezone
+from statistics import mean
 
 
 # ============================================================
 # POLYMARKET WEATHER EDGE LAB
-# Edge Engine V1.5
+# EDGE ENGINE V1.5
 #
 # RESEARCH / PAPER TRADING ONLY
 # NO ORDERS ARE SENT
-#
-# V1.5:
-# - Exact model calibration only
-# - Correct min/max calibration selection
-# - Station + model + lead calibration
-# - No cross-model fallback
-# - Calibration sanity blocking
-# - Minimum historical sample gate
-# - Family normalization
-# - Executable ask requirement
 # ============================================================
 
 ENGINE_VERSION = "1.5"
@@ -109,7 +100,6 @@ FAMILY_MAX_COVERAGE = 1.05
 
 MIN_CALIBRATION_SAMPLES = 15
 
-# Calibration sanity limits.
 MAX_ACCEPTABLE_ABS_BIAS_C = 3.0
 MAX_ACCEPTABLE_RMSE_C = 4.0
 
@@ -168,7 +158,7 @@ SIGNAL_FIELDS = [
 
 
 # ============================================================
-# HELPERS
+# BASIC HELPERS
 # ============================================================
 
 def iso_now():
@@ -184,10 +174,7 @@ def safe_float(value):
 
         return float(value)
 
-    except (
-        ValueError,
-        TypeError,
-    ):
+    except (ValueError, TypeError):
         return None
 
 
@@ -198,17 +185,11 @@ def safe_int(value):
 
         return int(float(value))
 
-    except (
-        ValueError,
-        TypeError,
-    ):
+    except (ValueError, TypeError):
         return None
 
 
-def rounded(
-    value,
-    digits=6,
-):
+def rounded(value, digits=6):
     if value is None:
         return None
 
@@ -224,9 +205,7 @@ def read_json(path):
         "r",
         encoding="utf-8",
     ) as handle:
-        return json.load(
-            handle
-        )
+        return json.load(handle)
 
 
 def read_csv(path):
@@ -240,19 +219,12 @@ def read_csv(path):
         newline="",
     ) as handle:
         return list(
-            csv.DictReader(
-                handle
-            )
+            csv.DictReader(handle)
         )
 
 
-def write_json(
-    path,
-    payload,
-):
-    directory = os.path.dirname(
-        path
-    )
+def write_json(path, payload):
+    directory = os.path.dirname(path)
 
     if directory:
         os.makedirs(
@@ -260,16 +232,14 @@ def write_json(
             exist_ok=True,
         )
 
-    temporary = (
-        path
-        + ".tmp"
-    )
+    temp = path + ".tmp"
 
     with open(
-        temporary,
+        temp,
         "w",
         encoding="utf-8",
     ) as handle:
+
         json.dump(
             payload,
             handle,
@@ -277,23 +247,16 @@ def write_json(
             indent=2,
         )
 
-        handle.write(
-            "\n"
-        )
+        handle.write("\n")
 
     os.replace(
-        temporary,
+        temp,
         path,
     )
 
 
-def write_text(
-    path,
-    text,
-):
-    directory = os.path.dirname(
-        path
-    )
+def write_text(path, text):
+    directory = os.path.dirname(path)
 
     if directory:
         os.makedirs(
@@ -301,37 +264,26 @@ def write_text(
             exist_ok=True,
         )
 
-    temporary = (
-        path
-        + ".tmp"
-    )
+    temp = path + ".tmp"
 
     with open(
-        temporary,
+        temp,
         "w",
         encoding="utf-8",
     ) as handle:
-        handle.write(
-            text
-        )
+        handle.write(text)
 
     os.replace(
-        temporary,
+        temp,
         path,
     )
 
 
-def append_csv(
-    path,
-    fields,
-    rows,
-):
+def append_csv(path, fields, rows):
     if not rows:
         return
 
-    directory = os.path.dirname(
-        path
-    )
+    directory = os.path.dirname(path)
 
     if directory:
         os.makedirs(
@@ -339,9 +291,7 @@ def append_csv(
             exist_ok=True,
         )
 
-    exists = os.path.exists(
-        path
-    )
+    exists = os.path.exists(path)
 
     with open(
         path,
@@ -360,39 +310,29 @@ def append_csv(
             writer.writeheader()
 
         for row in rows:
-            writer.writerow(
-                row
-            )
+            writer.writerow(row)
 
 
 # ============================================================
-# MATH
+# PROBABILITY MODEL
 # ============================================================
 
-def normal_cdf(
-    x,
-    mean_value,
-    sigma,
-):
+def normal_cdf(x, mean_value, sigma):
     if sigma <= 0:
         return None
 
     z = (
         x - mean_value
     ) / (
-        sigma
-        * math.sqrt(2.0)
+        sigma * math.sqrt(2.0)
     )
 
     return 0.5 * (
-        1.0
-        + math.erf(z)
+        1.0 + math.erf(z)
     )
 
 
-def clamp_probability(
-    value
-):
+def clamp_probability(value):
     if value is None:
         return None
 
@@ -421,10 +361,7 @@ def bucket_probability(
         return None
 
     if bucket_type == "exact":
-
-        value = safe_float(
-            bucket_value
-        )
+        value = safe_float(bucket_value)
 
         if value is None:
             return None
@@ -443,10 +380,7 @@ def bucket_probability(
         )
 
     if bucket_type == "or_lower":
-
-        threshold = safe_float(
-            bucket_value
-        )
+        threshold = safe_float(bucket_value)
 
         if threshold is None:
             return None
@@ -460,10 +394,7 @@ def bucket_probability(
         )
 
     if bucket_type == "or_higher":
-
-        threshold = safe_float(
-            bucket_value
-        )
+        threshold = safe_float(bucket_value)
 
         if threshold is None:
             return None
@@ -478,14 +409,8 @@ def bucket_probability(
         )
 
     if bucket_type == "range":
-
-        low = safe_float(
-            bucket_low
-        )
-
-        high = safe_float(
-            bucket_high
-        )
+        low = safe_float(bucket_low)
+        high = safe_float(bucket_high)
 
         if (
             low is None
@@ -511,30 +436,21 @@ def bucket_probability(
 
 
 # ============================================================
-# TEMPERATURE UNITS
+# TEMPERATURE UNIT
 # ============================================================
 
-def fahrenheit_to_celsius(
-    value
-):
+def fahrenheit_to_celsius(value):
     return (
         value - 32.0
     ) * 5.0 / 9.0
 
 
-def normalize_bucket_to_celsius(
-    market
-):
-    normalized = dict(
-        market
-    )
+def normalize_bucket_to_celsius(market):
+    normalized = dict(market)
 
     unit = str(
         market.get(
             "temperature_unit"
-        )
-        or market.get(
-            "unit"
         )
         or "C"
     ).upper()
@@ -554,36 +470,23 @@ def normalize_bucket_to_celsius(
         normalized[key] = (
             None
             if value is None
-            else fahrenheit_to_celsius(
-                value
-            )
+            else fahrenheit_to_celsius(value)
         )
 
     return normalized
 
 
 # ============================================================
-# FORECAST RECORDS
+# WEATHER RECORDS
 # ============================================================
 
-def select_latest_forecasts(
-    rows
-):
+def select_latest_forecasts(rows):
     latest = {}
 
     for row in rows:
-
-        station = row.get(
-            "station"
-        )
-
-        market_date = row.get(
-            "market_date"
-        )
-
-        model = row.get(
-            "model"
-        )
+        station = row.get("station")
+        market_date = row.get("market_date")
+        model = row.get("model")
 
         if (
             not station
@@ -593,22 +496,16 @@ def select_latest_forecasts(
             continue
 
         key = (
-            str(
-                station
-            ).upper(),
+            str(station).upper(),
             market_date,
-            str(
-                model
-            ),
+            str(model),
         )
+
+        previous = latest.get(key)
 
         current_time = row.get(
             "collected_at",
             "",
-        )
-
-        previous = latest.get(
-            key
         )
 
         previous_time = (
@@ -622,28 +519,20 @@ def select_latest_forecasts(
 
         if (
             previous is None
-            or current_time
-            > previous_time
+            or current_time > previous_time
         ):
-            latest[
-                key
-            ] = row
+            latest[key] = row
 
     return list(
         latest.values()
     )
 
 
-def select_latest_observations(
-    rows
-):
+def select_latest_observations(rows):
     latest = {}
 
     for row in rows:
-
-        station = row.get(
-            "station"
-        )
+        station = row.get("station")
 
         if not station:
             continue
@@ -652,15 +541,11 @@ def select_latest_observations(
             station
         ).upper()
 
-        current_time = (
-            row.get(
-                "collected_at",
-                "",
-            )
-        )
+        previous = latest.get(station)
 
-        previous = latest.get(
-            station
+        current_time = row.get(
+            "collected_at",
+            "",
         )
 
         previous_time = (
@@ -674,12 +559,9 @@ def select_latest_observations(
 
         if (
             previous is None
-            or current_time
-            > previous_time
+            or current_time > previous_time
         ):
-            latest[
-                station
-            ] = row
+            latest[station] = row
 
     return latest
 
@@ -688,11 +570,8 @@ def select_latest_observations(
 # LEAD TIME
 # ============================================================
 
-def infer_lead_days(
-    row
-):
+def infer_lead_days(row):
     try:
-
         market_date_text = str(
             row.get(
                 "market_date"
@@ -706,18 +585,14 @@ def infer_lead_days(
             ).date()
         )
 
-        collected_text = (
-            row.get(
-                "collected_at"
-            )
+        collected_text = row.get(
+            "collected_at"
         )
 
         if not collected_text:
             return None
 
-        if collected_text.endswith(
-            "Z"
-        ):
+        if collected_text.endswith("Z"):
             collected_text = (
                 collected_text[:-1]
                 + "+00:00"
@@ -729,10 +604,7 @@ def infer_lead_days(
             )
         )
 
-        if (
-            collected_dt.tzinfo
-            is None
-        ):
+        if collected_dt.tzinfo is None:
             collected_dt = (
                 collected_dt.replace(
                     tzinfo=timezone.utc
@@ -763,7 +635,7 @@ def infer_lead_days(
 # CALIBRATION
 # ============================================================
 
-def calibration_flag(
+def build_calibration_flag(
     bias,
     rmse,
     samples,
@@ -774,36 +646,26 @@ def calibration_flag(
         samples is None
         or samples < MIN_CALIBRATION_SAMPLES
     ):
-        flags.append(
-            "LOW_SAMPLE"
-        )
+        flags.append("LOW_SAMPLE")
 
     if (
         bias is not None
-        and abs(
-            bias
-        )
+        and abs(bias)
         > MAX_ACCEPTABLE_ABS_BIAS_C
     ):
-        flags.append(
-            "HIGH_BIAS"
-        )
+        flags.append("HIGH_BIAS")
 
     if (
         rmse is not None
         and rmse
         > MAX_ACCEPTABLE_RMSE_C
     ):
-        flags.append(
-            "HIGH_RMSE"
-        )
+        flags.append("HIGH_RMSE")
 
     if not flags:
         return "OK"
 
-    return ",".join(
-        flags
-    )
+    return ",".join(flags)
 
 
 def load_calibration():
@@ -814,25 +676,18 @@ def load_calibration():
     calibration = {}
 
     for row in rows:
-
         station = (
-            row.get(
-                "station"
-            )
+            row.get("station")
             or ""
         ).upper()
 
         model = (
-            row.get(
-                "model"
-            )
+            row.get("model")
             or ""
         )
 
         lead_days = safe_int(
-            row.get(
-                "lead_days"
-            )
+            row.get("lead_days")
         )
 
         if (
@@ -843,53 +698,31 @@ def load_calibration():
             continue
 
         samples = safe_int(
-            row.get(
-                "samples"
-            )
-        )
-
-        if samples is None:
-            samples = 0
-
-        # IMPORTANT:
-        # Calibration depends on market type.
-        # We therefore retain BOTH min and max
-        # values in the calibration record.
+            row.get("samples")
+        ) or 0
 
         min_bias = safe_float(
-            row.get(
-                "min_bias_c"
-            )
+            row.get("min_bias_c")
         )
 
         min_rmse = safe_float(
-            row.get(
-                "min_rmse_c"
-            )
+            row.get("min_rmse_c")
         )
 
         min_sigma = safe_float(
-            row.get(
-                "min_sigma_c"
-            )
+            row.get("min_sigma_c")
         )
 
         max_bias = safe_float(
-            row.get(
-                "max_bias_c"
-            )
+            row.get("max_bias_c")
         )
 
         max_rmse = safe_float(
-            row.get(
-                "max_rmse_c"
-            )
+            row.get("max_rmse_c")
         )
 
         max_sigma = safe_float(
-            row.get(
-                "max_sigma_c"
-            )
+            row.get("max_sigma_c")
         )
 
         if min_sigma is None:
@@ -914,18 +747,6 @@ def load_calibration():
             ),
         )
 
-        min_flag = calibration_flag(
-            min_bias,
-            min_rmse,
-            samples,
-        )
-
-        max_flag = calibration_flag(
-            max_bias,
-            max_rmse,
-            samples,
-        )
-
         calibration[
             (
                 station,
@@ -941,11 +762,15 @@ def load_calibration():
                 else 0.0
             ),
 
-            "min_sigma_c": min_sigma,
-
             "min_rmse_c": min_rmse,
 
-            "min_flag": min_flag,
+            "min_sigma_c": min_sigma,
+
+            "min_flag": build_calibration_flag(
+                min_bias,
+                min_rmse,
+                samples,
+            ),
 
             "max_bias_c": (
                 max_bias
@@ -953,11 +778,15 @@ def load_calibration():
                 else 0.0
             ),
 
-            "max_sigma_c": max_sigma,
-
             "max_rmse_c": max_rmse,
 
-            "max_flag": max_flag,
+            "max_sigma_c": max_sigma,
+
+            "max_flag": build_calibration_flag(
+                max_bias,
+                max_rmse,
+                samples,
+            ),
         }
 
     return calibration
@@ -971,21 +800,14 @@ def get_calibration_for_market(
     market_type,
 ):
     key = (
-        str(
-            station
-        ).upper(),
-        str(
-            model
-        ),
+        str(station).upper(),
+        str(model),
         lead_days,
     )
 
-    item = calibration.get(
-        key
-    )
+    item = calibration.get(key)
 
     if item is None:
-
         return {
             "found": False,
             "samples": 0,
@@ -993,59 +815,33 @@ def get_calibration_for_market(
             "sigma_c": DEFAULT_SIGMA_C,
             "flag": "NO_CALIBRATION",
             "source": "none",
+            "rmse_c": None,
         }
 
-    if market_type == (
-        "lowest_temperature"
-    ):
-
+    if market_type == "lowest_temperature":
         return {
             "found": True,
-            "samples": item[
-                "samples"
-            ],
-            "bias_c": item[
-                "min_bias_c"
-            ],
-            "sigma_c": item[
-                "min_sigma_c"
-            ],
-            "rmse_c": item[
-                "min_rmse_c"
-            ],
-            "flag": item[
-                "min_flag"
-            ],
-            "source": (
-                "station_model_lead_min"
-            ),
+            "samples": item["samples"],
+            "bias_c": item["min_bias_c"],
+            "sigma_c": item["min_sigma_c"],
+            "flag": item["min_flag"],
+            "source": "station_model_lead_min",
+            "rmse_c": item["min_rmse_c"],
         }
 
     return {
         "found": True,
-        "samples": item[
-            "samples"
-        ],
-        "bias_c": item[
-            "max_bias_c"
-        ],
-        "sigma_c": item[
-            "max_sigma_c"
-        ],
-        "rmse_c": item[
-            "max_rmse_c"
-        ],
-        "flag": item[
-            "max_flag"
-        ],
-        "source": (
-            "station_model_lead_max"
-        ),
+        "samples": item["samples"],
+        "bias_c": item["max_bias_c"],
+        "sigma_c": item["max_sigma_c"],
+        "flag": item["max_flag"],
+        "source": "station_model_lead_max",
+        "rmse_c": item["max_rmse_c"],
     }
 
 
 # ============================================================
-# FORECAST CONSENSUS
+# FORECAST STATS
 # ============================================================
 
 def build_forecast_stats(
@@ -1058,10 +854,7 @@ def build_forecast_stats(
     entries = []
 
     for row in forecasts:
-
-        row_station = row.get(
-            "station"
-        )
+        row_station = row.get("station")
 
         if not row_station:
             continue
@@ -1079,24 +872,17 @@ def build_forecast_stats(
             continue
 
         model = str(
-            row.get(
-                "model"
-            )
+            row.get("model")
             or "unknown"
         )
 
-        if market_type == (
-            "lowest_temperature"
-        ):
-
+        if market_type == "lowest_temperature":
             raw_value = safe_float(
                 row.get(
                     "temperature_min_c"
                 )
             )
-
         else:
-
             raw_value = safe_float(
                 row.get(
                     "temperature_max_c"
@@ -1113,104 +899,50 @@ def build_forecast_stats(
         if lead_days is None:
             continue
 
-        calibration_info = (
-            get_calibration_for_market(
-                calibration,
-                station,
-                model,
-                lead_days,
-                market_type,
-            )
+        cal = get_calibration_for_market(
+            calibration,
+            station,
+            model,
+            lead_days,
+            market_type,
         )
 
-        # IMPORTANT:
-        # Do NOT substitute another model's calibration.
-        if not calibration_info[
-            "found"
-        ]:
+        if not cal["found"]:
             entries.append(
                 {
                     "model": model,
-
                     "raw_value_c": raw_value,
-
                     "corrected_value_c": raw_value,
-
-                    "sigma_c": (
-                        DEFAULT_SIGMA_C
-                    ),
-
+                    "sigma_c": DEFAULT_SIGMA_C,
                     "bias_c": 0.0,
-
                     "samples": 0,
-
-                    "calibration_source": (
-                        "none"
-                    ),
-
-                    "calibration_flag": (
-                        "NO_CALIBRATION"
-                    ),
-
+                    "calibration_source": "none",
+                    "calibration_flag": "NO_CALIBRATION",
                     "lead_days": lead_days,
-
                     "calibrated": False,
                 }
             )
 
             continue
 
-        bias = calibration_info[
-            "bias_c"
-        ]
-
-        sigma = calibration_info[
-            "sigma_c"
-        ]
-
         corrected_value = (
             raw_value
-            + bias
+            + cal["bias_c"]
         )
 
         entries.append(
             {
                 "model": model,
-
                 "raw_value_c": raw_value,
-
-                "corrected_value_c": (
-                    corrected_value
-                ),
-
-                "sigma_c": sigma,
-
-                "bias_c": bias,
-
-                "samples": (
-                    calibration_info[
-                        "samples"
-                    ]
-                ),
-
-                "calibration_source": (
-                    calibration_info[
-                        "source"
-                    ]
-                ),
-
-                "calibration_flag": (
-                    calibration_info[
-                        "flag"
-                    ]
-                ),
-
+                "corrected_value_c": corrected_value,
+                "sigma_c": cal["sigma_c"],
+                "bias_c": cal["bias_c"],
+                "samples": cal["samples"],
+                "calibration_source": cal["source"],
+                "calibration_flag": cal["flag"],
                 "lead_days": lead_days,
-
                 "calibrated": (
-                    calibration_info[
-                        "flag"
-                    ] == "OK"
+                    cal["flag"] == "OK"
                 ),
             }
         )
@@ -1218,135 +950,63 @@ def build_forecast_stats(
     if not entries:
         return None
 
-    # --------------------------------------------------------
-    # ONLY USE CALIBRATED MODELS FOR THE PRIMARY MODEL
-    # --------------------------------------------------------
-
     calibrated_entries = [
         item
         for item in entries
-        if item[
-            "calibrated"
-        ]
+        if item["calibrated"]
     ]
 
     if not calibrated_entries:
-        # We still return diagnostics, but no valid
-        # calibration is available.
+        raw_values = [
+            item["raw_value_c"]
+            for item in entries
+        ]
+
         return {
-            "values": [
-                item[
-                    "raw_value_c"
-                ]
-                for item in entries
-            ],
-
+            "values": raw_values,
+            "raw_values": raw_values,
             "models": [
-                item[
-                    "model"
-                ]
+                item["model"]
                 for item in entries
             ],
-
-            "mean_c": mean(
-                [
-                    item[
-                        "raw_value_c"
-                    ]
-                    for item in entries
-                ]
-            ),
-
-            "min_c": min(
-                [
-                    item[
-                        "raw_value_c"
-                    ]
-                    for item in entries
-                ]
-            ),
-
-            "max_c": max(
-                [
-                    item[
-                        "raw_value_c"
-                    ]
-                    for item in entries
-                ]
-            ),
-
+            "mean_c": mean(raw_values),
+            "min_c": min(raw_values),
+            "max_c": max(raw_values),
             "std_c": 0.0,
-
             "sigma_c": DEFAULT_SIGMA_C,
-
             "calibration_samples": 0,
-
             "calibration_bias_c": 0.0,
-
             "calibration_source": "none",
-
-            "calibration_flag": (
-                "NO_CALIBRATION"
-            ),
-
+            "calibration_flag": "NO_CALIBRATION",
+            "calibration_lead_days": "",
             "all_calibrated": False,
-
-            "forecast_count": len(
-                entries
-            ),
-
-            "calibrated_model_count": 0,
-
-            "entries": entries,
+            "forecast_count": len(entries),
         }
 
-    # --------------------------------------------------------
-    # CALIBRATED CONSENSUS
-    # --------------------------------------------------------
-
     corrected_values = [
-        item[
-            "corrected_value_c"
-        ]
+        item["corrected_value_c"]
         for item in calibrated_entries
     ]
 
     raw_values = [
-        item[
-            "raw_value_c"
-        ]
+        item["raw_value_c"]
         for item in calibrated_entries
     ]
 
     sigmas = [
-        item[
-            "sigma_c"
-        ]
+        item["sigma_c"]
         for item in calibrated_entries
     ]
 
-    mean_c = (
-        sum(
-            corrected_values
-        )
-        / len(
-            corrected_values
-        )
-    )
-
-    raw_mean_c = (
-        sum(
-            raw_values
-        )
-        / len(
-            raw_values
-        )
-    )
-
-    if len(
+    mean_c = mean(
         corrected_values
-    ) > 1:
+    )
 
+    raw_mean_c = mean(
+        raw_values
+    )
+
+    if len(corrected_values) > 1:
         between_variance = (
             sum(
                 (
@@ -1356,59 +1016,47 @@ def build_forecast_stats(
                 for value in corrected_values
             )
             / (
-                len(
-                    corrected_values
-                )
+                len(corrected_values)
                 - 1
             )
         )
-
     else:
         between_variance = 0.0
 
-    average_forecast_variance = (
-        sum(
+    forecast_variance = mean(
+        [
             sigma * sigma
             for sigma in sigmas
-        )
-        / len(
-            sigmas
-        )
+        ]
     )
 
-    combined_sigma = math.sqrt(
+    sigma_c = math.sqrt(
         max(
-            MIN_SIGMA_C,
-            average_forecast_variance
+            0.0,
+            forecast_variance
             + between_variance,
         )
     )
 
-    combined_sigma = max(
+    sigma_c = max(
         MIN_SIGMA_C,
         min(
             MAX_SIGMA_C,
-            combined_sigma,
+            sigma_c,
         ),
     )
 
     total_samples = sum(
-        item[
-            "samples"
-        ]
+        item["samples"]
         for item in calibrated_entries
     )
 
     weighted_bias = (
         sum(
-            item[
-                "bias_c"
-            ]
+            item["bias_c"]
             * max(
                 1,
-                item[
-                    "samples"
-                ],
+                item["samples"],
             )
             for item in calibrated_entries
         )
@@ -1418,197 +1066,111 @@ def build_forecast_stats(
         )
     )
 
-    flags = sorted(
-        set(
-            item[
-                "calibration_flag"
-            ]
-            for item in entries
-        )
-    )
-
     sources = sorted(
         set(
-            item[
-                "calibration_source"
-            ]
+            item["calibration_source"]
             for item in calibrated_entries
         )
     )
 
-    all_calibrated = (
-        len(
-            calibrated_entries
-        )
-        == len(
-            entries
-        )
-        and all(
-            item[
-                "samples"
-            ]
-            >= MIN_CALIBRATION_SAMPLES
-            and item[
-                "calibration_flag"
-            ]
-            == "OK"
-            for item in calibrated_entries
+    flags = sorted(
+        set(
+            item["calibration_flag"]
+            for item in entries
         )
     )
 
     lead_days_used = sorted(
         set(
-            item[
-                "lead_days"
-            ]
+            item["lead_days"]
+            for item in calibrated_entries
+        )
+    )
+
+    all_calibrated = (
+        len(calibrated_entries)
+        == len(entries)
+        and all(
+            item["samples"]
+            >= MIN_CALIBRATION_SAMPLES
+            and item["calibration_flag"]
+            == "OK"
             for item in calibrated_entries
         )
     )
 
     return {
         "values": corrected_values,
-
         "raw_values": raw_values,
-
         "models": [
-            item[
-                "model"
-            ]
+            item["model"]
             for item in calibrated_entries
         ],
-
-        "all_models": [
-            item[
-                "model"
-            ]
-            for item in entries
-        ],
-
         "mean_c": mean_c,
-
         "raw_mean_c": raw_mean_c,
-
-        "min_c": min(
-            corrected_values
-        ),
-
-        "max_c": max(
-            corrected_values
-        ),
-
+        "min_c": min(corrected_values),
+        "max_c": max(corrected_values),
         "std_c": math.sqrt(
             max(
                 0.0,
                 between_variance,
             )
         ),
-
-        "sigma_c": combined_sigma,
-
-        "calibration_samples": (
-            total_samples
+        "sigma_c": sigma_c,
+        "calibration_samples": total_samples,
+        "calibration_bias_c": weighted_bias,
+        "calibration_source": ",".join(
+            sources
         ),
-
-        "calibration_bias_c": (
-            weighted_bias
+        "calibration_flag": ",".join(
+            flags
         ),
-
-        "calibration_source": (
-            ",".join(
-                sources
-            )
+        "calibration_lead_days": ",".join(
+            str(value)
+            for value in lead_days_used
         ),
-
-        "calibration_flag": (
-            ",".join(
-                flags
-            )
-        ),
-
-        "calibration_lead_days": (
-            ",".join(
-                str(
-                    value
-                )
-                for value in lead_days_used
-            )
-        ),
-
-        "all_calibrated": (
-            all_calibrated
-        ),
-
-        "forecast_count": len(
-            entries
-        ),
-
-        "calibrated_model_count": len(
-            calibrated_entries
-        ),
-
-        "entries": entries,
+        "all_calibrated": all_calibrated,
+        "forecast_count": len(entries),
     }
 
 
 # ============================================================
-# FEES / EXECUTION
+# MARKET / FEES
 # ============================================================
 
-def candidate_entry_price(
-    market
-):
+def candidate_entry_price(market):
     ask = safe_float(
-        market.get(
-            "best_ask"
-        )
+        market.get("best_ask")
     )
 
     if (
         ask is not None
         and 0.0 < ask < 1.0
     ):
-        return (
-            ask,
-            "ask",
-        )
+        return ask, "ask"
 
-    return (
-        None,
-        "none",
-    )
+    return None, "none"
 
 
-def market_probability(
-    market
-):
+def market_probability(market):
     return safe_float(
-        market.get(
-            "yes_price"
-        )
+        market.get("yes_price")
     )
 
 
-def get_fee_rate(
-    market
-):
+def get_fee_rate(market):
     enabled = market.get(
         "fees_enabled"
     )
 
     if enabled is False:
-        return (
-            0.0,
-            "disabled",
-        )
+        return 0.0, "disabled"
 
     schedule = market.get(
         "fee_schedule"
     )
 
-    if isinstance(
-        schedule,
-        str,
-    ):
+    if isinstance(schedule, str):
         try:
             schedule = json.loads(
                 schedule
@@ -1616,10 +1178,7 @@ def get_fee_rate(
         except Exception:
             schedule = None
 
-    if isinstance(
-        schedule,
-        dict,
-    ):
+    if isinstance(schedule, dict):
         for key in (
             "rate",
             "feeRate",
@@ -1627,16 +1186,11 @@ def get_fee_rate(
             "r",
         ):
             rate = safe_float(
-                schedule.get(
-                    key
-                )
+                schedule.get(key)
             )
 
             if rate is not None:
-                return (
-                    rate,
-                    "market",
-                )
+                return rate, "market"
 
     return (
         DEFAULT_WEATHER_FEE_RATE,
@@ -1665,16 +1219,13 @@ def fee_per_share(
 
 
 # ============================================================
-# FAMILY
+# FAMILIES
 # ============================================================
 
-def group_market_families(
-    markets
-):
+def group_market_families(markets):
     groups = {}
 
     for market in markets:
-
         event_key = market.get(
             "event_key"
         )
@@ -1685,9 +1236,7 @@ def group_market_families(
         groups.setdefault(
             event_key,
             [],
-        ).append(
-            market
-        )
+        ).append(market)
 
     return groups
 
@@ -1697,46 +1246,36 @@ def family_probability_sum(
     stats,
 ):
     exclusive = []
-
     cumulative = []
 
     for market in family:
-
-        normalized = (
-            normalize_bucket_to_celsius(
-                market
-            )
+        normalized = normalize_bucket_to_celsius(
+            market
         )
 
         bucket_type = normalized.get(
             "bucket_type"
         )
 
-        probability = (
-            bucket_probability(
-                bucket_type,
-                safe_float(
-                    normalized.get(
-                        "bucket_value"
-                    )
-                ),
-                safe_float(
-                    normalized.get(
-                        "bucket_low"
-                    )
-                ),
-                safe_float(
-                    normalized.get(
-                        "bucket_high"
-                    )
-                ),
-                stats[
-                    "mean_c"
-                ],
-                stats[
-                    "sigma_c"
-                ],
-            )
+        probability = bucket_probability(
+            bucket_type,
+            safe_float(
+                normalized.get(
+                    "bucket_value"
+                )
+            ),
+            safe_float(
+                normalized.get(
+                    "bucket_low"
+                )
+            ),
+            safe_float(
+                normalized.get(
+                    "bucket_high"
+                )
+            ),
+            stats["mean_c"],
+            stats["sigma_c"],
         )
 
         if probability is None:
@@ -1759,34 +1298,22 @@ def family_probability_sum(
             )
 
     if not exclusive:
-
         return {
             "sum": None,
-            "status": (
-                "NO_EXCLUSIVE_BUCKETS"
-            ),
+            "status": "NO_EXCLUSIVE_BUCKETS",
             "exclusive_count": 0,
             "cumulative_count": len(
                 cumulative
             ),
         }
 
-    total = sum(
-        exclusive
-    )
+    total = sum(exclusive)
 
     if total < FAMILY_MIN_COVERAGE:
-
         status = "INCOMPLETE"
-
     elif total > FAMILY_MAX_COVERAGE:
-
-        status = (
-            "OVERLAP_OR_PARSE_ERROR"
-        )
-
+        status = "OVERLAP_OR_PARSE_ERROR"
     else:
-
         status = "PASS"
 
     return {
@@ -1830,41 +1357,33 @@ def create_signal(
     observation,
     family_check,
 ):
-    normalized = (
-        normalize_bucket_to_celsius(
-            market
-        )
+    normalized = normalize_bucket_to_celsius(
+        market
     )
 
     bucket_type = normalized.get(
         "bucket_type"
     )
 
-    raw_probability = (
-        bucket_probability(
-            bucket_type,
-            safe_float(
-                normalized.get(
-                    "bucket_value"
-                )
-            ),
-            safe_float(
-                normalized.get(
-                    "bucket_low"
-                )
-            ),
-            safe_float(
-                normalized.get(
-                    "bucket_high"
-                )
-            ),
-            forecast_stats[
-                "mean_c"
-            ],
-            forecast_stats[
-                "sigma_c"
-            ],
-        )
+    raw_probability = bucket_probability(
+        bucket_type,
+        safe_float(
+            normalized.get(
+                "bucket_value"
+            )
+        ),
+        safe_float(
+            normalized.get(
+                "bucket_low"
+            )
+        ),
+        safe_float(
+            normalized.get(
+                "bucket_high"
+            )
+        ),
+        forecast_stats["mean_c"],
+        forecast_stats["sigma_c"],
     )
 
     if raw_probability is None:
@@ -1875,25 +1394,16 @@ def create_signal(
             "exact",
             "range",
         )
-        and family_check[
-            "sum"
-        ] is not None
+        and family_check["sum"] is not None
     ):
-
         model_probability = (
             normalize_exclusive_probability(
                 raw_probability,
-                family_check[
-                    "sum"
-                ],
+                family_check["sum"],
             )
         )
-
     else:
-
-        model_probability = (
-            raw_probability
-        )
+        model_probability = raw_probability
 
     entry_price, entry_source = (
         candidate_entry_price(
@@ -1927,7 +1437,6 @@ def create_signal(
     net_return_if_win = None
 
     if entry_price is not None:
-
         gross_edge = (
             model_probability
             - entry_price
@@ -1945,41 +1454,19 @@ def create_signal(
             - fee
         )
 
-    # --------------------------------------------------------
-    # EXECUTION QUALITY
-    # --------------------------------------------------------
-
     execution_quality = (
         "NO_EXECUTABLE_ASK"
     )
 
     if entry_source == "ask":
-
         if entry_price <= THIN_ASK_MAX:
-
-            execution_quality = (
-                "THIN_ASK"
-            )
-
+            execution_quality = "THIN_ASK"
         else:
-
-            execution_quality = (
-                "EXECUTABLE_ASK"
-            )
-
-    # --------------------------------------------------------
-    # CALIBRATION
-    # --------------------------------------------------------
+            execution_quality = "EXECUTABLE_ASK"
 
     calibration_samples = (
         forecast_stats[
             "calibration_samples"
-        ]
-    )
-
-    calibration_flag = (
-        forecast_stats[
-            "calibration_flag"
         ]
     )
 
@@ -1989,187 +1476,121 @@ def create_signal(
         ]
     )
 
-    # --------------------------------------------------------
-    # SIGNAL LOGIC
-    # --------------------------------------------------------
+    calibration_flag = (
+        forecast_stats[
+            "calibration_flag"
+        ]
+    )
 
     signal = "NO_TRADE"
 
     reason_parts = []
 
     if entry_price is None:
-
         reason_parts.append(
             "no_executable_ask"
         )
-
     else:
 
         if (
-            family_check[
-                "status"
-            ]
+            family_check["status"]
             != "PASS"
             and bucket_type in (
                 "exact",
                 "range",
             )
         ):
-
             reason_parts.append(
                 "family="
-                + family_check[
-                    "status"
-                ]
+                + family_check["status"]
             )
 
-        if (
-            execution_quality
-            == "THIN_ASK"
-        ):
-
+        if execution_quality == "THIN_ASK":
             reason_parts.append(
                 "thin_ask"
             )
 
         if gross_edge < MIN_EDGE:
-
             reason_parts.append(
                 "edge_below_min"
             )
 
         if net_ev < MIN_EV:
-
             reason_parts.append(
                 "ev_below_min"
             )
 
         if not fully_calibrated:
-
             reason_parts.append(
                 "not_fully_calibrated"
             )
 
-        # --------------------------------------------
-        # STRONG
-        # --------------------------------------------
-
         strong_ok = (
             entry_source == "ask"
-
             and execution_quality
             == "EXECUTABLE_ASK"
-
-            and family_check[
-                "status"
-            ] == "PASS"
-
+            and family_check["status"]
+            == "PASS"
             and gross_edge
             >= STRONG_MIN_EDGE
-
             and net_ev
             >= STRONG_MIN_EV
-
             and fully_calibrated
-
             and calibration_samples
             >= MIN_CALIBRATION_SAMPLES
+            and calibration_flag == "OK"
         )
 
-        # --------------------------------------------
-        # POSSIBLE
-        # --------------------------------------------
-
         possible_ok = (
-            gross_edge
-            >= MIN_EDGE
-
-            and net_ev
-            >= MIN_EV
+            gross_edge >= MIN_EDGE
+            and net_ev >= MIN_EV
         )
 
         if strong_ok:
-
-            signal = (
-                "STRONG_EDGE"
-            )
-
+            signal = "STRONG_EDGE"
             reason_parts.append(
                 "strong_thresholds_pass"
             )
 
         elif possible_ok:
-
-            signal = (
-                "POSSIBLE_EDGE"
-            )
-
+            signal = "POSSIBLE_EDGE"
             reason_parts.append(
                 "research_thresholds_pass"
             )
 
-    # --------------------------------------------------------
-    # PAPER BUY
-    # --------------------------------------------------------
-
     paper_buy = (
-        signal
-        == "STRONG_EDGE"
-
+        signal == "STRONG_EDGE"
         and fully_calibrated
-
         and calibration_samples
         >= MIN_CALIBRATION_SAMPLES
-
-        and calibration_flag
-        == "OK"
-
-        and family_check[
-            "status"
-        ] == "PASS"
-
-        and entry_source
-        == "ask"
-
+        and calibration_flag == "OK"
+        and family_check["status"]
+        == "PASS"
+        and entry_source == "ask"
         and execution_quality
         == "EXECUTABLE_ASK"
     )
 
     if paper_buy:
-
-        signal_output = (
-            "PAPER_BUY"
-        )
-
+        signal_output = "PAPER_BUY"
         reason_parts.append(
             "paper_buy_gate_pass"
         )
-
     else:
-
         signal_output = signal
 
     if not reason_parts:
-
         reason_parts.append(
             "no_trade_conditions"
         )
 
-    # --------------------------------------------------------
-    # OBSERVATION
-    # --------------------------------------------------------
-
     observation_temperature = None
-
     observation_time = None
 
     if observation:
-
-        observation_temperature = (
-            safe_float(
-                observation.get(
-                    "temperature_c"
-                )
+        observation_temperature = safe_float(
+            observation.get(
+                "temperature_c"
             )
         )
 
@@ -2187,203 +1608,140 @@ def create_signal(
 
     return {
         "run_at": iso_now(),
-
-        "city": market.get(
-            "city"
-        ),
-
+        "city": market.get("city"),
         "station": market.get(
             "resolution_station"
         ),
-
         "market_date": market.get(
             "market_date"
         ),
-
         "market_type": market.get(
             "market_type"
         ),
-
         "unit": market.get(
             "temperature_unit"
         ),
-
         "market_id": market.get(
             "market_id"
         ),
-
         "event_key": market.get(
             "event_key"
         ),
-
         "bucket_type": bucket_type,
-
         "bucket_value": market.get(
             "bucket_value"
         ),
-
         "bucket_low": market.get(
             "bucket_low"
         ),
-
         "bucket_high": market.get(
             "bucket_high"
         ),
-
         "group_title": market.get(
             "group_title"
         ),
-
         "model_probability_raw": rounded(
             raw_probability
         ),
-
         "model_probability": rounded(
             model_probability
         ),
-
         "family_exclusive_probability_sum": rounded(
-            family_check[
-                "sum"
-            ]
+            family_check["sum"]
         ),
-
         "family_probability_status": (
-            family_check[
-                "status"
-            ]
+            family_check["status"]
         ),
-
         "market_probability": rounded(
             current_probability
         ),
-
         "entry_price": rounded(
             entry_price
         ),
-
         "entry_source": entry_source,
-
         "fee_rate": rounded(
             fee_rate
         ),
-
         "fee_source": fee_source,
-
         "fee_per_share": rounded(
             fee,
             8,
         ),
-
         "gross_edge": rounded(
             gross_edge
         ),
-
         "net_ev_per_share": rounded(
             net_ev
         ),
-
         "net_return_if_win": rounded(
             net_return_if_win
         ),
-
-        "forecast_count": (
-            forecast_stats[
-                "forecast_count"
-            ]
-        ),
-
+        "forecast_count": forecast_stats[
+            "forecast_count"
+        ],
         "forecast_models": ",".join(
             forecast_stats[
                 "models"
             ]
         ),
-
         "forecast_mean_c": rounded(
-            forecast_stats[
-                "mean_c"
-            ],
+            forecast_stats["mean_c"],
             4,
         ),
-
         "forecast_min_c": rounded(
-            forecast_stats[
-                "min_c"
-            ],
+            forecast_stats["min_c"],
             4,
         ),
-
         "forecast_max_c": rounded(
-            forecast_stats[
-                "max_c"
-            ],
+            forecast_stats["max_c"],
             4,
         ),
-
         "forecast_std_c": rounded(
-            forecast_stats[
-                "std_c"
-            ],
+            forecast_stats["std_c"],
             4,
         ),
-
         "forecast_sigma_c": rounded(
-            forecast_stats[
-                "sigma_c"
-            ],
+            forecast_stats["sigma_c"],
             4,
         ),
-
         "calibration_source": (
             forecast_stats[
                 "calibration_source"
             ]
         ),
-
         "calibration_samples": (
             calibration_samples
         ),
-
         "calibration_bias_c": rounded(
             forecast_stats[
                 "calibration_bias_c"
             ],
             4,
         ),
-
         "calibration_sigma_c": rounded(
             forecast_stats[
                 "sigma_c"
             ],
             4,
         ),
-
         "calibration_flag": (
             calibration_flag
         ),
-
         "calibration_lead_days": (
             forecast_stats.get(
                 "calibration_lead_days",
                 "",
             )
         ),
-
         "observation_temperature_c": rounded(
             observation_temperature,
             4,
         ),
-
-        "observation_time": (
-            observation_time
-        ),
-
+        "observation_time": observation_time,
         "execution_quality": (
             execution_quality
         ),
-
         "signal": signal_output,
-
         "reason": "; ".join(
             reason_parts
         ),
@@ -2394,9 +1752,7 @@ def create_signal(
 # DISPLAY
 # ============================================================
 
-def print_signal(
-    signal
-):
+def print_signal(signal):
     print("-" * 70)
 
     print(
@@ -2491,20 +1847,16 @@ def main():
     )
 
     print("=" * 70)
-
     print(
         f"POLYMARKET WEATHER "
         f"EDGE ENGINE V{ENGINE_VERSION}"
     )
-
     print(
         "RESEARCH / PAPER TRADING ONLY"
     )
-
     print(
         "NO ORDERS SENT"
     )
-
     print("=" * 70)
 
     run_timestamp = iso_now()
@@ -2513,10 +1865,6 @@ def main():
         f"UTC: {run_timestamp}"
     )
 
-    # --------------------------------------------------------
-    # REQUIRED FILES
-    # --------------------------------------------------------
-
     required_files = [
         ACTIVE_FILE,
         FORECAST_FILE,
@@ -2524,18 +1872,8 @@ def main():
     ]
 
     for path in required_files:
-
-        if not os.path.exists(
-            path
-        ):
-
-            raise FileNotFoundError(
-                path
-            )
-
-    # --------------------------------------------------------
-    # LOAD
-    # --------------------------------------------------------
+        if not os.path.exists(path):
+            raise FileNotFoundError(path)
 
     active_payload = read_json(
         ACTIVE_FILE
@@ -2562,17 +1900,13 @@ def main():
         )
     )
 
-    calibration = (
-        load_calibration()
-    )
+    calibration = load_calibration()
 
     usable_calibration = sum(
         1
         for item in calibration.values()
         if (
-            item[
-                "samples"
-            ]
+            item["samples"]
             >= MIN_CALIBRATION_SAMPLES
         )
     )
@@ -2602,14 +1936,8 @@ def main():
         f"{usable_calibration}"
     )
 
-    # --------------------------------------------------------
-    # FAMILIES
-    # --------------------------------------------------------
-
-    families = (
-        group_market_families(
-            markets
-        )
+    families = group_market_families(
+        markets
     )
 
     print(
@@ -2618,22 +1946,14 @@ def main():
     )
 
     signals = []
-
     paper_candidates = []
 
     stats_cache = {}
 
     evaluated = 0
-
     no_station = 0
-
     no_forecast = 0
-
     no_calibration = 0
-
-    # --------------------------------------------------------
-    # PROCESS FAMILIES
-    # --------------------------------------------------------
 
     for event_key, family in families.items():
 
@@ -2658,25 +1978,16 @@ def main():
             not station
             or not market_date
         ):
-
-            no_station += len(
-                family
-            )
-
+            no_station += len(family)
             continue
 
         cache_key = (
-            str(
-                station
-            ).upper(),
-
+            str(station).upper(),
             market_date,
-
             market_type,
         )
 
         if cache_key not in stats_cache:
-
             stats_cache[
                 cache_key
             ] = build_forecast_stats(
@@ -2692,34 +2003,21 @@ def main():
         ]
 
         if not stats:
-
-            no_forecast += len(
-                family
-            )
-
+            no_forecast += len(family)
             continue
 
         if not stats[
             "all_calibrated"
         ]:
+            no_calibration += len(family)
 
-            no_calibration += len(
-                family
-            )
-
-        observation = (
-            observations.get(
-                str(
-                    station
-                ).upper()
-            )
+        observation = observations.get(
+            str(station).upper()
         )
 
-        family_check = (
-            family_probability_sum(
-                family,
-                stats,
-            )
+        family_check = family_probability_sum(
+            family,
+            stats,
         )
 
         family_signals = []
@@ -2744,21 +2042,12 @@ def main():
 
         family_signals.sort(
             key=lambda item: (
-                item[
-                    "signal"
-                ]
+                item["signal"]
                 == "PAPER_BUY",
-
-                item[
-                    "signal"
-                ]
+                item["signal"]
                 == "STRONG_EDGE",
-
-                item[
-                    "signal"
-                ]
+                item["signal"]
                 == "POSSIBLE_EDGE",
-
                 item[
                     "net_ev_per_share"
                 ]
@@ -2774,19 +2063,12 @@ def main():
             )
 
             if (
-                signal[
-                    "signal"
-                ]
+                signal["signal"]
                 == "PAPER_BUY"
             ):
-
                 paper_candidates.append(
                     signal
                 )
-
-    # --------------------------------------------------------
-    # GLOBAL RANKING
-    # --------------------------------------------------------
 
     signal_rank = {
         "PAPER_BUY": 3,
@@ -2798,17 +2080,13 @@ def main():
     signals.sort(
         key=lambda item: (
             signal_rank.get(
-                item[
-                    "signal"
-                ],
+                item["signal"],
                 0,
             ),
-
             item[
                 "net_ev_per_share"
             ]
             or -999.0,
-
             item[
                 "gross_edge"
             ]
@@ -2827,7 +2105,6 @@ def main():
                 "net_ev_per_share"
             ]
             or -999.0,
-
             item[
                 "gross_edge"
             ]
@@ -2836,133 +2113,68 @@ def main():
         reverse=True,
     )
 
-    # --------------------------------------------------------
-    # DISPLAY
-    # --------------------------------------------------------
-
     print("")
     print("=" * 70)
     print("TOP SIGNALS")
     print("=" * 70)
 
     for signal in signals[:20]:
-        print_signal(
-            signal
-        )
-
-    # --------------------------------------------------------
-    # JSON
-    # --------------------------------------------------------
+        print_signal(signal)
 
     payload = {
         "engine_version": ENGINE_VERSION,
-
         "run_at": run_timestamp,
-
         "mode": "research_paper",
-
         "status": "NO_ORDERS_SENT",
 
         "parameters": {
             "min_edge": MIN_EDGE,
             "min_ev": MIN_EV,
-
-            "strong_min_edge": (
-                STRONG_MIN_EDGE
-            ),
-
-            "strong_min_ev": (
-                STRONG_MIN_EV
-            ),
-
-            "strong_min_ask": (
-                STRONG_MIN_ASK
-            ),
-
-            "thin_ask_max": (
-                THIN_ASK_MAX
-            ),
-
-            "family_min_coverage": (
-                FAMILY_MIN_COVERAGE
-            ),
-
-            "family_max_coverage": (
-                FAMILY_MAX_COVERAGE
-            ),
-
+            "strong_min_edge": STRONG_MIN_EDGE,
+            "strong_min_ev": STRONG_MIN_EV,
+            "strong_min_ask": STRONG_MIN_ASK,
+            "thin_ask_max": THIN_ASK_MAX,
+            "family_min_coverage": FAMILY_MIN_COVERAGE,
+            "family_max_coverage": FAMILY_MAX_COVERAGE,
             "min_calibration_samples": (
                 MIN_CALIBRATION_SAMPLES
             ),
-
             "max_acceptable_abs_bias_c": (
                 MAX_ACCEPTABLE_ABS_BIAS_C
             ),
-
             "max_acceptable_rmse_c": (
                 MAX_ACCEPTABLE_RMSE_C
             ),
-
-            "default_sigma_c": (
-                DEFAULT_SIGMA_C
-            ),
-
-            "min_sigma_c": (
-                MIN_SIGMA_C
-            ),
-
-            "max_sigma_c": (
-                MAX_SIGMA_C
-            ),
+            "default_sigma_c": DEFAULT_SIGMA_C,
+            "min_sigma_c": MIN_SIGMA_C,
+            "max_sigma_c": MAX_SIGMA_C,
         },
 
-        "current_markets": len(
-            markets
-        ),
-
-        "families": len(
-            families
-        ),
-
-        "forecast_records": len(
-            forecasts
-        ),
-
-        "observation_records": len(
-            observations
-        ),
-
-        "calibration_groups": len(
-            calibration
-        ),
-
-        "usable_calibration_groups": (
-            usable_calibration
-        ),
-
-        "signals_evaluated": (
-            evaluated
-        ),
-
-        "signals_retained": len(
-            signals
-        ),
-
+        "current_markets": len(markets),
+        "families": len(families),
+        "forecast_records": len(forecasts),
+        "observation_records": len(observations),
+        "calibration_groups": len(calibration),
+        "usable_calibration_groups": usable_calibration,
+        "signals_evaluated": evaluated,
+        "signals_retained": len(signals),
         "paper_buy_candidates": len(
             paper_candidates
         ),
 
         "diagnostics": {
             "calibration_policy": (
-                "exact station + exact model + "
-                "exact lead only"
+                "exact station + exact model + exact lead"
             ),
 
             "cross_model_fallback": False,
 
-            "market_type_calibration": (
-                "lowest_temperature uses min calibration; "
-                "highest_temperature uses max calibration"
+            "lowest_temperature_calibration": (
+                "min_bias_c + min_sigma_c"
+            ),
+
+            "highest_temperature_calibration": (
+                "max_bias_c + max_sigma_c"
             ),
 
             "paper_buy_requires_calibration": True,
@@ -2971,7 +2183,7 @@ def main():
                 MIN_CALIBRATION_SAMPLES
             ),
 
-            "paper_buy_requires_calibration_flag_ok": True,
+            "paper_buy_requires_flag_ok": True,
 
             "paper_buy_requires_executable_ask": True,
 
@@ -2998,69 +2210,30 @@ def main():
         payload,
     )
 
-    # --------------------------------------------------------
-    # REPORT
-    # --------------------------------------------------------
-
     report_lines = [
         (
             f"POLYMARKET WEATHER "
             f"EDGE ENGINE V{ENGINE_VERSION}"
         ),
-
         "RESEARCH / PAPER TRADING ONLY",
-
         "NO ORDERS SENT",
-
         f"UTC: {run_timestamp}",
-
         "",
-
+        f"Current markets: {len(markets)}",
+        f"Families: {len(families)}",
+        f"Forecast records: {len(forecasts)}",
+        f"Observation records: {len(observations)}",
+        f"Calibration groups: {len(calibration)}",
         (
-            f"Current markets: "
-            f"{len(markets)}"
-        ),
-
-        (
-            f"Families: "
-            f"{len(families)}"
-        ),
-
-        (
-            f"Forecast records: "
-            f"{len(forecasts)}"
-        ),
-
-        (
-            f"Observation records: "
-            f"{len(observations)}"
-        ),
-
-        (
-            f"Calibration groups: "
-            f"{len(calibration)}"
-        ),
-
-        (
-            f"Usable calibration groups: "
+            "Usable calibration groups: "
             f"{usable_calibration}"
         ),
-
+        f"Signals evaluated: {evaluated}",
+        f"Signals retained: {len(signals)}",
         (
-            f"Signals evaluated: "
-            f"{evaluated}"
-        ),
-
-        (
-            f"Signals retained: "
-            f"{len(signals)}"
-        ),
-
-        (
-            f"PAPER_BUY candidates: "
+            "PAPER_BUY candidates: "
             f"{len(paper_candidates)}"
         ),
-
         "",
     ]
 
@@ -3078,23 +2251,16 @@ def main():
                 ),
 
                 (
-                    f"  bucket="
-                    f"{signal['bucket_type']} "
-                    f"value="
-                    f"{signal['bucket_value']} "
-                    f"low="
-                    f"{signal['bucket_low']} "
-                    f"high="
-                    f"{signal['bucket_high']}"
+                    f"  bucket={signal['bucket_type']} "
+                    f"value={signal['bucket_value']} "
+                    f"low={signal['bucket_low']} "
+                    f"high={signal['bucket_high']}"
                 ),
 
                 (
-                    f"  model="
-                    f"{signal['model_probability']} "
-                    f"market="
-                    f"{signal['market_probability']} "
-                    f"ask="
-                    f"{signal['entry_price']}"
+                    f"  model={signal['model_probability']} "
+                    f"market={signal['market_probability']} "
+                    f"ask={signal['entry_price']}"
                 ),
 
                 (
@@ -3105,10 +2271,8 @@ def main():
                 ),
 
                 (
-                    f"  edge="
-                    f"{signal['gross_edge']} "
-                    f"net_ev="
-                    f"{signal['net_ev_per_share']}"
+                    f"  edge={signal['gross_edge']} "
+                    f"net_ev={signal['net_ev_per_share']}"
                 ),
 
                 (
@@ -3121,19 +2285,14 @@ def main():
                 (
                     f"  calibration="
                     f"{signal['calibration_source']} "
-                    f"n="
-                    f"{signal['calibration_samples']} "
-                    f"bias="
-                    f"{signal['calibration_bias_c']}C "
-                    f"sigma="
-                    f"{signal['calibration_sigma_c']}C "
-                    f"flag="
-                    f"{signal['calibration_flag']}"
+                    f"n={signal['calibration_samples']} "
+                    f"bias={signal['calibration_bias_c']}C "
+                    f"sigma={signal['calibration_sigma_c']}C "
+                    f"flag={signal['calibration_flag']}"
                 ),
 
                 (
-                    f"  signal="
-                    f"{signal['signal']}"
+                    f"  signal={signal['signal']}"
                 ),
 
                 "",
@@ -3142,14 +2301,8 @@ def main():
 
     write_text(
         REPORT_FILE,
-        "\n".join(
-            report_lines
-        ),
+        "\n".join(report_lines),
     )
-
-    # --------------------------------------------------------
-    # HISTORY
-    # --------------------------------------------------------
 
     append_csv(
         SIGNAL_HISTORY_FILE,
@@ -3163,23 +2316,17 @@ def main():
         paper_candidates,
     )
 
-    # --------------------------------------------------------
-    # SUMMARY
-    # --------------------------------------------------------
-
     print("")
     print("=" * 70)
     print("SUMMARY")
     print("=" * 70)
 
     print(
-        f"Signals evaluated: "
-        f"{evaluated}"
+        f"Signals evaluated: {evaluated}"
     )
 
     print(
-        f"Signals retained: "
-        f"{len(signals)}"
+        f"Signals retained: {len(signals)}"
     )
 
     print(
@@ -3198,7 +2345,7 @@ def main():
     )
 
     print(
-        f"Families with missing/invalid calibration: "
+        "Families with missing/invalid calibration: "
         f"{no_calibration}"
     )
 
@@ -3210,16 +2357,6 @@ def main():
     print(
         f"Skipped without forecast: "
         f"{no_forecast}"
-    )
-
-    print(
-        f"Latest JSON: "
-        f"{LATEST_FILE}"
-    )
-
-    print(
-        f"Latest report: "
-        f"{REPORT_FILE}"
     )
 
 
