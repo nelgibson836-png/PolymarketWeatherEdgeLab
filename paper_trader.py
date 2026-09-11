@@ -1,7 +1,7 @@
 import csv
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 import requests
 
@@ -12,11 +12,13 @@ SIGNAL_FILE = os.path.join(EDGE_DIR, "latest_signals_v16.json")
 TRADES_FILE = os.path.join(PAPER_DIR, "trades.csv")
 SUMMARY_FILE = os.path.join(PAPER_DIR, "summary.json")
 REPORT_FILE = os.path.join(PAPER_DIR, "latest_report.txt")
+STATE_FILE = os.path.join(PAPER_DIR, "trial_state.json")
 POLYMARKET_API = "https://gamma-api.polymarket.com"
 REQUEST_TIMEOUT = 15
 VIRTUAL_BANKROLL = 1000.0
 STAKE_PER_TRADE = 10.0
 MAX_OPEN_TRADES = 50
+TRIAL_DAYS = 15
 
 FIELDS = [
     "trade_id", "opened_at", "market_id", "event_key", "city", "station", "market_date",
@@ -27,8 +29,12 @@ FIELDS = [
 ]
 
 
+def now():
+    return datetime.now(timezone.utc)
+
+
 def now_iso():
-    return datetime.now(timezone.utc).isoformat()
+    return now().isoformat()
 
 
 def f(value):
@@ -53,16 +59,6 @@ def write_csv(path, rows):
         writer = csv.DictWriter(h, fieldnames=FIELDS, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
-
-
-def append_csv(path, row):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    exists = os.path.exists(path)
-    with open(path, "a", encoding="utf-8", newline="") as h:
-        writer = csv.DictWriter(h, fieldnames=FIELDS, extrasaction="ignore")
-        if not exists:
-            writer.writeheader()
-        writer.writerow(row)
 
 
 def get_market(market_id):
@@ -91,30 +87,27 @@ def resolve_market(market_id):
     try:
         market = get_market(market_id)
     except Exception as exc:
-        return None, None, None, f"api_error: {exc}"
+        return None, None, f"api_error: {exc}"
 
     prices = parse_outcome_prices(market)
     closed = bool(market.get("closed"))
     resolved = bool(market.get("resolved"))
 
     if not closed and not resolved:
-        return None, None, market, "still_open"
+        return None, None, "still_open"
 
     if not prices:
-        return None, None, market, "closed_without_outcome_prices"
+        return None, None, "closed_without_outcome_prices"
 
     yes_price, no_price = prices
-
     if yes_price == 1.0 and no_price == 0.0:
-        return "WIN", 1.0, market, "yes_resolved"
-
+        return "WIN", 1.0, "yes_resolved"
     if yes_price == 0.0 and no_price == 1.0:
-        return "LOSS", 0.0, market, "no_resolved"
+        return "LOSS", 0.0, "no_resolved"
+    return None, None, f"unresolved_prices:{prices}"
 
-    return None, None, market, f"unresolved_prices:{prices}"
 
-
-def build_trade(signal, bankroll, sequence):
+def build_trade(signal, sequence):
     price = f(signal.get("entry_price"))
     if price is None or price <= 0 or price >= 1:
         return None
@@ -152,7 +145,7 @@ def build_trade(signal, bankroll, sequence):
     }
 
 
-def calculate_metrics(trades):
+def calculate_metrics(trades, trial_start, trial_end, active):
     closed = [x for x in trades if x.get("status") == "CLOSED"]
     wins = [x for x in closed if x.get("result") == "WIN"]
     losses = [x for x in closed if x.get("result") == "LOSS"]
@@ -161,6 +154,10 @@ def calculate_metrics(trades):
     open_stake = sum(f(x.get("stake")) or 0.0 for x in trades if x.get("status") == "OPEN")
     return {
         "updated_at": now_iso(),
+        "trial_days": TRIAL_DAYS,
+        "trial_start": trial_start,
+        "trial_end": trial_end,
+        "trial_active": active,
         "virtual_bankroll_initial": VIRTUAL_BANKROLL,
         "stake_per_trade": STAKE_PER_TRADE,
         "max_open_trades": MAX_OPEN_TRADES,
@@ -174,12 +171,29 @@ def calculate_metrics(trades):
         "closed_roi": (pnl / staked) if staked else None,
         "open_stake": open_stake,
         "virtual_equity_after_closed": VIRTUAL_BANKROLL + pnl,
-        "capacity_remaining": max(0, MAX_OPEN_TRADES - sum(1 for x in trades if x.get("status") == "OPEN")),
     }
+
+
+def load_trial_state():
+    if os.path.exists(STATE_FILE):
+        with open(STATE_FILE, "r", encoding="utf-8") as h:
+            state = json.load(h)
+        start = datetime.fromisoformat(state["start_at"])
+    else:
+        start = now()
+        state = {"start_at": start.isoformat(), "trial_days": TRIAL_DAYS}
+        with open(STATE_FILE, "w", encoding="utf-8") as h:
+            json.dump(state, h, indent=2)
+            h.write("\n")
+    end = start + timedelta(days=TRIAL_DAYS)
+    return start, end
 
 
 def main():
     os.makedirs(PAPER_DIR, exist_ok=True)
+    trial_start, trial_end = load_trial_state()
+    active = now() < trial_end
+
     signals_payload = {}
     if os.path.exists(SIGNAL_FILE):
         with open(SIGNAL_FILE, "r", encoding="utf-8") as h:
@@ -188,15 +202,17 @@ def main():
     trades = read_csv(TRADES_FILE)
 
     print("=" * 72)
-    print("POLYMARKET WEATHER PAPER TRADER V1.0")
+    print("POLYMARKET WEATHER PAPER TRADER V1.1")
     print("VIRTUAL MONEY ONLY — NO ORDERS SENT")
+    print(f"15-DAY TRIAL: {'ACTIVE' if active else 'FINISHED'}")
+    print(f"Start: {trial_start.isoformat()}")
+    print(f"End:   {trial_end.isoformat()}")
     print("=" * 72)
 
-    # Resolve existing positions first.
     for trade in trades:
         if trade.get("status") != "OPEN":
             continue
-        result, payout_per_share, market, note = resolve_market(trade.get("market_id"))
+        result, payout_per_share, note = resolve_market(trade.get("market_id"))
         if result is None:
             continue
         shares = f(trade.get("shares")) or 0.0
@@ -216,37 +232,40 @@ def main():
     open_ids = {str(x.get("market_id")) for x in trades if x.get("status") == "OPEN"}
     sequence = len(trades) + 1
     capacity = max(0, MAX_OPEN_TRADES - len(open_ids))
-
     candidates = [x for x in signals if x.get("signal") == "PAPER_BUY"]
     candidates.sort(key=lambda x: f(x.get("net_ev_per_share")) or -9.0, reverse=True)
 
     added = 0
-    for signal in candidates:
-        market_id = str(signal.get("market_id") or "")
-        if not market_id or market_id in open_ids:
-            continue
-        if capacity <= 0:
-            break
-        trade = build_trade(signal, VIRTUAL_BANKROLL, sequence)
-        if not trade:
-            continue
-        trades.append(trade)
-        open_ids.add(market_id)
-        sequence += 1
-        capacity -= 1
-        added += 1
-        print(f"OPENED {trade['trade_id']}: {trade['city']} {trade['market_date']} ask={trade['entry_price']} stake=${STAKE_PER_TRADE:.2f}")
+    if active:
+        for signal in candidates:
+            market_id = str(signal.get("market_id") or "")
+            if not market_id or market_id in open_ids or capacity <= 0:
+                continue
+            trade = build_trade(signal, sequence)
+            if not trade:
+                continue
+            trades.append(trade)
+            open_ids.add(market_id)
+            sequence += 1
+            capacity -= 1
+            added += 1
+            print(f"OPENED {trade['trade_id']}: {trade['city']} {trade['market_date']} ask={trade['entry_price']} stake=${STAKE_PER_TRADE:.2f}")
+    else:
+        print("Trial finished: no new paper positions will be opened.")
 
     write_csv(TRADES_FILE, trades)
-    summary = calculate_metrics(trades)
+    summary = calculate_metrics(trades, trial_start.isoformat(), trial_end.isoformat(), active)
     with open(SUMMARY_FILE, "w", encoding="utf-8") as h:
         json.dump(summary, h, ensure_ascii=False, indent=2)
         h.write("\n")
 
     report = [
-        "POLYMARKET WEATHER PAPER TRADER V1.0",
+        "POLYMARKET WEATHER PAPER TRADER V1.1",
         "VIRTUAL MONEY ONLY — NO ORDERS SENT",
         f"Updated: {summary['updated_at']}",
+        f"Trial start: {summary['trial_start']}",
+        f"Trial end: {summary['trial_end']}",
+        f"Trial active: {summary['trial_active']}",
         "",
         f"Total trades: {summary['total_trades']}",
         f"Open trades: {summary['open_trades']}",
