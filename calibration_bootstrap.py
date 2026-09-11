@@ -11,24 +11,29 @@ import requests
 
 # ============================================================
 # POLYMARKET WEATHER EDGE LAB
-# Calibration Bootstrap V1.0
+# Calibration Bootstrap V1.1
+#
+# RESEARCH ONLY
+# NO TRADING
+# NO POLYMARKET CREDENTIALS
 #
 # PURPOSE:
-# Build historical forecast-vs-ground-truth data for
-# calibration of the Weather Edge Engine.
+# Build historical forecast-vs-ground-truth data
+# for Weather Edge calibration.
 #
-# SOURCES:
-#   - Open-Meteo Previous Runs API
-#   - Open-Meteo Historical Weather API
-#
-# NO POLYMARKET CREDENTIALS
-# NO TRADING
-# NO ORDERS
+# V1.1 changes:
+# - Smaller API batches
+# - Smaller historical windows
+# - Explicit 429 handling
+# - Retry-After support
+# - ECMWF first
+# - Safer request pacing
 # ============================================================
 
-VERSION = "1.0"
+VERSION = "1.1"
 
 DATA_DIR = "data"
+
 WEATHER_DIR = os.path.join(
     DATA_DIR,
     "weather",
@@ -45,73 +50,81 @@ STATION_REGISTRY_FILE = os.path.join(
     "station_registry.json",
 )
 
-BOOTSTRAP_FORECAST_FILE = os.path.join(
+FORECAST_FILE = os.path.join(
     CALIBRATION_DIR,
     "bootstrap_forecasts.csv",
 )
 
-BOOTSTRAP_GROUND_TRUTH_FILE = os.path.join(
+GROUND_TRUTH_FILE = os.path.join(
     CALIBRATION_DIR,
     "bootstrap_ground_truth.csv",
 )
 
-BOOTSTRAP_MATCHED_FILE = os.path.join(
+MATCHED_FILE = os.path.join(
     CALIBRATION_DIR,
     "bootstrap_matched.csv",
 )
 
-BOOTSTRAP_REPORT_FILE = os.path.join(
+REPORT_FILE = os.path.join(
     CALIBRATION_DIR,
     "bootstrap_report.txt",
 )
 
 # ============================================================
-# CONFIGURATION
+# API
 # ============================================================
 
-OPEN_METEO_PREVIOUS_URL = (
+PREVIOUS_RUNS_URL = (
     "https://previous-runs-api.open-meteo.com/v1/forecast"
 )
 
-OPEN_METEO_ARCHIVE_URL = (
+ARCHIVE_URL = (
     "https://archive-api.open-meteo.com/v1/archive"
 )
 
-# Models corresponding reasonably well with the live
-# collector's current ECMWF/GFS concept.
+# Start with ECMWF only.
+# Once this works correctly, we will add GFS.
 MODELS = [
     "ecmwf_ifs025",
-    "gfs_seamless",
 ]
 
-# 1..7 days ahead.
-LEAD_DAYS = [1, 2, 3, 4, 5, 6, 7]
+LEAD_DAYS = [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+]
 
-# Start date.
-#
-# Open-Meteo documents most Previous Runs models from
-# January 2024. We intentionally use the recent 365 days
-# first to keep the bootstrap manageable.
-HISTORY_DAYS = 365
+# Start with 90 days.
+HISTORY_DAYS = 90
 
-# Maximum number of locations per HTTP request.
-BATCH_SIZE = 10
+# Date block for each API call.
+DATE_CHUNK_DAYS = 30
 
-HTTP_TIMEOUT = 60
+# Smaller location batches reduce server-side request weight.
+STATION_BATCH_SIZE = 5
 
-REQUEST_PAUSE_SECONDS = 0.25
+# Request pacing.
+REQUEST_PAUSE_SECONDS = 3.0
 
-# Historical archive model used as verification/ground truth.
-# This is NOT a literal METAR station observation.
-GROUND_TRUTH_MODEL = "era5"
+# 429 retry delays.
+RATE_LIMIT_DELAYS = [
+    30,
+    60,
+    120,
+    180,
+]
 
-# We need enough daily hourly points before treating a
-# daily min/max as valid.
+HTTP_TIMEOUT = 90
+
 MIN_DAILY_SAMPLES = 18
 
 
 # ============================================================
-# OUTPUT FIELDS
+# CSV FIELDS
 # ============================================================
 
 FORECAST_FIELDS = [
@@ -161,66 +174,24 @@ MATCHED_FIELDS = [
 # HELPERS
 # ============================================================
 
-def now_utc():
-    return datetime.now(timezone.utc)
-
-
 def iso_now():
-    return now_utc().isoformat()
+    return datetime.now(
+        timezone.utc
+    ).isoformat()
 
 
-def write_json(path, payload):
-    directory = os.path.dirname(path)
+def safe_float(value):
+    try:
+        if value is None or value == "":
+            return None
 
-    if directory:
-        os.makedirs(
-            directory,
-            exist_ok=True,
-        )
+        return float(value)
 
-    temporary = path + ".tmp"
-
-    with open(
-        temporary,
-        "w",
-        encoding="utf-8",
-    ) as handle:
-        json.dump(
-            payload,
-            handle,
-            ensure_ascii=False,
-            indent=2,
-        )
-        handle.write("\n")
-
-    os.replace(
-        temporary,
-        path,
-    )
-
-
-def write_text(path, text):
-    directory = os.path.dirname(path)
-
-    if directory:
-        os.makedirs(
-            directory,
-            exist_ok=True,
-        )
-
-    temporary = path + ".tmp"
-
-    with open(
-        temporary,
-        "w",
-        encoding="utf-8",
-    ) as handle:
-        handle.write(text)
-
-    os.replace(
-        temporary,
-        path,
-    )
+    except (
+        ValueError,
+        TypeError,
+    ):
+        return None
 
 
 def write_csv(
@@ -228,7 +199,9 @@ def write_csv(
     fields,
     rows,
 ):
-    directory = os.path.dirname(path)
+    directory = os.path.dirname(
+        path
+    )
 
     if directory:
         os.makedirs(
@@ -264,28 +237,38 @@ def write_csv(
     )
 
 
-def safe_float(value):
-    try:
-        if value is None or value == "":
-            return None
+def write_text(
+    path,
+    text,
+):
+    directory = os.path.dirname(
+        path
+    )
 
-        return float(value)
+    if directory:
+        os.makedirs(
+            directory,
+            exist_ok=True,
+        )
 
-    except (
-        ValueError,
-        TypeError,
-    ):
-        return None
+    temporary = path + ".tmp"
+
+    with open(
+        temporary,
+        "w",
+        encoding="utf-8",
+    ) as handle:
+        handle.write(
+            text
+        )
+
+    os.replace(
+        temporary,
+        path,
+    )
 
 
 def load_station_registry():
-    if not os.path.exists(
-        STATION_REGISTRY_FILE
-    ):
-        raise FileNotFoundError(
-            STATION_REGISTRY_FILE
-        )
-
     with open(
         STATION_REGISTRY_FILE,
         "r",
@@ -299,13 +282,14 @@ def load_station_registry():
         payload,
         dict,
     ):
-        raise ValueError(
-            "station_registry.json no es un objeto JSON."
+        raise RuntimeError(
+            "station_registry.json "
+            "no contiene un objeto."
         )
 
-    stations = {}
+    stations = []
 
-    for station, item in payload.items():
+    for key, item in payload.items():
 
         if not isinstance(
             item,
@@ -313,80 +297,119 @@ def load_station_registry():
         ):
             continue
 
-        lat = safe_float(
+        latitude = safe_float(
             item.get(
                 "latitude"
             )
         )
 
-        lon = safe_float(
+        longitude = safe_float(
             item.get(
                 "longitude"
             )
         )
 
-        if lat is None or lon is None:
+        if (
+            latitude is None
+            or longitude is None
+        ):
             continue
 
-        stations[
-            str(station).upper()
-        ] = {
-            "station": str(
-                station
-            ).upper(),
+        stations.append(
+            {
+                "station": (
+                    item.get(
+                        "station"
+                    )
+                    or key
+                ).upper(),
 
-            "latitude": lat,
+                "latitude": latitude,
 
-            "longitude": lon,
+                "longitude": longitude,
 
-            "name": item.get(
-                "name"
-            ),
+                "name": item.get(
+                    "name"
+                ),
+            }
+        )
 
-            "country": item.get(
-                "country"
-            ),
-
-            "elevation_m": safe_float(
-                item.get(
-                    "elevation_m"
-                )
-            ),
-        }
+    stations.sort(
+        key=lambda item:
+        item["station"]
+    )
 
     return stations
 
 
-def batch_items(
-    items,
+def chunks(
+    values,
     size,
 ):
     for index in range(
         0,
-        len(items),
+        len(values),
         size,
     ):
-        yield items[
+        yield values[
             index:index + size
         ]
 
 
-def make_coordinates(
+def date_chunks(
+    start_date,
+    end_date,
+):
+    current = start_date
+
+    while current <= end_date:
+
+        chunk_end = min(
+            end_date,
+            current
+            + timedelta(
+                days=DATE_CHUNK_DAYS
+                - 1
+            ),
+        )
+
+        yield (
+            current,
+            chunk_end,
+        )
+
+        current = (
+            chunk_end
+            + timedelta(
+                days=1
+            )
+        )
+
+
+def coordinate_lists(
     stations,
 ):
+    latitude = ",".join(
+        str(
+            station[
+                "latitude"
+            ]
+        )
+        for station in stations
+    )
+
+    longitude = ",".join(
+        str(
+            station[
+                "longitude"
+            ]
+        )
+        for station in stations
+    )
+
     return (
-        ",".join(
-            str(
-                item["latitude"]
-            )
-            for item in stations
-        ),
-        ",".join(
-            str(
-                item["longitude"]
-            )
-            for item in stations
-        ),
+        latitude,
+        longitude,
     )
 
 
@@ -394,14 +417,18 @@ def make_coordinates(
 # HTTP
 # ============================================================
 
-def get_json(
+def request_json(
     session,
     url,
     params,
 ):
     last_error = None
 
-    for attempt in range(3):
+    for attempt in range(
+        len(
+            RATE_LIMIT_DELAYS
+        ) + 1
+    ):
 
         try:
 
@@ -411,39 +438,116 @@ def get_json(
                 timeout=HTTP_TIMEOUT,
             )
 
+            if (
+                response.status_code
+                == 429
+            ):
+
+                retry_after = response.headers.get(
+                    "Retry-After"
+                )
+
+                if retry_after:
+                    try:
+                        wait_seconds = max(
+                            30,
+                            int(
+                                float(
+                                    retry_after
+                                )
+                            ),
+                        )
+                    except Exception:
+                        wait_seconds = (
+                            RATE_LIMIT_DELAYS[
+                                min(
+                                    attempt,
+                                    len(
+                                        RATE_LIMIT_DELAYS
+                                    )
+                                    - 1,
+                                )
+                            ]
+                        )
+                else:
+                    wait_seconds = (
+                        RATE_LIMIT_DELAYS[
+                            min(
+                                attempt,
+                                len(
+                                    RATE_LIMIT_DELAYS
+                                )
+                                - 1,
+                            )
+                        ]
+                    )
+
+                print(
+                    "    HTTP 429. "
+                    f"Esperando {wait_seconds}s..."
+                )
+
+                time.sleep(
+                    wait_seconds
+                )
+
+                continue
+
             response.raise_for_status()
 
             return response.json()
 
-        except Exception as exc:
+        except requests.RequestException as exc:
 
             last_error = exc
 
-            if attempt < 2:
-                time.sleep(
-                    2.0
-                    * (attempt + 1)
+            print(
+                f"    Request error: "
+                f"{exc}"
+            )
+
+            if attempt < len(
+                RATE_LIMIT_DELAYS
+            ):
+                wait_seconds = (
+                    RATE_LIMIT_DELAYS[
+                        attempt
+                    ]
                 )
 
+                print(
+                    f"    Reintentando "
+                    f"en {wait_seconds}s..."
+                )
+
+                time.sleep(
+                    wait_seconds
+                )
+
+        except Exception as exc:
+
+            last_error = exc
+            break
+
     raise RuntimeError(
-        f"Request failed: {url} "
+        f"API request failed: "
         f"{last_error}"
     )
 
 
 # ============================================================
-# PREVIOUS MODEL RUNS
+# PREVIOUS RUNS
 # ============================================================
 
 def fetch_previous_runs(
     session,
     stations,
+    model,
     start_date,
     end_date,
-    model,
 ):
     latitude, longitude = (
-        make_coordinates(
+        coordinate_lists(
             stations
         )
     )
@@ -463,68 +567,51 @@ def fetch_previous_runs(
         "longitude": longitude,
         "hourly": hourly_variables,
         "models": model,
-        "start_date": start_date,
-        "end_date": end_date,
+        "start_date": (
+            start_date.isoformat()
+        ),
+        "end_date": (
+            end_date.isoformat()
+        ),
         "timezone": "auto",
     }
 
-    print(
-        f"  Previous Runs: "
-        f"{model} | "
-        f"{len(stations)} stations"
-    )
-
-    payload = get_json(
+    return request_json(
         session,
-        OPEN_METEO_PREVIOUS_URL,
+        PREVIOUS_RUNS_URL,
         params,
     )
 
-    return payload
 
-
-# ============================================================
-# PREVIOUS RUN PARSING
-# ============================================================
-
-def parse_previous_runs_payload(
+def parse_previous_runs(
     payload,
     stations,
     model,
 ):
-    """
-    Converts hourly previous-run temperatures into
-    daily forecast min/max values.
-
-    Important:
-    previous_dayN means the forecast was made N days
-    before the valid time.
-    """
-
-    results = []
-
     if isinstance(
         payload,
         list,
     ):
-        location_payloads = payload
+        locations = payload
 
     else:
-        location_payloads = [
+        locations = [
             payload
         ]
 
-    for location_index, location in enumerate(
-        location_payloads
+    rows = []
+
+    for index, location in enumerate(
+        locations
     ):
 
-        if location_index >= len(
+        if index >= len(
             stations
         ):
             break
 
         station = stations[
-            location_index
+            index
         ]
 
         hourly = location.get(
@@ -542,32 +629,32 @@ def parse_previous_runs_payload(
 
         for lead in LEAD_DAYS:
 
-            key = (
+            variable = (
                 "temperature_2m_"
                 f"previous_day{lead}"
             )
 
             values = hourly.get(
-                key,
+                variable,
                 [],
             )
 
             if not values:
                 continue
 
-            by_date = {}
+            daily = {}
 
-            for index, timestamp in enumerate(
+            for i, timestamp in enumerate(
                 times
             ):
 
-                if index >= len(
+                if i >= len(
                     values
                 ):
                     break
 
                 value = safe_float(
-                    values[index]
+                    values[i]
                 )
 
                 if value is None:
@@ -577,63 +664,73 @@ def parse_previous_runs_payload(
                     timestamp
                 )[:10]
 
-                by_date.setdefault(
+                daily.setdefault(
                     target_date,
                     [],
                 ).append(
                     value
                 )
 
-            for valid_date, daily_values in (
-                by_date.items()
+            for target_date, values_for_day in (
+                daily.items()
             ):
 
                 if len(
-                    daily_values
+                    values_for_day
                 ) < MIN_DAILY_SAMPLES:
                     continue
 
-                results.append(
+                rows.append(
                     {
-                        "station": station[
-                            "station"
-                        ],
+                        "station": (
+                            station[
+                                "station"
+                            ]
+                        ),
 
-                        "latitude": station[
-                            "latitude"
-                        ],
+                        "latitude": (
+                            station[
+                                "latitude"
+                            ]
+                        ),
 
-                        "longitude": station[
-                            "longitude"
-                        ],
+                        "longitude": (
+                            station[
+                                "longitude"
+                            ]
+                        ),
 
                         "model": model,
 
                         "lead_days": lead,
 
-                        "valid_date": valid_date,
+                        "valid_date": (
+                            target_date
+                        ),
 
                         "forecast_min_c": min(
-                            daily_values
+                            values_for_day
                         ),
 
                         "forecast_max_c": max(
-                            daily_values
+                            values_for_day
                         ),
 
                         "forecast_source": (
                             "open_meteo_previous_runs"
                         ),
 
-                        "collected_at": iso_now(),
+                        "collected_at": (
+                            iso_now()
+                        ),
                     }
                 )
 
-    return results
+    return rows
 
 
 # ============================================================
-# HISTORICAL GROUND TRUTH
+# GROUND TRUTH
 # ============================================================
 
 def fetch_ground_truth(
@@ -643,7 +740,7 @@ def fetch_ground_truth(
     end_date,
 ):
     latitude, longitude = (
-        make_coordinates(
+        coordinate_lists(
             stations
         )
     )
@@ -651,55 +748,53 @@ def fetch_ground_truth(
     params = {
         "latitude": latitude,
         "longitude": longitude,
-        "start_date": start_date,
-        "end_date": end_date,
-        "hourly": "temperature_2m",
+        "start_date": (
+            start_date.isoformat()
+        ),
+        "end_date": (
+            end_date.isoformat()
+        ),
+        "hourly": (
+            "temperature_2m"
+        ),
         "timezone": "auto",
-        "models": GROUND_TRUTH_MODEL,
     }
 
-    print(
-        f"  Ground truth: "
-        f"{len(stations)} stations"
-    )
-
-    payload = get_json(
+    return request_json(
         session,
-        OPEN_METEO_ARCHIVE_URL,
+        ARCHIVE_URL,
         params,
     )
 
-    return payload
 
-
-def parse_ground_truth_payload(
+def parse_ground_truth(
     payload,
     stations,
 ):
-    results = []
-
     if isinstance(
         payload,
         list,
     ):
-        location_payloads = payload
+        locations = payload
 
     else:
-        location_payloads = [
+        locations = [
             payload
         ]
 
-    for location_index, location in enumerate(
-        location_payloads
+    rows = []
+
+    for index, location in enumerate(
+        locations
     ):
 
-        if location_index >= len(
+        if index >= len(
             stations
         ):
             break
 
         station = stations[
-            location_index
+            index
         ]
 
         hourly = location.get(
@@ -719,150 +814,143 @@ def parse_ground_truth_payload(
 
         daily = {}
 
-        for index, timestamp in enumerate(
+        for i, timestamp in enumerate(
             times
         ):
 
-            if index >= len(
+            if i >= len(
                 values
             ):
                 break
 
             value = safe_float(
-                values[index]
+                values[i]
             )
 
             if value is None:
                 continue
 
-            local_date = str(
+            target_date = str(
                 timestamp
             )[:10]
 
             daily.setdefault(
-                local_date,
+                target_date,
                 [],
             ).append(
                 value
             )
 
-        for target_date, daily_values in (
+        for target_date, values_for_day in (
             daily.items()
         ):
 
             if len(
-                daily_values
+                values_for_day
             ) < MIN_DAILY_SAMPLES:
                 continue
 
-            results.append(
+            rows.append(
                 {
-                    "station": station[
-                        "station"
-                    ],
+                    "station": (
+                        station[
+                            "station"
+                        ]
+                    ),
 
-                    "latitude": station[
-                        "latitude"
-                    ],
+                    "latitude": (
+                        station[
+                            "latitude"
+                        ]
+                    ),
 
-                    "longitude": station[
-                        "longitude"
-                    ],
+                    "longitude": (
+                        station[
+                            "longitude"
+                        ]
+                    ),
 
                     "date": target_date,
 
                     "actual_min_c": min(
-                        daily_values
+                        values_for_day
                     ),
 
                     "actual_max_c": max(
-                        daily_values
+                        values_for_day
                     ),
 
                     "sample_count": len(
-                        daily_values
+                        values_for_day
                     ),
 
                     "ground_truth_source": (
                         "open_meteo_era5_reanalysis"
                     ),
 
-                    "collected_at": iso_now(),
+                    "collected_at": (
+                        iso_now()
+                    ),
                 }
             )
 
-    return results
+    return rows
 
 
 # ============================================================
-# MATCHING
+# MATCH
 # ============================================================
 
-def create_ground_truth_index(
-    rows,
-):
-    index = {}
-
-    for row in rows:
-
-        key = (
-            row["station"],
-            row["date"],
-        )
-
-        index[key] = row
-
-    return index
-
-
-def match_forecasts(
+def match_data(
     forecast_rows,
     ground_truth_rows,
 ):
-    ground_truth = (
-        create_ground_truth_index(
-            ground_truth_rows
-        )
-    )
+    truth_index = {}
+
+    for row in ground_truth_rows:
+        truth_index[
+            (
+                row["station"],
+                row["date"],
+            )
+        ] = row
 
     matched = []
 
     for row in forecast_rows:
 
-        key = (
-            row["station"],
-            row["valid_date"],
-        )
-
-        actual = ground_truth.get(
-            key
+        actual = truth_index.get(
+            (
+                row["station"],
+                row["valid_date"],
+            )
         )
 
         if actual is None:
             continue
 
         forecast_min = safe_float(
-            row.get(
+            row[
                 "forecast_min_c"
-            )
+            ]
         )
 
         forecast_max = safe_float(
-            row.get(
+            row[
                 "forecast_max_c"
-            )
+            ]
         )
 
         actual_min = safe_float(
-            actual.get(
+            actual[
                 "actual_min_c"
-            )
+            ]
         )
 
         actual_max = safe_float(
-            actual.get(
+            actual[
                 "actual_max_c"
-            )
+            ]
         )
 
         if (
@@ -925,9 +1013,13 @@ def match_forecasts(
                     actual_max
                 ),
 
-                "error_min_c": error_min,
+                "error_min_c": (
+                    error_min
+                ),
 
-                "error_max_c": error_max,
+                "error_max_c": (
+                    error_max
+                ),
 
                 "abs_error_min_c": abs(
                     error_min
@@ -943,25 +1035,11 @@ def match_forecasts(
 
 
 # ============================================================
-# STATISTICS
+# SUMMARY
 # ============================================================
 
-def rmse(values):
-    if not values:
-        return None
-
-    return math.sqrt(
-        mean(
-            [
-                value * value
-                for value in values
-            ]
-        )
-    )
-
-
-def calibration_summary(
-    matched_rows,
+def summarize(
+    matched_rows
 ):
     groups = {}
 
@@ -1029,75 +1107,42 @@ def calibration_summary(
             max_errors
         )
 
-        min_rmse = rmse(
-            min_errors
+        min_rmse = math.sqrt(
+            mean(
+                [
+                    value * value
+                    for value in min_errors
+                ]
+            )
         )
 
-        max_rmse = rmse(
-            max_errors
-        )
-
-        min_mae = mean(
-            [
-                abs(
-                    value
-                )
-                for value in min_errors
-            ]
-        )
-
-        max_mae = mean(
-            [
-                abs(
-                    value
-                )
-                for value in max_errors
-            ]
+        max_rmse = math.sqrt(
+            mean(
+                [
+                    value * value
+                    for value in max_errors
+                ]
+            )
         )
 
         summaries.append(
             {
                 "station": station,
-
                 "model": model,
-
                 "lead_days": lead_days,
-
                 "samples": len(
                     rows
                 ),
-
-                "min_bias_c": (
-                    min_bias
-                ),
-
-                "max_bias_c": (
-                    max_bias
-                ),
-
-                "min_rmse_c": (
-                    min_rmse
-                ),
-
-                "max_rmse_c": (
-                    max_rmse
-                ),
-
-                "min_mae_c": (
-                    min_mae
-                ),
-
-                "max_mae_c": (
-                    max_mae
-                ),
-
+                "min_bias_c": min_bias,
+                "max_bias_c": max_bias,
+                "min_rmse_c": min_rmse,
+                "max_rmse_c": max_rmse,
                 "first_date": min(
                     row[
                         "target_date"
                     ]
                     for row in rows
                 ),
-
                 "last_date": max(
                     row[
                         "target_date"
@@ -1117,20 +1162,17 @@ def calibration_summary(
 def main():
 
     print("=" * 70)
-
     print(
-        "POLYMARKET WEATHER CALIBRATION BOOTSTRAP V"
+        "POLYMARKET WEATHER "
+        "CALIBRATION BOOTSTRAP V"
         + VERSION
     )
-
     print(
         "NO TRADING"
     )
-
     print(
         "NO POLYMARKET CREDENTIALS"
     )
-
     print("=" * 70)
 
     print(
@@ -1146,27 +1188,17 @@ def main():
     # STATIONS
     # --------------------------------------------------------
 
-    registry = (
+    stations = (
         load_station_registry()
     )
 
-    stations = list(
-        registry.values()
-    )
-
-    stations.sort(
-        key=lambda item:
-        item["station"]
-    )
-
     print(
-        f"Stations: "
-        f"{len(stations)}"
+        f"Stations: {len(stations)}"
     )
 
     if not stations:
         raise RuntimeError(
-            "No hay estaciones válidas."
+            "No hay estaciones."
         )
 
     # --------------------------------------------------------
@@ -1174,7 +1206,9 @@ def main():
     # --------------------------------------------------------
 
     end_date = (
-        now_utc().date()
+        datetime.now(
+            timezone.utc
+        ).date()
         - timedelta(
             days=2
         )
@@ -1183,23 +1217,14 @@ def main():
     start_date = (
         end_date
         - timedelta(
-            days=HISTORY_DAYS
-            - 1
+            days=HISTORY_DAYS - 1
         )
-    )
-
-    start_date_text = (
-        start_date.isoformat()
-    )
-
-    end_date_text = (
-        end_date.isoformat()
     )
 
     print(
         f"Historical window: "
-        f"{start_date_text} -> "
-        f"{end_date_text}"
+        f"{start_date} -> "
+        f"{end_date}"
     )
 
     print(
@@ -1212,97 +1237,119 @@ def main():
         f"{LEAD_DAYS}"
     )
 
+    print(
+        f"Station batch: "
+        f"{STATION_BATCH_SIZE}"
+    )
+
+    print(
+        f"Date chunk: "
+        f"{DATE_CHUNK_DAYS} days"
+    )
+
     # --------------------------------------------------------
-    # HTTP SESSION
+    # SESSION
     # --------------------------------------------------------
 
     session = requests.Session()
 
     session.headers.update(
         {
-            "User-Agent":
-            "PolymarketWeatherEdgeLab/"
-            + VERSION
+            "User-Agent": (
+                "PolymarketWeatherEdgeLab/"
+                + VERSION
+            )
         }
     )
+
+    station_batches = list(
+        chunks(
+            stations,
+            STATION_BATCH_SIZE,
+        )
+    )
+
+    date_ranges = list(
+        date_chunks(
+            start_date,
+            end_date,
+        )
+    )
+
+    forecast_rows = []
+
+    total_forecast_calls = (
+        len(MODELS)
+        * len(station_batches)
+        * len(date_ranges)
+    )
+
+    completed = 0
 
     # --------------------------------------------------------
     # FORECASTS
     # --------------------------------------------------------
 
-    all_forecasts = []
-
-    station_batches = list(
-        batch_items(
-            stations,
-            BATCH_SIZE,
-        )
-    )
-
     print("")
     print(
-        "Downloading historical forecasts..."
+        "Downloading previous model runs..."
     )
-
-    total_batches = (
-        len(
-            station_batches
-        )
-        * len(
-            MODELS
-        )
-    )
-
-    completed_batches = 0
 
     for model in MODELS:
 
-        for batch in station_batches:
+        for (
+            chunk_start,
+            chunk_end,
+        ) in date_ranges:
 
-            completed_batches += 1
+            for batch in station_batches:
 
-            print(
-                f"[{completed_batches}/"
-                f"{total_batches}] "
-                f"{model}"
-            )
+                completed += 1
 
-            payload = fetch_previous_runs(
-                session,
-                batch,
-                start_date_text,
-                end_date_text,
-                model,
-            )
+                print(
+                    f"[{completed}/"
+                    f"{total_forecast_calls}] "
+                    f"{model} | "
+                    f"{chunk_start} -> "
+                    f"{chunk_end} | "
+                    f"{len(batch)} stations"
+                )
 
-            rows = (
-                parse_previous_runs_payload(
+                payload = (
+                    fetch_previous_runs(
+                        session,
+                        batch,
+                        model,
+                        chunk_start,
+                        chunk_end,
+                    )
+                )
+
+                rows = parse_previous_runs(
                     payload,
                     batch,
                     model,
                 )
-            )
 
-            all_forecasts.extend(
-                rows
-            )
+                forecast_rows.extend(
+                    rows
+                )
 
-            print(
-                f"    rows: "
-                f"{len(rows)}"
-            )
+                print(
+                    f"    rows: {len(rows)}"
+                )
 
-            time.sleep(
-                REQUEST_PAUSE_SECONDS
-            )
+                time.sleep(
+                    REQUEST_PAUSE_SECONDS
+                )
 
     # --------------------------------------------------------
-    # DEDUP FORECASTS
+    # DEDUP FORECAST
     # --------------------------------------------------------
 
     forecast_index = {}
 
-    for row in all_forecasts:
+    for row in forecast_rows:
 
         key = (
             row["station"],
@@ -1315,11 +1362,11 @@ def main():
             key
         ] = row
 
-    all_forecasts = list(
+    forecast_rows = list(
         forecast_index.values()
     )
 
-    all_forecasts.sort(
+    forecast_rows.sort(
         key=lambda row: (
             row["station"],
             row["model"],
@@ -1329,65 +1376,81 @@ def main():
     )
 
     write_csv(
-        BOOTSTRAP_FORECAST_FILE,
+        FORECAST_FILE,
         FORECAST_FIELDS,
-        all_forecasts,
+        forecast_rows,
     )
 
     print("")
     print(
         f"Forecast rows saved: "
-        f"{len(all_forecasts)}"
+        f"{len(forecast_rows)}"
     )
 
     # --------------------------------------------------------
     # GROUND TRUTH
     # --------------------------------------------------------
 
-    all_ground_truth = []
+    ground_truth_rows = []
+
+    total_truth_calls = (
+        len(
+            station_batches
+        )
+        * len(
+            date_ranges
+        )
+    )
+
+    completed = 0
 
     print("")
     print(
         "Downloading historical ground truth..."
     )
 
-    completed_batches = 0
+    for (
+        chunk_start,
+        chunk_end,
+    ) in date_ranges:
 
-    for batch in station_batches:
+        for batch in station_batches:
 
-        completed_batches += 1
+            completed += 1
 
-        print(
-            f"[{completed_batches}/"
-            f"{len(station_batches)}]"
-        )
+            print(
+                f"[{completed}/"
+                f"{total_truth_calls}] "
+                f"{chunk_start} -> "
+                f"{chunk_end} | "
+                f"{len(batch)} stations"
+            )
 
-        payload = fetch_ground_truth(
-            session,
-            batch,
-            start_date_text,
-            end_date_text,
-        )
+            payload = (
+                fetch_ground_truth(
+                    session,
+                    batch,
+                    chunk_start,
+                    chunk_end,
+                )
+            )
 
-        rows = (
-            parse_ground_truth_payload(
+            rows = parse_ground_truth(
                 payload,
                 batch,
             )
-        )
 
-        all_ground_truth.extend(
-            rows
-        )
+            ground_truth_rows.extend(
+                rows
+            )
 
-        print(
-            f"    rows: "
-            f"{len(rows)}"
-        )
+            print(
+                f"    rows: {len(rows)}"
+            )
 
-        time.sleep(
-            REQUEST_PAUSE_SECONDS
-        )
+            time.sleep(
+                REQUEST_PAUSE_SECONDS
+            )
 
     # --------------------------------------------------------
     # DEDUP GROUND TRUTH
@@ -1395,7 +1458,7 @@ def main():
 
     truth_index = {}
 
-    for row in all_ground_truth:
+    for row in ground_truth_rows:
 
         key = (
             row["station"],
@@ -1406,11 +1469,11 @@ def main():
             key
         ] = row
 
-    all_ground_truth = list(
+    ground_truth_rows = list(
         truth_index.values()
     )
 
-    all_ground_truth.sort(
+    ground_truth_rows.sort(
         key=lambda row: (
             row["station"],
             row["date"],
@@ -1418,27 +1481,27 @@ def main():
     )
 
     write_csv(
-        BOOTSTRAP_GROUND_TRUTH_FILE,
+        GROUND_TRUTH_FILE,
         GROUND_TRUTH_FIELDS,
-        all_ground_truth,
+        ground_truth_rows,
     )
 
     print("")
     print(
         f"Ground truth rows saved: "
-        f"{len(all_ground_truth)}"
+        f"{len(ground_truth_rows)}"
     )
 
     # --------------------------------------------------------
     # MATCH
     # --------------------------------------------------------
 
-    matched = match_forecasts(
-        all_forecasts,
-        all_ground_truth,
+    matched_rows = match_data(
+        forecast_rows,
+        ground_truth_rows,
     )
 
-    matched.sort(
+    matched_rows.sort(
         key=lambda row: (
             row["station"],
             row["model"],
@@ -1448,22 +1511,22 @@ def main():
     )
 
     write_csv(
-        BOOTSTRAP_MATCHED_FILE,
+        MATCHED_FILE,
         MATCHED_FIELDS,
-        matched,
+        matched_rows,
     )
 
     print(
         f"Matched rows: "
-        f"{len(matched)}"
+        f"{len(matched_rows)}"
     )
 
     # --------------------------------------------------------
-    # SUMMARY
+    # CALIBRATION SUMMARY
     # --------------------------------------------------------
 
-    summaries = calibration_summary(
-        matched
+    summaries = summarize(
+        matched_rows
     )
 
     summaries.sort(
@@ -1489,66 +1552,31 @@ def main():
             "CALIBRATION BOOTSTRAP V"
             + VERSION
         ),
-
         "NO TRADING",
-
         "",
-
-        f"Run UTC: {iso_now()}",
-
+        f"UTC: {iso_now()}",
         "",
-
+        f"Stations: {len(stations)}",
+        f"Models: {len(MODELS)}",
+        f"History days: {HISTORY_DAYS}",
+        f"Forecast rows: {len(forecast_rows)}",
         (
-            f"Stations: "
-            f"{len(stations)}"
+            "Ground truth rows: "
+            f"{len(ground_truth_rows)}"
         ),
-
-        (
-            f"Models: "
-            f"{len(MODELS)}"
-        ),
-
-        (
-            f"Lead days: "
-            f"{len(LEAD_DAYS)}"
-        ),
-
-        (
-            f"History days: "
-            f"{HISTORY_DAYS}"
-        ),
-
-        (
-            f"Forecast rows: "
-            f"{len(all_forecasts)}"
-        ),
-
-        (
-            f"Ground truth rows: "
-            f"{len(all_ground_truth)}"
-        ),
-
-        (
-            f"Matched rows: "
-            f"{len(matched)}"
-        ),
-
-        (
-            f"Calibration groups: "
-            f"{len(summaries)}"
-        ),
-
+        f"Matched rows: {len(matched_rows)}",
+        f"Calibration groups: {len(summaries)}",
         "",
-
         (
-            "GROUND TRUTH NOTE: "
-            "Open-Meteo ERA5 reanalysis is used as "
-            "historical verification data. It is not "
-            "a literal METAR station observation."
+            "Ground truth source: "
+            "Open-Meteo ERA5 reanalysis."
         ),
-
+        (
+            "This is historical verification data, "
+            "not literal METAR observations."
+        ),
         "",
-        "TOP CALIBRATION GROUPS",
+        "CALIBRATION GROUPS",
         "",
     ]
 
@@ -1560,15 +1588,19 @@ def main():
                 f"{summary['model']} | "
                 f"lead={summary['lead_days']} | "
                 f"n={summary['samples']} | "
-                f"min_bias={summary['min_bias_c']:.3f}C | "
-                f"min_rmse={summary['min_rmse_c']:.3f}C | "
-                f"max_bias={summary['max_bias_c']:.3f}C | "
-                f"max_rmse={summary['max_rmse_c']:.3f}C"
+                f"min_bias="
+                f"{summary['min_bias_c']:.3f}C | "
+                f"min_rmse="
+                f"{summary['min_rmse_c']:.3f}C | "
+                f"max_bias="
+                f"{summary['max_bias_c']:.3f}C | "
+                f"max_rmse="
+                f"{summary['max_rmse_c']:.3f}C"
             )
         )
 
     write_text(
-        BOOTSTRAP_REPORT_FILE,
+        REPORT_FILE,
         "\n".join(
             report
         ),
@@ -1585,17 +1617,17 @@ def main():
 
     print(
         f"Forecast rows: "
-        f"{len(all_forecasts)}"
+        f"{len(forecast_rows)}"
     )
 
     print(
         f"Ground truth rows: "
-        f"{len(all_ground_truth)}"
+        f"{len(ground_truth_rows)}"
     )
 
     print(
         f"Matched rows: "
-        f"{len(matched)}"
+        f"{len(matched_rows)}"
     )
 
     print(
@@ -1605,31 +1637,23 @@ def main():
 
     print("")
     print(
-        "Forecast file:"
-    )
-    print(
-        BOOTSTRAP_FORECAST_FILE
+        f"Forecast: "
+        f"{FORECAST_FILE}"
     )
 
     print(
-        "Ground truth file:"
-    )
-    print(
-        BOOTSTRAP_GROUND_TRUTH_FILE
+        f"Ground truth: "
+        f"{GROUND_TRUTH_FILE}"
     )
 
     print(
-        "Matched file:"
-    )
-    print(
-        BOOTSTRAP_MATCHED_FILE
+        f"Matched: "
+        f"{MATCHED_FILE}"
     )
 
     print(
-        "Report:"
-    )
-    print(
-        BOOTSTRAP_REPORT_FILE
+        f"Report: "
+        f"{REPORT_FILE}"
     )
 
 
