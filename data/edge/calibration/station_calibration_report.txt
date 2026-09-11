@@ -1,0 +1,143 @@
+POLYMARKET WEATHER STATION CALIBRATION BUILDER V1.0
+NO TRADING
+
+Matched forecast/observation rows: 12054
+Calibration groups: 203
+Usable groups (>=15 samples): 133
+Groups with sanity flags: 28
+Skipped without observation: 16296
+Skipped invalid: 0
+
+TOP USABLE CALIBRATION GROUPS
+
+LEMD | ecmwf_ifs025 | lead=1 | n=89 | min_bias=-1.39888C | min_rmse=2.09566C | min_sigma=1.56927C | max_bias=0.18315C | max_rmse=0.75394C | max_sigma=0.75C
+LEMD | ecmwf_ifs025 | lead=2 | n=89 | min_bias=-1.57865C | min_rmse=2.26351C | min_sigma=1.63133C | max_bias=0.05618C | max_rmse=0.81572C | max_sigma=0.81839C
+LEMD | ecmwf_ifs025 | lead=3 | n=89 | min_bias=-1.79775C | min_rmse=2.44899C | min_sigma=1.67244C | max_bias=-0.12921C | max_rmse=1.04607C | max_sigma=1.04394C
+EPWA | ecmwf_ifs025 | lead=2 | n=89 | min_bias=-0.77978C | min_rmse=1.69964C | min_sigma=1.51876C | max_bias=0.22809C | max_rmse=1.13815C | max_sigma=1.12138C
+NZWN | ecmwf_ifs025 | lead=1 | n=88 | min_bias=-0.23977C | min_rmse=1.20609C | min_sigma=1.18879C | max_bias=0.825C | max_rmse=1.15168C | max_sigma=0.80818C
+EGLC | ecmwf_ifs025 | lead=1 | n=89 | min_bias=0.22921C | min_rmse=0.80741C | min_sigma=0.77858C | max_bias=-0.05281C | max_rmse=1.22772C | max_sigma=1.23354C
+EPWA | ecmwf_ifs025 | lead=1 | n=89 | min_bias=-0.76742C | min_rmse=1.63023C | min_sigma=1.44645C | max_bias=0.29213C | max_rmse=1.23825C | max_sigma=1.21011C
+OPKC | ecmwf_ifs025 | lead=6 | n=89 | min_bias=1.32472C | min_rmse=1.45537C | min_sigma=0.75C | max_bias=-0.50112C | max_rmse=1.26438C | max_sigma=1.16741C
+NZWN | ecmwf_ifs025 | lead=2 | n=88 | min_bias=-0.36705C | min_rmse=1.28563C | min_sigma=1.23918C | max_bias=0.82159C | max_rmse=1.27667C | max_sigma=0.98278C
+LTAC | ecmwf_ifs025 | lead=3 | n=89 | min_bias=-1.03146C | min_rmse=1.61148C | min_sigma=1.24514C | max_bias=0.33258C | max_rmse=1.2815C | max_sigma=1.2446C
+EHAM | ecmwf_ifs025 | lead=1 | n=89 | min_bias=-0.51236C | min_rmse=1.13375C | min_sigma=1.01711C | max_bias=0.63933C | max_rmse=1.32203C | max_sigma=1.16371C
+OPKC | ecmwf_ifs025 | lead=7 | n=89 | min_bias=1.28876C | min_rmse=1.40389C | min_sigma=0.75C | max_bias=-0.52809C | max_rmse=1.33845C | max_sigma=1.23684C
+NZWN | ecmwf_ifs025 | lead=3 | n=88 | min_bias=-0.32841C | min_rmse=1.29768C | min_sigma=1.26263C | max_bias=0.85114C | max_rmse=1.34507C | max_sigma=1.04749C
+OPKC | ecmwf_ifs025 | lead=1 | n=89 | min_bias=1.2191C | min_rmse=1.3856C | min_sigma=0.75C | max_bias=-0.88652C | max_rmse=1.36855C | max_sigma=1.0485C
+LEMD | ecmwf_ifs025 | lead=4 | n=89 | min_bias=-1.84382C | min_rmse=2.57558C | min_sigma=1.8085C | max_bias=-0.23483C | max_rmse=1.37215C | max_sigma=1.35957C
+LTAC | ecmwf_ifs025 | lead=1 | n=89 | min_bias=-0.83034C | min_rmse=1.51335C | min_sigma=1.27238C | max_bias=0.6809C | max_rmse=1.37326C | max_sigma=1.19933C
+EPWA | ecmwf_ifs025 | lead=3 | n=89 | min_bias=-0.7809C | min_rmse=1.67402C | min_sigma=1.48912C | max_bias=0.35281C | max_rmse=1.37938C | max_sigma=1.34106C
+LTAC | ecmwf_ifs025 | lead=2 | n=89 | min_bias=-0.95955C | min_rmse=1.54832C | min_sigma=1.22203C | max_bias=0.4191C | max_rmse=1.41505C | max_sigma=1.35922C
+NZWN | ecmwf_ifs025 | lead=4 | n=88 | min_bias=-0.25341C | min_rmse=1.62078C | min_sigma=1.61002C | max_bias=0.83977C | max_rmse=1.45957C | max_sigma=1.20063C
+LFPB | ecmwf_ifs025 | lead=1 | n=89 | min_bias=-0.25506C | min_rmse=1.26389C | min_sigma=1.2449C | max_bias=1.02247C | max_rmse=1.47595C | max_sigma=1.07045C
+EHAM | ecmwf_ifs025 | lead=2 | n=89 | min_bias=-0.55618C | min_rmse=1.27654C | min_sigma=1.15552C | max_bias=0.55393C | max_rmse=1.47812C | max_sigma=1.37816C
+VILK | ecmwf_ifs025 | lead=1 | n=89 | min_bias=0.77416C | min_rmse=1.37485C | min_sigma=1.14262C | max_bias=0.71573C | max_rmse=1.48085C | max_sigma=1.30374C
+EFHK | ecmwf_ifs025 | lead=1 | n=89 | min_bias=-1.09663C | min_rmse=1.78124C | min_sigma=1.4116C | max_bias=0.94157C | max_rmse=1.49162C | max_sigma=1.16344C
+NZWN | ecmwf_ifs025 | lead=5 | n=88 | min_bias=-0.47955C | min_rmse=2.0309C | min_sigma=1.98478C | max_bias=0.85227C | max_rmse=1.49187C | max_sigma=1.23148C
+LTAC | ecmwf_ifs025 | lead=4 | n=89 | min_bias=-0.96292C | min_rmse=1.63147C | min_sigma=1.32445C | max_bias=0.19326C | max_rmse=1.50542C | max_sigma=1.50142C
+OPKC | ecmwf_ifs025 | lead=2 | n=89 | min_bias=1.16966C | min_rmse=1.35311C | min_sigma=0.75C | max_bias=-0.9382C | max_rmse=1.51772C | max_sigma=1.19976C
+LFPB | ecmwf_ifs025 | lead=2 | n=89 | min_bias=-0.32247C | min_rmse=1.43766C | min_sigma=1.40896C | max_bias=1.0191C | max_rmse=1.57355C | max_sigma=1.20575C
+EFHK | ecmwf_ifs025 | lead=2 | n=89 | min_bias=-1.1618C | min_rmse=1.88495C | min_sigma=1.49275C | max_bias=0.80449C | max_rmse=1.59592C | max_sigma=1.38613C
+OPKC | ecmwf_ifs025 | lead=3 | n=89 | min_bias=1.12135C | min_rmse=1.28666C | min_sigma=0.75C | max_bias=-1.14157C | max_rmse=1.59677C | max_sigma=1.12278C
+LEMD | ecmwf_ifs025 | lead=5 | n=89 | min_bias=-1.92472C | min_rmse=2.89469C | min_sigma=2.17435C | max_bias=-0.36629C | max_rmse=1.59937C | max_sigma=1.56568C
+EGLC | ecmwf_ifs025 | lead=2 | n=89 | min_bias=0.2236C | min_rmse=0.96343C | min_sigma=0.94244C | max_bias=-0.09438C | max_rmse=1.61975C | max_sigma=1.62616C
+LIMC | ecmwf_ifs025 | lead=1 | n=88 | min_bias=-1.0125C | min_rmse=1.94279C | min_sigma=1.6676C | max_bias=1.07955C | max_rmse=1.62502C | max_sigma=1.22156C
+ZSPD | ecmwf_ifs025 | lead=1 | n=88 | min_bias=-0.12045C | min_rmse=0.92981C | min_sigma=0.92726C | max_bias=1.05455C | max_rmse=1.62593C | max_sigma=1.24466C
+EHAM | ecmwf_ifs025 | lead=3 | n=89 | min_bias=-0.59663C | min_rmse=1.34453C | min_sigma=1.21173C | max_bias=0.39438C | max_rmse=1.62926C | max_sigma=1.58977C
+LIMC | ecmwf_ifs025 | lead=3 | n=88 | min_bias=-0.96136C | min_rmse=1.93872C | min_sigma=1.69322C | max_bias=0.86364C | max_rmse=1.66576C | max_sigma=1.43256C
+LIMC | ecmwf_ifs025 | lead=2 | n=88 | min_bias=-0.92045C | min_rmse=1.92354C | min_sigma=1.69869C | max_bias=0.98409C | max_rmse=1.67352C | max_sigma=1.36136C
+OPKC | ecmwf_ifs025 | lead=4 | n=89 | min_bias=1.10449C | min_rmse=1.27416C | min_sigma=0.75C | max_bias=-1.19888C | max_rmse=1.69927C | max_sigma=1.21108C
+ZBAA | ecmwf_ifs025 | lead=1 | n=89 | min_bias=-0.34831C | min_rmse=1.37653C | min_sigma=1.33928C | max_bias=0.4236C | max_rmse=1.71369C | max_sigma=1.66992C
+NZWN | ecmwf_ifs025 | lead=7 | n=88 | min_bias=-0.48409C | min_rmse=2.26013C | min_sigma=2.22033C | max_bias=0.9125C | max_rmse=1.71845C | max_sigma=1.46451C
+VILK | ecmwf_ifs025 | lead=2 | n=89 | min_bias=0.89326C | min_rmse=1.62131C | min_sigma=1.36071C | max_bias=0.93146C | max_rmse=1.72467C | max_sigma=1.45973C
+NZWN | ecmwf_ifs025 | lead=6 | n=88 | min_bias=-0.4875C | min_rmse=2.18109C | min_sigma=2.1381C | max_bias=0.95114C | max_rmse=1.73333C | max_sigma=1.45736C
+ZSPD | ecmwf_ifs025 | lead=2 | n=88 | min_bias=-0.07159C | min_rmse=1.00663C | min_sigma=1.00983C | max_bias=1.1875C | max_rmse=1.73575C | max_sigma=1.27323C
+RKSI | ecmwf_ifs025 | lead=1 | n=88 | min_bias=0.43409C | min_rmse=0.96519C | min_sigma=0.86701C | max_bias=1.16136C | max_rmse=1.74786C | max_sigma=1.31371C
+EGLC | ecmwf_ifs025 | lead=3 | n=89 | min_bias=0.1427C | min_rmse=1.06902C | min_sigma=1.06546C | max_bias=-0.28315C | max_rmse=1.74903C | max_sigma=1.73574C
+EFHK | ecmwf_ifs025 | lead=3 | n=89 | min_bias=-1.20449C | min_rmse=2.16898C | min_sigma=1.81402C | max_bias=0.73933C | max_rmse=1.75378C | max_sigma=1.59933C
+LTAC | ecmwf_ifs025 | lead=5 | n=89 | min_bias=-0.8427C | min_rmse=1.79863C | min_sigma=1.598C | max_bias=0.42921C | max_rmse=1.77327C | max_sigma=1.73029C
+LIMC | ecmwf_ifs025 | lead=4 | n=88 | min_bias=-1.19659C | min_rmse=2.04136C | min_sigma=1.66336C | max_bias=0.75455C | max_rmse=1.77553C | max_sigma=1.61643C
+EPWA | ecmwf_ifs025 | lead=4 | n=89 | min_bias=-0.85281C | min_rmse=1.74385C | min_sigma=1.52971C | max_bias=0.31348C | max_rmse=1.79897C | max_sigma=1.78148C
+VILK | ecmwf_ifs025 | lead=3 | n=89 | min_bias=0.96629C | min_rmse=1.59775C | min_sigma=1.27964C | max_bias=0.92809C | max_rmse=1.80716C | max_sigma=1.55943C
+ZSPD | ecmwf_ifs025 | lead=3 | n=88 | min_bias=-0.01364C | min_rmse=0.97386C | min_sigma=0.97935C | max_bias=1.20568C | max_rmse=1.82212C | max_sigma=1.37401C
+OPKC | ecmwf_ifs025 | lead=5 | n=89 | min_bias=1.11236C | min_rmse=1.26082C | min_sigma=0.75C | max_bias=-1.28427C | max_rmse=1.833C | max_sigma=1.31529C
+WSSS | ecmwf_ifs025 | lead=1 | n=88 | min_bias=1.23068C | min_rmse=1.69963C | min_sigma=1.17897C | max_bias=1.54545C | max_rmse=1.83823C | max_sigma=1.00102C
+RKSI | ecmwf_ifs025 | lead=2 | n=88 | min_bias=0.49432C | min_rmse=1.15133C | min_sigma=1.04578C | max_bias=1.10114C | max_rmse=1.85488C | max_sigma=1.50123C
+VILK | ecmwf_ifs025 | lead=4 | n=89 | min_bias=0.93933C | min_rmse=1.66531C | min_sigma=1.3829C | max_bias=0.94719C | max_rmse=1.87134C | max_sigma=1.62306C
+RJTT | ecmwf_ifs025 | lead=2 | n=88 | min_bias=0.8375C | min_rmse=1.36993C | min_sigma=1.09032C | max_bias=-0.44886C | max_rmse=1.88791C | max_sigma=1.84428C
+EHAM | ecmwf_ifs025 | lead=4 | n=89 | min_bias=-0.73483C | min_rmse=1.43707C | min_sigma=1.24198C | max_bias=0.20225C | max_rmse=1.90293C | max_sigma=1.90287C
+EFHK | ecmwf_ifs025 | lead=4 | n=89 | min_bias=-1.07528C | min_rmse=2.33587C | min_sigma=2.08541C | max_bias=0.4809C | max_rmse=1.90334C | max_sigma=1.85202C
+ZBAA | ecmwf_ifs025 | lead=2 | n=89 | min_bias=-0.32697C | min_rmse=1.41441C | min_sigma=1.3839C | max_bias=0.29438C | max_rmse=1.91047C | max_sigma=1.89835C
+WSSS | ecmwf_ifs025 | lead=4 | n=88 | min_bias=1.22955C | min_rmse=1.86401C | min_sigma=1.40902C | max_bias=1.55909C | max_rmse=1.9124C | max_sigma=1.11382C
+LFPB | ecmwf_ifs025 | lead=3 | n=89 | min_bias=-0.36742C | min_rmse=1.46958C | min_sigma=1.43097C | max_bias=1.0191C | max_rmse=1.94529C | max_sigma=1.66637C
+EGLC | ecmwf_ifs025 | lead=4 | n=89 | min_bias=-0.10787C | min_rmse=1.45849C | min_sigma=1.46274C | max_bias=-0.4573C | max_rmse=1.94725C | max_sigma=1.90352C
+ZSPD | ecmwf_ifs025 | lead=4 | n=88 | min_bias=0.04659C | min_rmse=1.11105C | min_sigma=1.11643C | max_bias=1.11023C | max_rmse=1.95747C | max_sigma=1.62141C
+WSSS | ecmwf_ifs025 | lead=3 | n=88 | min_bias=1.24318C | min_rmse=1.83842C | min_sigma=1.36211C | max_bias=1.64545C | max_rmse=1.97869C | max_sigma=1.10525C
+EFHK | ecmwf_ifs025 | lead=5 | n=89 | min_bias=-1.04157C | min_rmse=2.22874C | min_sigma=1.98155C | max_bias=0.4191C | max_rmse=1.98231C | max_sigma=1.94848C
+RKSI | ecmwf_ifs025 | lead=3 | n=88 | min_bias=0.41136C | min_rmse=1.16629C | min_sigma=1.09759C | max_bias=1.07727C | max_rmse=2.00448C | max_sigma=1.70008C
+LFPB | ecmwf_ifs025 | lead=4 | n=89 | min_bias=-0.4809C | min_rmse=1.62626C | min_sigma=1.56233C | max_bias=0.89213C | max_rmse=2.00578C | max_sigma=1.80663C
+WSSS | ecmwf_ifs025 | lead=5 | n=88 | min_bias=1.26591C | min_rmse=1.9862C | min_sigma=1.53929C | max_bias=1.60568C | max_rmse=2.00633C | max_sigma=1.20986C
+WSSS | ecmwf_ifs025 | lead=2 | n=88 | min_bias=1.25909C | min_rmse=1.88601C | min_sigma=1.41223C | max_bias=1.65909C | max_rmse=2.0076C | max_sigma=1.13691C
+WMKK | ecmwf_ifs025 | lead=1 | n=88 | min_bias=1.93295C | min_rmse=2.25522C | min_sigma=1.16843C | max_bias=1.70114C | max_rmse=2.01542C | max_sigma=1.08697C
+ZGGG | ecmwf_ifs025 | lead=1 | n=89 | min_bias=1.26067C | min_rmse=1.53813C | min_sigma=0.88621C | max_bias=1.35281C | max_rmse=2.02945C | max_sigma=1.52137C
+LIMC | ecmwf_ifs025 | lead=5 | n=88 | min_bias=-0.96932C | min_rmse=2.01497C | min_sigma=1.77663C | max_bias=0.83864C | max_rmse=2.04784C | max_sigma=1.87895C
+VILK | ecmwf_ifs025 | lead=5 | n=89 | min_bias=0.9764C | min_rmse=1.89147C | min_sigma=1.62914C | max_bias=0.89101C | max_rmse=2.08733C | max_sigma=1.8983C
+WMKK | ecmwf_ifs025 | lead=3 | n=88 | min_bias=2.23864C | min_rmse=2.50558C | min_sigma=1.13182C | max_bias=1.68068C | max_rmse=2.09217C | max_sigma=1.25312C
+RJTT | ecmwf_ifs025 | lead=4 | n=88 | min_bias=0.95C | min_rmse=1.67624C | min_sigma=1.38895C | max_bias=-0.22841C | max_rmse=2.09548C | max_sigma=2.09493C
+LTAC | ecmwf_ifs025 | lead=6 | n=89 | min_bias=-1.86742C | min_rmse=2.6814C | min_sigma=1.93513C | max_bias=0.59213C | max_rmse=2.10828C | max_sigma=2.03488C
+EFHK | ecmwf_ifs025 | lead=6 | n=89 | min_bias=-1.36404C | min_rmse=2.64278C | min_sigma=2.27637C | max_bias=0.82135C | max_rmse=2.11716C | max_sigma=1.9624C
+RKSI | ecmwf_ifs025 | lead=4 | n=88 | min_bias=0.56932C | min_rmse=1.47814C | min_sigma=1.37192C | max_bias=0.95909C | max_rmse=2.12073C | max_sigma=1.90231C
+ZSPD | ecmwf_ifs025 | lead=5 | n=88 | min_bias=0.02614C | min_rmse=1.08738C | min_sigma=1.09329C | max_bias=1.09318C | max_rmse=2.13659C | max_sigma=1.84626C
+EPWA | ecmwf_ifs025 | lead=5 | n=89 | min_bias=-0.99663C | min_rmse=2.0039C | min_sigma=1.74834C | max_bias=-0.16067C | max_rmse=2.14583C | max_sigma=2.15193C
+RJTT | ecmwf_ifs025 | lead=1 | n=88 | min_bias=0.74886C | min_rmse=1.32618C | min_sigma=1.10078C | max_bias=-0.7375C | max_rmse=2.15478C | max_sigma=2.03624C
+WMKK | ecmwf_ifs025 | lead=2 | n=88 | min_bias=2.0625C | min_rmse=2.32987C | min_sigma=1.0899C | max_bias=1.7875C | max_rmse=2.1729C | max_sigma=1.24252C
+WSSS | ecmwf_ifs025 | lead=7 | n=88 | min_bias=1.00341C | min_rmse=1.7582C | min_sigma=1.45203C | max_bias=1.67159C | max_rmse=2.17812C | max_sigma=1.40442C
+RJTT | ecmwf_ifs025 | lead=5 | n=88 | min_bias=1.09205C | min_rmse=1.71772C | min_sigma=1.3335C | max_bias=-0.15114C | max_rmse=2.19977C | max_sigma=2.20715C
+ZBAA | ecmwf_ifs025 | lead=3 | n=89 | min_bias=-0.39438C | min_rmse=1.46391C | min_sigma=1.41777C | max_bias=0.24607C | max_rmse=2.2288C | max_sigma=2.22772C
+WMKK | ecmwf_ifs025 | lead=5 | n=88 | min_bias=2.18068C | min_rmse=2.47292C | min_sigma=1.17286C | max_bias=1.80682C | max_rmse=2.23246C | max_sigma=1.31872C
+WMKK | ecmwf_ifs025 | lead=4 | n=88 | min_bias=2.24432C | min_rmse=2.53016C | min_sigma=1.17492C | max_bias=1.77614C | max_rmse=2.23335C | max_sigma=1.36171C
+ZGGG | ecmwf_ifs025 | lead=2 | n=89 | min_bias=1.24719C | min_rmse=1.56011C | min_sigma=0.94257C | max_bias=1.46629C | max_rmse=2.24332C | max_sigma=1.7074C
+WSSS | ecmwf_ifs025 | lead=6 | n=88 | min_bias=0.96364C | min_rmse=1.71974C | min_sigma=1.43256C | max_bias=1.8125C | max_rmse=2.24937C | max_sigma=1.33974C
+LFPB | ecmwf_ifs025 | lead=5 | n=89 | min_bias=-0.54494C | min_rmse=1.95451C | min_sigma=1.88764C | max_bias=0.42247C | max_rmse=2.25154C | max_sigma=2.22408C
+EDDM | ecmwf_ifs025 | lead=1 | n=89 | min_bias=-2.50562C | min_rmse=3.24245C | min_sigma=2.06966C | max_bias=1.80787C | max_rmse=2.25939C | max_sigma=1.36284C
+RJTT | ecmwf_ifs025 | lead=3 | n=88 | min_bias=0.99545C | min_rmse=1.51957C | min_sigma=1.15469C | max_bias=-0.40455C | max_rmse=2.2636C | max_sigma=2.23992C
+LEMD | ecmwf_ifs025 | lead=6 | n=89 | min_bias=-1.79663C | min_rmse=3.07894C | min_sigma=2.51457C | max_bias=-0.13371C | max_rmse=2.28338C | max_sigma=2.29238C
+RKSI | ecmwf_ifs025 | lead=5 | n=88 | min_bias=0.58523C | min_rmse=1.36777C | min_sigma=1.24333C | max_bias=0.82273C | max_rmse=2.31929C | max_sigma=2.18088C
+WMKK | ecmwf_ifs025 | lead=7 | n=88 | min_bias=2.2125C | min_rmse=2.48914C | min_sigma=1.14699C | max_bias=1.89318C | max_rmse=2.36095C | max_sigma=1.41874C
+ZGGG | ecmwf_ifs025 | lead=3 | n=89 | min_bias=1.2236C | min_rmse=1.59765C | min_sigma=1.03309C | max_bias=1.38427C | max_rmse=2.38794C | max_sigma=1.9568C
+RJTT | ecmwf_ifs025 | lead=6 | n=88 | min_bias=0.85114C | min_rmse=1.70437C | min_sigma=1.4851C | max_bias=0.58523C | max_rmse=2.40182C | max_sigma=2.34278C
+VILK | ecmwf_ifs025 | lead=7 | n=89 | min_bias=0.98427C | min_rmse=1.88328C | min_sigma=1.6147C | max_bias=1.16966C | max_rmse=2.41151C | max_sigma=2.12081C
+EDDM | ecmwf_ifs025 | lead=2 | n=89 | min_bias=-2.48315C | min_rmse=3.30988C | min_sigma=2.20084C | max_bias=1.87191C | max_rmse=2.41498C | max_sigma=1.53445C
+EDDM | ecmwf_ifs025 | lead=3 | n=89 | min_bias=-2.44944C | min_rmse=3.25435C | min_sigma=2.15481C | max_bias=1.71798C | max_rmse=2.42726C | max_sigma=1.72439C
+WMKK | ecmwf_ifs025 | lead=6 | n=88 | min_bias=2.12045C | min_rmse=2.39929C | min_sigma=1.12905C | max_bias=2.04545C | max_rmse=2.43334C | max_sigma=1.3256C
+
+SANITY FLAGS
+
+CYYZ | ecmwf_ifs025 | lead=5 | HIGH_MAX_BIAS
+CYYZ | ecmwf_ifs025 | lead=6 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+EDDM | ecmwf_ifs025 | lead=6 | HIGH_MIN_RMSE,HIGH_MIN_BIAS
+EDDM | ecmwf_ifs025 | lead=7 | HIGH_MIN_RMSE,HIGH_MIN_BIAS
+FACT | ecmwf_ifs025 | lead=1 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+FACT | ecmwf_ifs025 | lead=2 | HIGH_MAX_BIAS
+FACT | ecmwf_ifs025 | lead=3 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+FACT | ecmwf_ifs025 | lead=4 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+FACT | ecmwf_ifs025 | lead=5 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+FACT | ecmwf_ifs025 | lead=6 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+KDAL | ecmwf_ifs025 | lead=1 | HIGH_MAX_BIAS
+KDAL | ecmwf_ifs025 | lead=2 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+KDAL | ecmwf_ifs025 | lead=3 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+KDAL | ecmwf_ifs025 | lead=4 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+KDAL | ecmwf_ifs025 | lead=5 | HIGH_MIN_BIAS,HIGH_MAX_BIAS
+KDAL | ecmwf_ifs025 | lead=6 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+KHOU | ecmwf_ifs025 | lead=7 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+KLGA | ecmwf_ifs025 | lead=2 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+KLGA | ecmwf_ifs025 | lead=6 | HIGH_MAX_BIAS
+KLGA | ecmwf_ifs025 | lead=7 | HIGH_MAX_RMSE,HIGH_MIN_BIAS,HIGH_MAX_BIAS
+KORD | ecmwf_ifs025 | lead=4 | HIGH_MAX_RMSE
+KORD | ecmwf_ifs025 | lead=6 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+KORD | ecmwf_ifs025 | lead=7 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+KSEA | ecmwf_ifs025 | lead=1 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+KSEA | ecmwf_ifs025 | lead=2 | HIGH_MAX_BIAS
+KSEA | ecmwf_ifs025 | lead=5 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+KSEA | ecmwf_ifs025 | lead=6 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
+KSEA | ecmwf_ifs025 | lead=7 | HIGH_MAX_RMSE,HIGH_MAX_BIAS
