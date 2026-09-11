@@ -24,21 +24,13 @@ permissions:
 
 jobs:
 
-  # ==========================================================
-  # NORMAL PIPELINE
-  # Collector + Edge Engine
-  # ==========================================================
-
   normal:
     if: >
       github.event_name == 'schedule' ||
       github.event.inputs.mode == 'normal' ||
       github.event.inputs.mode == 'both'
-
     runs-on: ubuntu-latest
-
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -55,71 +47,51 @@ jobs:
           python -m pip install -r requirements.txt
 
       - name: Run Weather Collector V10.2.1
-        run: |
-          python collector.py
+        run: python collector.py
 
-      - name: Run Edge Engine V1.3
-        run: |
-          python edge_engine.py
+      - name: Run Calibrated Edge Engine V1.6
+        run: python edge_engine_v16.py
 
-      - name: Commit normal pipeline data
+      - name: Run Paper Trader V1.1
+        run: python paper_trader.py
+
+      - name: Commit normal pipeline and paper ledger
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
           git add data/
-
           if git diff --cached --quiet; then
             echo "No new normal pipeline data"
           else
-            git commit -m "data: weather and edge snapshot $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+            git commit -m "data: weather edge and paper trial snapshot $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
             git push
           fi
-
-
-  # ==========================================================
-  # OPEN-METEO FORECAST CALIBRATION
-  # Manual only
-  # ==========================================================
 
   calibration:
     if: >
       github.event_name == 'workflow_dispatch' &&
-      (
-        github.event.inputs.mode == 'calibration' ||
-        github.event.inputs.mode == 'both'
-      )
-
+      (github.event.inputs.mode == 'calibration' || github.event.inputs.mode == 'both')
     runs-on: ubuntu-latest
-
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
-
       - name: Run Calibration Bootstrap V1.1
-        run: |
-          python calibration_bootstrap.py
-
+        run: python calibration_bootstrap.py
       - name: Commit calibration data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
           git add data/edge/calibration/
-
           if git diff --cached --quiet; then
             echo "No new calibration data"
           else
@@ -127,50 +99,31 @@ jobs:
             git push
           fi
 
-
-  # ==========================================================
-  # IEM STATION OBSERVATION BOOTSTRAP
-  # Manual only
-  # ==========================================================
-
   station_observations:
     if: >
       github.event_name == 'workflow_dispatch' &&
-      (
-        github.event.inputs.mode == 'station_observations' ||
-        github.event.inputs.mode == 'both'
-      )
-
+      (github.event.inputs.mode == 'station_observations' || github.event.inputs.mode == 'both')
     runs-on: ubuntu-latest
-
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
-
       - name: Run Station Observation Bootstrap V1.0
-        run: |
-          python station_observation_bootstrap.py
-
+        run: python station_observation_bootstrap.py
       - name: Commit station observation data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
           git add data/edge/calibration/
-
           if git diff --cached --quiet; then
             echo "No new station observation data"
           else
@@ -178,47 +131,31 @@ jobs:
             git push
           fi
 
-
-  # ==========================================================
-  # LOCALIZE STATION OBSERVATIONS
-  # Manual only
-  # ==========================================================
-
   localize:
     if: >
       github.event_name == 'workflow_dispatch' &&
       github.event.inputs.mode == 'localize'
-
     runs-on: ubuntu-latest
-
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
-
       - name: Run Station Observation Localizer V1.0
-        run: |
-          python station_observation_localize.py
-
+        run: python station_observation_localize.py
       - name: Commit localized station data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
           git add data/edge/calibration/
-
           if git diff --cached --quiet; then
             echo "No new localized station data"
           else
@@ -226,47 +163,31 @@ jobs:
             git push
           fi
 
-
-  # ==========================================================
-  # STATION CALIBRATION BUILDER
-  # Manual only
-  # ==========================================================
-
   station_calibration:
     if: >
       github.event_name == 'workflow_dispatch' &&
       github.event.inputs.mode == 'station_calibration'
-
     runs-on: ubuntu-latest
-
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
-
       - name: Run Station Calibration Builder V1.0
-        run: |
-          python station_calibration_builder.py
-
+        run: python station_calibration_builder.py
       - name: Commit station calibration data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
           git add data/edge/calibration/
-
           if git diff --cached --quiet; then
             echo "No new station calibration data"
           else
