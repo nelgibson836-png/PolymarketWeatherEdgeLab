@@ -2,28 +2,27 @@ import csv
 import json
 import math
 import os
-from datetime import datetime, timezone, date, time
-from statistics import mean
-from zoneinfo import ZoneInfo
+from datetime import datetime, timezone
 
 # ============================================================
 # POLYMARKET WEATHER EDGE LAB
-# Edge Engine V1.3
+# Edge Engine V1.4
 #
 # RESEARCH / PAPER TRADING ONLY
 # NO ORDERS ARE SENT
 #
-# V1.3:
-# - Historical forecast calibration
-# - Bias correction
-# - Historical residual sigma
+# V1.4:
+# - Station-specific historical calibration
+# - Historical bias correction
+# - Residual sigma from same station
 # - Lead-time aware calibration
-# - No-lookahead filter for calibration
-# - Model-by-model corrected consensus
+# - Minimum calibration sample gate
+# - Sanity-flag protection
 # - Family normalization
+# - Executable ask requirement
 # ============================================================
 
-ENGINE_VERSION = "1.3"
+ENGINE_VERSION = "1.4"
 
 DATA_DIR = "data"
 
@@ -46,10 +45,11 @@ OBSERVATION_FILE = os.path.join(
     "observations.csv",
 )
 
-STATION_REGISTRY_FILE = os.path.join(
+CALIBRATION_FILE = os.path.join(
     DATA_DIR,
-    "weather",
-    "station_registry.json",
+    "edge",
+    "calibration",
+    "station_calibration_summary.csv",
 )
 
 EDGE_DIR = os.path.join(
@@ -60,11 +60,6 @@ EDGE_DIR = os.path.join(
 EDGE_HISTORY_DIR = os.path.join(
     EDGE_DIR,
     "history",
-)
-
-CALIBRATION_DIR = os.path.join(
-    EDGE_DIR,
-    "calibration",
 )
 
 LATEST_FILE = os.path.join(
@@ -87,62 +82,38 @@ PAPER_SIGNAL_FILE = os.path.join(
     "paper_signals.csv",
 )
 
-CALIBRATION_LATEST_FILE = os.path.join(
-    CALIBRATION_DIR,
-    "latest_calibration.json",
-)
-
-CALIBRATION_REPORT_FILE = os.path.join(
-    CALIBRATION_DIR,
-    "latest_calibration_report.txt",
-)
-
-CALIBRATION_HISTORY_FILE = os.path.join(
-    CALIBRATION_DIR,
-    "history.csv",
-)
-
 # ============================================================
-# STRATEGY PARAMETERS
+# PARAMETERS
 # ============================================================
 
 DEFAULT_WEATHER_FEE_RATE = 0.05
 
-DEFAULT_SIGMA_C = 1.20
-MIN_SIGMA_C = 0.90
-MAX_SIGMA_C = 4.00
+DEFAULT_SIGMA_C = 2.00
 
-# Candidate thresholds.
+MIN_SIGMA_C = 0.75
+MAX_SIGMA_C = 5.00
+
 MIN_EDGE = 0.03
 MIN_EV = 0.015
 
-# Strong signal.
 STRONG_MIN_EDGE = 0.06
 STRONG_MIN_EV = 0.02
 STRONG_MIN_ASK = 0.005
 
-# Very cheap asks.
 THIN_ASK_MAX = 0.002
 
-# Family consistency.
 FAMILY_MIN_COVERAGE = 0.90
 FAMILY_MAX_COVERAGE = 1.05
 
-# Calibration.
-CALIBRATION_MIN_SAMPLES = 15
-CALIBRATION_GLOBAL_MIN_SAMPLES = 10
-CALIBRATION_LOOKBACK_DAYS = 365
+MIN_CALIBRATION_SAMPLES = 15
 
-# Lead-time buckets:
-# 0 = forecast issued before target day but within 24h
-# 1 = approximately one day
-# 2 = approximately two days
-# 3 = 3+ days
-MAX_LEAD_BUCKET = 3
-
-# Shrink tiny samples toward the default.
-SHRINK_MIN_SAMPLES = 15
-SHRINK_TARGET_SIGMA_C = DEFAULT_SIGMA_C
+# Groups with these flags are not trusted for PAPER_BUY.
+BLOCKED_CALIBRATION_FLAGS = {
+    "HIGH_MIN_RMSE",
+    "HIGH_MAX_RMSE",
+    "HIGH_MIN_BIAS",
+    "HIGH_MAX_BIAS",
+}
 
 REQUIRE_EXECUTABLE_ASK = True
 
@@ -183,11 +154,11 @@ SIGNAL_FIELDS = [
     "forecast_max_c",
     "forecast_std_c",
     "forecast_sigma_c",
-    "calibration_method",
+    "calibration_source",
     "calibration_samples",
     "calibration_bias_c",
     "calibration_sigma_c",
-    "calibration_lead_bucket",
+    "calibration_flag",
     "observation_temperature_c",
     "observation_time",
     "execution_quality",
@@ -195,40 +166,27 @@ SIGNAL_FIELDS = [
     "reason",
 ]
 
-CALIBRATION_FIELDS = [
-    "run_at",
-    "station",
-    "model",
-    "market_type",
-    "lead_bucket",
-    "samples",
-    "bias_c",
-    "rmse_c",
-    "sigma_c",
-    "mean_abs_error_c",
-    "first_target_date",
-    "last_target_date",
-    "source_level",
-]
-
 # ============================================================
 # BASIC HELPERS
 # ============================================================
 
-def now_utc():
-    return datetime.now(timezone.utc)
-
-
 def iso_now():
-    return now_utc().isoformat()
+    return datetime.now(
+        timezone.utc
+    ).isoformat()
 
 
 def safe_float(value):
     try:
         if value is None or value == "":
             return None
+
         return float(value)
-    except (ValueError, TypeError):
+
+    except (
+        ValueError,
+        TypeError,
+    ):
         return None
 
 
@@ -236,9 +194,27 @@ def safe_int(value):
     try:
         if value is None or value == "":
             return None
+
         return int(float(value))
-    except (ValueError, TypeError):
+
+    except (
+        ValueError,
+        TypeError,
+    ):
         return None
+
+
+def rounded(
+    value,
+    digits=6,
+):
+    if value is None:
+        return None
+
+    return round(
+        float(value),
+        digits,
+    )
 
 
 def read_json(path):
@@ -265,7 +241,10 @@ def read_csv(path):
         )
 
 
-def write_json(path, payload):
+def write_json(
+    path,
+    payload,
+):
     directory = os.path.dirname(path)
 
     if directory:
@@ -274,7 +253,10 @@ def write_json(path, payload):
             exist_ok=True,
         )
 
-    temporary = path + ".tmp"
+    temporary = (
+        path
+        + ".tmp"
+    )
 
     with open(
         temporary,
@@ -295,7 +277,10 @@ def write_json(path, payload):
     )
 
 
-def write_text(path, text):
+def write_text(
+    path,
+    text,
+):
     directory = os.path.dirname(path)
 
     if directory:
@@ -304,14 +289,19 @@ def write_text(path, text):
             exist_ok=True,
         )
 
-    temporary = path + ".tmp"
+    temporary = (
+        path
+        + ".tmp"
+    )
 
     with open(
         temporary,
         "w",
         encoding="utf-8",
     ) as handle:
-        handle.write(text)
+        handle.write(
+            text
+        )
 
     os.replace(
         temporary,
@@ -354,344 +344,13 @@ def append_csv(
             writer.writeheader()
 
         for row in rows:
-            writer.writerow(row)
-
-
-def rounded(
-    value,
-    digits=6,
-):
-    if value is None:
-        return None
-
-    return round(
-        float(value),
-        digits,
-    )
+            writer.writerow(
+                row
+            )
 
 
 # ============================================================
-# DATE / TIME HELPERS
-# ============================================================
-
-def parse_datetime(value):
-    if not value:
-        return None
-
-    text = str(value).strip()
-
-    if not text:
-        return None
-
-    if text.endswith("Z"):
-        text = text[:-1] + "+00:00"
-
-    candidates = [
-        text,
-        text.replace(
-            " ",
-            "T",
-            1,
-        ),
-    ]
-
-    for candidate in candidates:
-        try:
-            parsed = datetime.fromisoformat(
-                candidate
-            )
-
-            if parsed.tzinfo is None:
-                parsed = parsed.replace(
-                    tzinfo=timezone.utc
-                )
-
-            return parsed.astimezone(
-                timezone.utc
-            )
-
-        except Exception:
-            continue
-
-    for fmt in (
-        "%Y-%m-%d %H:%M:%S",
-        "%Y-%m-%d",
-    ):
-        try:
-            parsed = datetime.strptime(
-                text,
-                fmt,
-            )
-
-            return parsed.replace(
-                tzinfo=timezone.utc
-            )
-
-        except Exception:
-            continue
-
-    return None
-
-
-def parse_date(value):
-    if not value:
-        return None
-
-    text = str(value).strip()
-
-    if not text:
-        return None
-
-    try:
-        return datetime.strptime(
-            text[:10],
-            "%Y-%m-%d",
-        ).date()
-
-    except Exception:
-        return None
-
-
-def get_row_timestamp(row):
-    for key in (
-        "observation_time",
-        "valid_time",
-        "timestamp",
-        "collected_at",
-        "time",
-        "datetime",
-    ):
-        value = row.get(key)
-
-        parsed = parse_datetime(
-            value
-        )
-
-        if parsed:
-            return parsed
-
-    return None
-
-
-def extract_row_date(
-    row,
-    timezone_name=None,
-):
-    for key in (
-        "observation_date",
-        "local_date",
-        "date",
-        "market_date",
-        "target_date",
-    ):
-        value = row.get(key)
-
-        parsed = parse_date(
-            value
-        )
-
-        if parsed:
-            return parsed
-
-    timestamp = get_row_timestamp(
-        row
-    )
-
-    if timestamp is None:
-        return None
-
-    if timezone_name:
-        try:
-            local_dt = timestamp.astimezone(
-                ZoneInfo(
-                    timezone_name
-                )
-            )
-
-            return local_dt.date()
-
-        except Exception:
-            pass
-
-    return timestamp.date()
-
-
-# ============================================================
-# STATION REGISTRY
-# ============================================================
-
-def load_station_registry():
-    if not os.path.exists(
-        STATION_REGISTRY_FILE
-    ):
-        return {}
-
-    try:
-        payload = read_json(
-            STATION_REGISTRY_FILE
-        )
-    except Exception:
-        return {}
-
-    if isinstance(
-        payload,
-        dict,
-    ):
-        if isinstance(
-            payload.get("stations"),
-            list,
-        ):
-            result = {}
-
-            for item in payload[
-                "stations"
-            ]:
-                if not isinstance(
-                    item,
-                    dict,
-                ):
-                    continue
-
-                station = (
-                    item.get("station")
-                    or item.get("icao")
-                    or item.get("id")
-                )
-
-                if station:
-                    result[
-                        str(station).upper()
-                    ] = item
-
-            return result
-
-        result = {}
-
-        for key, value in payload.items():
-            if isinstance(
-                value,
-                dict,
-            ):
-                result[
-                    str(key).upper()
-                ] = value
-
-        return result
-
-    if isinstance(
-        payload,
-        list,
-    ):
-        result = {}
-
-        for item in payload:
-            if not isinstance(
-                item,
-                dict,
-            ):
-                continue
-
-            station = (
-                item.get("station")
-                or item.get("icao")
-                or item.get("id")
-            )
-
-            if station:
-                result[
-                    str(station).upper()
-                ] = item
-
-        return result
-
-    return {}
-
-
-def get_station_timezone(
-    station,
-    registry,
-):
-    if not station:
-        return None
-
-    item = registry.get(
-        str(station).upper()
-    )
-
-    if not isinstance(
-        item,
-        dict,
-    ):
-        return None
-
-    for key in (
-        "timezone",
-        "tz",
-        "iana_timezone",
-        "time_zone",
-    ):
-        value = item.get(key)
-
-        if value:
-            return str(
-                value
-            )
-
-    return None
-
-
-# ============================================================
-# TEMPERATURE UNITS
-# ============================================================
-
-def fahrenheit_to_celsius(value):
-    return (
-        value - 32.0
-    ) * 5.0 / 9.0
-
-
-def normalize_bucket_to_celsius(
-    market
-):
-    normalized = dict(
-        market
-    )
-
-    unit = str(
-        market.get(
-            "temperature_unit"
-        )
-        or market.get(
-            "unit"
-        )
-        or "C"
-    ).upper()
-
-    if unit != "F":
-        return normalized
-
-    for key in (
-        "bucket_value",
-        "bucket_low",
-        "bucket_high",
-    ):
-        value = safe_float(
-            market.get(key)
-        )
-
-        normalized[key] = (
-            None
-            if value is None
-            else fahrenheit_to_celsius(
-                value
-            )
-        )
-
-    return normalized
-
-
-# ============================================================
-# NORMAL DISTRIBUTION
+# MATH
 # ============================================================
 
 def normal_cdf(
@@ -705,7 +364,8 @@ def normal_cdf(
     z = (
         x - mean_value
     ) / (
-        sigma * math.sqrt(2.0)
+        sigma
+        * math.sqrt(2.0)
     )
 
     return 0.5 * (
@@ -831,999 +491,59 @@ def bucket_probability(
 
 
 # ============================================================
-# FORECAST / OBSERVATION HELPERS
+# UNIT HANDLING
 # ============================================================
 
-def forecast_value_for_market(
-    row,
-    market_type,
+def fahrenheit_to_celsius(
+    value
 ):
-    if market_type == "lowest_temperature":
-        return safe_float(
-            row.get(
-                "temperature_min_c"
-            )
-        )
+    return (
+        value - 32.0
+    ) * 5.0 / 9.0
 
-    return safe_float(
-        row.get(
-            "temperature_max_c"
-        )
+
+def normalize_bucket_to_celsius(
+    market
+):
+    normalized = dict(
+        market
     )
 
+    unit = str(
+        market.get(
+            "temperature_unit"
+        )
+        or market.get(
+            "unit"
+        )
+        or "C"
+    ).upper()
 
-def observation_value(row):
+    if unit != "F":
+        return normalized
+
     for key in (
-        "temperature_c",
-        "temp_c",
-        "temperature",
+        "bucket_value",
+        "bucket_low",
+        "bucket_high",
     ):
         value = safe_float(
-            row.get(key)
+            market.get(key)
         )
 
-        if value is not None:
-            return value
-
-    return None
-
-
-def target_date_from_forecast(
-    row
-):
-    return parse_date(
-        row.get(
-            "market_date"
+        normalized[key] = (
+            None
+            if value is None
+            else fahrenheit_to_celsius(
+                value
+            )
         )
-    )
+
+    return normalized
 
 
 # ============================================================
-# OBSERVATION GROUND TRUTH
-# ============================================================
-
-def build_daily_observations(
-    rows,
-    station_registry,
-):
-    """
-    Creates:
-        (station, date) -> {
-            min_c,
-            max_c,
-            samples,
-            first_time,
-            last_time
-        }
-
-    Only raw observed temperature is used.
-    """
-
-    daily = {}
-
-    for row in rows:
-        station = row.get(
-            "station"
-        )
-
-        if not station:
-            continue
-
-        station = str(
-            station
-        ).upper()
-
-        value = observation_value(
-            row
-        )
-
-        if value is None:
-            continue
-
-        timezone_name = (
-            get_station_timezone(
-                station,
-                station_registry,
-            )
-        )
-
-        obs_date = extract_row_date(
-            row,
-            timezone_name,
-        )
-
-        if obs_date is None:
-            continue
-
-        key = (
-            station,
-            obs_date,
-        )
-
-        item = daily.get(
-            key
-        )
-
-        if item is None:
-            item = {
-                "station": station,
-                "date": obs_date.isoformat(),
-                "min_c": value,
-                "max_c": value,
-                "samples": 0,
-                "first_time": None,
-                "last_time": None,
-            }
-
-            daily[key] = item
-
-        item["min_c"] = min(
-            item["min_c"],
-            value,
-        )
-
-        item["max_c"] = max(
-            item["max_c"],
-            value,
-        )
-
-        item["samples"] += 1
-
-        timestamp = get_row_timestamp(
-            row
-        )
-
-        if timestamp:
-            timestamp_text = (
-                timestamp.isoformat()
-            )
-
-            if (
-                item["first_time"]
-                is None
-                or timestamp_text
-                < item["first_time"]
-            ):
-                item["first_time"] = (
-                    timestamp_text
-                )
-
-            if (
-                item["last_time"]
-                is None
-                or timestamp_text
-                > item["last_time"]
-            ):
-                item["last_time"] = (
-                    timestamp_text
-                )
-
-    return daily
-
-
-# ============================================================
-# CALIBRATION
-# ============================================================
-
-def lead_bucket_from_dates(
-    collected_at,
-    target_date,
-    timezone_name=None,
-):
-    if not collected_at or not target_date:
-        return None
-
-    try:
-        if timezone_name:
-            local_dt = collected_at.astimezone(
-                ZoneInfo(
-                    timezone_name
-                )
-            )
-        else:
-            local_dt = collected_at.astimezone(
-                timezone.utc
-            )
-
-        collection_date = (
-            local_dt.date()
-        )
-
-        delta = (
-            target_date
-            - collection_date
-        ).days
-
-        if delta < 0:
-            return None
-
-        if delta <= 0:
-            return 0
-
-        if delta == 1:
-            return 1
-
-        if delta == 2:
-            return 2
-
-        return MAX_LEAD_BUCKET
-
-    except Exception:
-        return None
-
-
-def add_error_sample(
-    storage,
-    key,
-    target_date,
-    actual,
-    forecast,
-):
-    if actual is None or forecast is None:
-        return
-
-    error = (
-        actual - forecast
-    )
-
-    storage.setdefault(
-        key,
-        [],
-    ).append(
-        {
-            "target_date": target_date.isoformat(),
-            "error": error,
-        }
-    )
-
-
-def build_calibration_samples(
-    forecast_rows,
-    daily_observations,
-    station_registry,
-):
-    samples = {}
-
-    now_date = now_utc().date()
-
-    cutoff_date = (
-        now_date
-        if CALIBRATION_LOOKBACK_DAYS <= 0
-        else now_date
-    )
-
-    for row in forecast_rows:
-        station = row.get(
-            "station"
-        )
-
-        model = row.get(
-            "model"
-        )
-
-        target_date = target_date_from_forecast(
-            row
-        )
-
-        collected_at = parse_datetime(
-            row.get(
-                "collected_at"
-            )
-        )
-
-        if (
-            not station
-            or not model
-            or not target_date
-            or not collected_at
-        ):
-            continue
-
-        station = str(
-            station
-        ).upper()
-
-        model = str(
-            model
-        )
-
-        # Only historical target dates.
-        if target_date >= now_date:
-            continue
-
-        age_days = (
-            now_date
-            - target_date
-        ).days
-
-        if (
-            age_days
-            > CALIBRATION_LOOKBACK_DAYS
-        ):
-            continue
-
-        timezone_name = (
-            get_station_timezone(
-                station,
-                station_registry,
-            )
-        )
-
-        # Critical no-lookahead rule:
-        # forecast must have existed BEFORE the local target day started.
-        if timezone_name:
-            try:
-                tz = ZoneInfo(
-                    timezone_name
-                )
-
-                target_midnight = datetime.combine(
-                    target_date,
-                    time.min,
-                ).replace(
-                    tzinfo=tz
-                ).astimezone(
-                    timezone.utc
-                )
-
-            except Exception:
-                target_midnight = datetime.combine(
-                    target_date,
-                    time.min,
-                    tzinfo=timezone.utc,
-                )
-        else:
-            target_midnight = datetime.combine(
-                target_date,
-                time.min,
-                tzinfo=timezone.utc,
-            )
-
-        if collected_at >= target_midnight:
-            continue
-
-        lead_bucket = lead_bucket_from_dates(
-            collected_at,
-            target_date,
-            timezone_name,
-        )
-
-        if lead_bucket is None:
-            continue
-
-        market_type = (
-            "lowest_temperature"
-            if safe_float(
-                row.get(
-                    "temperature_min_c"
-                )
-            ) is not None
-            and safe_float(
-                row.get(
-                    "temperature_max_c"
-                )
-            ) is None
-            else None
-        )
-
-        if market_type is None:
-            # Infer from available values only when possible.
-            # We create calibration for BOTH metrics when present.
-            pass
-
-        actual_daily = daily_observations.get(
-            (
-                station,
-                target_date,
-            )
-        )
-
-        if actual_daily is None:
-            continue
-
-        forecast_min = safe_float(
-            row.get(
-                "temperature_min_c"
-            )
-        )
-
-        forecast_max = safe_float(
-            row.get(
-                "temperature_max_c"
-            )
-        )
-
-        actual_min = safe_float(
-            actual_daily.get(
-                "min_c"
-            )
-        )
-
-        actual_max = safe_float(
-            actual_daily.get(
-                "max_c"
-            )
-        )
-
-        base_key = (
-            station,
-            model,
-        )
-
-        lead_key = (
-            station,
-            model,
-            lead_bucket,
-        )
-
-        station_metric_key = (
-            station,
-            "ANY",
-            lead_bucket,
-        )
-
-        global_metric_key = (
-            "GLOBAL",
-            model,
-            lead_bucket,
-        )
-
-        global_all_key = (
-            "GLOBAL",
-            "ANY",
-            lead_bucket,
-        )
-
-        if (
-            forecast_min is not None
-            and actual_min is not None
-        ):
-            add_error_sample(
-                samples,
-                (
-                    "lowest_temperature",
-                    lead_key,
-                ),
-                target_date,
-                actual_min,
-                forecast_min,
-            )
-
-            add_error_sample(
-                samples,
-                (
-                    "lowest_temperature",
-                    station_metric_key,
-                ),
-                target_date,
-                actual_min,
-                forecast_min,
-            )
-
-            add_error_sample(
-                samples,
-                (
-                    "lowest_temperature",
-                    global_metric_key,
-                ),
-                target_date,
-                actual_min,
-                forecast_min,
-            )
-
-            add_error_sample(
-                samples,
-                (
-                    "lowest_temperature",
-                    global_all_key,
-                ),
-                target_date,
-                actual_min,
-                forecast_min,
-            )
-
-        if (
-            forecast_max is not None
-            and actual_max is not None
-        ):
-            add_error_sample(
-                samples,
-                (
-                    "highest_temperature",
-                    lead_key,
-                ),
-                target_date,
-                actual_max,
-                forecast_max,
-            )
-
-            add_error_sample(
-                samples,
-                (
-                    "highest_temperature",
-                    station_metric_key,
-                ),
-                target_date,
-                actual_max,
-                forecast_max,
-            )
-
-            add_error_sample(
-                samples,
-                (
-                    "highest_temperature",
-                    global_metric_key,
-                ),
-                target_date,
-                actual_max,
-                forecast_max,
-            )
-
-            add_error_sample(
-                samples,
-                (
-                    "highest_temperature",
-                    global_all_key,
-                ),
-                target_date,
-                actual_max,
-                forecast_max,
-            )
-
-    return samples
-
-
-def summarize_errors(
-    error_rows,
-):
-    if not error_rows:
-        return None
-
-    errors = [
-        safe_float(
-            item.get(
-                "error"
-            )
-        )
-        for item in error_rows
-    ]
-
-    errors = [
-        value
-        for value in errors
-        if value is not None
-    ]
-
-    if not errors:
-        return None
-
-    bias = mean(
-        errors
-    )
-
-    rmse = math.sqrt(
-        mean(
-            [
-                error * error
-                for error in errors
-            ]
-        )
-    )
-
-    mae = mean(
-        [
-            abs(error)
-            for error in errors
-        ]
-    )
-
-    if len(errors) > 1:
-        centered = [
-            error - bias
-            for error in errors
-        ]
-
-        sigma = math.sqrt(
-            sum(
-                value * value
-                for value in centered
-            )
-            / (
-                len(errors) - 1
-            )
-        )
-
-    else:
-        sigma = 0.0
-
-    dates = [
-        item.get(
-            "target_date"
-        )
-        for item in error_rows
-        if item.get(
-            "target_date"
-        )
-    ]
-
-    return {
-        "samples": len(
-            errors
-        ),
-        "bias_c": bias,
-        "rmse_c": rmse,
-        "sigma_c": sigma,
-        "mean_abs_error_c": mae,
-        "first_target_date": min(
-            dates
-        ) if dates else None,
-        "last_target_date": max(
-            dates
-        ) if dates else None,
-    }
-
-
-def build_calibration_table(
-    samples,
-):
-    table = {}
-
-    for key, rows in samples.items():
-        market_type, lookup_key = key
-
-        summary = summarize_errors(
-            rows
-        )
-
-        if summary is None:
-            continue
-
-        station = lookup_key[0]
-        model = lookup_key[1]
-        lead_bucket = lookup_key[2]
-
-        if summary[
-            "samples"
-        ] < CALIBRATION_GLOBAL_MIN_SAMPLES:
-            continue
-
-        table[
-            (
-                market_type,
-                station,
-                model,
-                lead_bucket,
-            )
-        ] = summary
-
-    return table
-
-
-def calibration_lookup(
-    table,
-    station,
-    model,
-    market_type,
-    lead_bucket,
-):
-    candidates = [
-        (
-            market_type,
-            station,
-            model,
-            lead_bucket,
-            "station_model_lead",
-        ),
-        (
-            market_type,
-            station,
-            model,
-            None,
-            "station_model_pool",
-        ),
-        (
-            market_type,
-            station,
-            "ANY",
-            lead_bucket,
-            "station_pool_lead",
-        ),
-        (
-            market_type,
-            "GLOBAL",
-            model,
-            lead_bucket,
-            "global_model_lead",
-        ),
-        (
-            market_type,
-            "GLOBAL",
-            "ANY",
-            lead_bucket,
-            "global_pool_lead",
-        ),
-        (
-            market_type,
-            "GLOBAL",
-            model,
-            None,
-            "global_model_pool",
-        ),
-        (
-            market_type,
-            "GLOBAL",
-            "ANY",
-            None,
-            "global_pool",
-        ),
-    ]
-
-    for (
-        current_metric,
-        current_station,
-        current_model,
-        current_lead,
-        source_level,
-    ) in candidates:
-
-        if current_lead is None:
-            possible = [
-                item
-                for item in table.items()
-                if item[0][0]
-                == current_metric
-                and item[0][1]
-                == current_station
-                and item[0][2]
-                == current_model
-            ]
-
-            if possible:
-                # Pool multiple lead buckets.
-                expanded = []
-
-                for _, summary in possible:
-                    if (
-                        summary[
-                            "samples"
-                        ]
-                        >= CALIBRATION_GLOBAL_MIN_SAMPLES
-                    ):
-                        expanded.append(
-                            summary
-                        )
-
-                if expanded:
-                    total_n = sum(
-                        item[
-                            "samples"
-                        ]
-                        for item in expanded
-                    )
-
-                    weighted_bias = sum(
-                        item[
-                            "bias_c"
-                        ]
-                        * item[
-                            "samples"
-                        ]
-                        for item in expanded
-                    ) / total_n
-
-                    weighted_sigma_sq = sum(
-                        (
-                            (
-                                item[
-                                    "sigma_c"
-                                ] ** 2
-                            )
-                            + (
-                                item[
-                                    "bias_c"
-                                ]
-                                - weighted_bias
-                            ) ** 2
-                        )
-                        * item[
-                            "samples"
-                        ]
-                        for item in expanded
-                    ) / total_n
-
-                    return {
-                        "samples": total_n,
-                        "bias_c": weighted_bias,
-                        "sigma_c": math.sqrt(
-                            max(
-                                0.0,
-                                weighted_sigma_sq,
-                            )
-                        ),
-                        "source_level": source_level,
-                        "lead_bucket": lead_bucket,
-                    }
-
-        else:
-            key = (
-                current_metric,
-                current_station,
-                current_model,
-                current_lead,
-            )
-
-            summary = table.get(
-                key
-            )
-
-            if (
-                summary
-                and summary[
-                    "samples"
-                ]
-                >= CALIBRATION_GLOBAL_MIN_SAMPLES
-            ):
-                return {
-                    "samples": summary[
-                        "samples"
-                    ],
-                    "bias_c": summary[
-                        "bias_c"
-                    ],
-                    "sigma_c": summary[
-                        "sigma_c"
-                    ],
-                    "source_level": source_level,
-                    "lead_bucket": current_lead,
-                }
-
-    return {
-        "samples": 0,
-        "bias_c": 0.0,
-        "sigma_c": DEFAULT_SIGMA_C,
-        "source_level": "default",
-        "lead_bucket": lead_bucket,
-    }
-
-
-def apply_calibration_shrinkage(
-    calibration,
-):
-    samples = calibration[
-        "samples"
-    ]
-
-    if samples <= 0:
-        return calibration
-
-    sigma = safe_float(
-        calibration.get(
-            "sigma_c"
-        )
-    )
-
-    if sigma is None:
-        sigma = DEFAULT_SIGMA_C
-
-    weight = min(
-        1.0,
-        samples
-        / float(
-            SHRINK_MIN_SAMPLES
-        ),
-    )
-
-    shrunk_sigma = (
-        sigma * weight
-        + SHRINK_TARGET_SIGMA_C
-        * (1.0 - weight)
-    )
-
-    calibration = dict(
-        calibration
-    )
-
-    calibration[
-        "sigma_c"
-    ] = max(
-        MIN_SIGMA_C,
-        min(
-            MAX_SIGMA_C,
-            shrunk_sigma,
-        ),
-    )
-
-    return calibration
-
-
-def save_calibration_outputs(
-    table,
-    run_timestamp,
-):
-    rows = []
-
-    for (
-        market_type,
-        station,
-        model,
-        lead_bucket,
-    ), summary in sorted(
-        table.items()
-    ):
-        rows.append(
-            {
-                "run_at": run_timestamp,
-                "station": station,
-                "model": model,
-                "market_type": market_type,
-                "lead_bucket": (
-                    lead_bucket
-                    if lead_bucket is not None
-                    else ""
-                ),
-                "samples": summary[
-                    "samples"
-                ],
-                "bias_c": rounded(
-                    summary[
-                        "bias_c"
-                    ],
-                    5,
-                ),
-                "rmse_c": rounded(
-                    summary[
-                        "rmse_c"
-                    ],
-                    5,
-                ),
-                "sigma_c": rounded(
-                    summary[
-                        "sigma_c"
-                    ],
-                    5,
-                ),
-                "mean_abs_error_c": rounded(
-                    summary[
-                        "mean_abs_error_c"
-                    ],
-                    5,
-                ),
-                "first_target_date": summary[
-                    "first_target_date"
-                ],
-                "last_target_date": summary[
-                    "last_target_date"
-                ],
-                "source_level": (
-                    "historical"
-                ),
-            }
-        )
-
-    payload = {
-        "engine_version": ENGINE_VERSION,
-        "run_at": run_timestamp,
-        "calibration_lookback_days": CALIBRATION_LOOKBACK_DAYS,
-        "calibration_min_samples": CALIBRATION_MIN_SAMPLES,
-        "records": rows,
-    }
-
-    write_json(
-        CALIBRATION_LATEST_FILE,
-        payload,
-    )
-
-    append_csv(
-        CALIBRATION_HISTORY_FILE,
-        CALIBRATION_FIELDS,
-        rows,
-    )
-
-    return rows
-
-
-# ============================================================
-# CURRENT FORECAST CONSENSUS
+# WEATHER RECORDS
 # ============================================================
 
 def select_latest_forecasts(
@@ -1832,6 +552,7 @@ def select_latest_forecasts(
     latest = {}
 
     for row in rows:
+
         station = row.get(
             "station"
         )
@@ -1852,21 +573,25 @@ def select_latest_forecasts(
             continue
 
         key = (
-            str(station).upper(),
+            str(
+                station
+            ).upper(),
             market_date,
-            str(model),
-        )
-
-        collected_at = row.get(
-            "collected_at",
-            "",
+            str(
+                model
+            ),
         )
 
         previous = latest.get(
             key
         )
 
-        previous_at = (
+        current_time = row.get(
+            "collected_at",
+            "",
+        )
+
+        previous_time = (
             previous.get(
                 "collected_at",
                 "",
@@ -1877,8 +602,8 @@ def select_latest_forecasts(
 
         if (
             previous is None
-            or collected_at
-            > previous_at
+            or current_time
+            > previous_time
         ):
             latest[
                 key
@@ -1895,6 +620,7 @@ def select_latest_observations(
     latest = {}
 
     for row in rows:
+
         station = row.get(
             "station"
         )
@@ -1906,33 +632,30 @@ def select_latest_observations(
             station
         ).upper()
 
-        timestamp = get_row_timestamp(
-            row
-        )
-
         previous = latest.get(
             station
         )
 
-        previous_timestamp = (
-            get_row_timestamp(
-                previous
+        current_time = (
+            row.get(
+                "collected_at",
+                "",
+            )
+        )
+
+        previous_time = (
+            previous.get(
+                "collected_at",
+                "",
             )
             if previous
-            else None
+            else ""
         )
 
         if (
             previous is None
-            or (
-                timestamp
-                and (
-                    previous_timestamp
-                    is None
-                    or timestamp
-                    > previous_timestamp
-                )
-            )
+            or current_time
+            > previous_time
         ):
             latest[
                 station
@@ -1941,17 +664,291 @@ def select_latest_observations(
     return latest
 
 
-def build_current_forecast_stats(
+# ============================================================
+# CALIBRATION
+# ============================================================
+
+def load_calibration():
+    rows = read_csv(
+        CALIBRATION_FILE
+    )
+
+    calibration = {}
+
+    for row in rows:
+
+        station = (
+            row.get(
+                "station"
+            )
+            or ""
+        ).upper()
+
+        model = (
+            row.get(
+                "model"
+            )
+            or ""
+        )
+
+        lead_days = safe_int(
+            row.get(
+                "lead_days"
+            )
+        )
+
+        if (
+            not station
+            or not model
+            or lead_days is None
+        ):
+            continue
+
+        samples = safe_int(
+            row.get(
+                "samples"
+            )
+        )
+
+        bias = safe_float(
+            row.get(
+                "max_bias_c"
+            )
+        )
+
+        sigma = safe_float(
+            row.get(
+                "max_sigma_c"
+            )
+        )
+
+        # We are primarily interested in highest_temperature
+        # markets, so max calibration is used here.
+        #
+        # If invalid, fall back to min calibration.
+        if bias is None:
+            bias = safe_float(
+                row.get(
+                    "min_bias_c"
+                )
+            )
+
+        if sigma is None:
+            sigma = safe_float(
+                row.get(
+                    "min_sigma_c"
+                )
+            )
+
+        usable = (
+            str(
+                row.get(
+                    "usable",
+                    ""
+                )
+            ).upper()
+            == "YES"
+        )
+
+        calibration[
+            (
+                station,
+                model,
+                lead_days,
+            )
+        ] = {
+            "samples": (
+                samples
+                if samples is not None
+                else 0
+            ),
+
+            "bias_c": (
+                bias
+                if bias is not None
+                else 0.0
+            ),
+
+            "sigma_c": (
+                sigma
+                if sigma is not None
+                else DEFAULT_SIGMA_C
+            ),
+
+            "usable": usable,
+
+            "flag": (
+                "OK"
+                if usable
+                else "UNUSABLE_SAMPLE"
+            ),
+        }
+
+    return calibration
+
+
+def lookup_calibration(
+    calibration,
+    station,
+    model,
+    lead_days,
+):
+    key = (
+        str(
+            station
+        ).upper(),
+        str(
+            model
+        ),
+        lead_days,
+    )
+
+    item = calibration.get(
+        key
+    )
+
+    if item:
+        return {
+            **item,
+            "source": (
+                "station_model_lead"
+            ),
+        }
+
+    # Fallback to another model for same station/lead
+    candidates = []
+
+    for (
+        current_station,
+        current_model,
+        current_lead,
+    ), candidate in calibration.items():
+
+        if (
+            current_station
+            == str(
+                station
+            ).upper()
+            and current_lead
+            == lead_days
+        ):
+            candidates.append(
+                candidate
+            )
+
+    usable_candidates = [
+        item
+        for item in candidates
+        if item[
+            "usable"
+        ]
+    ]
+
+    if usable_candidates:
+        best = max(
+            usable_candidates,
+            key=lambda item:
+            item["samples"],
+        )
+
+        return {
+            **best,
+            "source": (
+                "station_lead_other_model"
+            ),
+        }
+
+    return {
+        "samples": 0,
+        "bias_c": 0.0,
+        "sigma_c": DEFAULT_SIGMA_C,
+        "usable": False,
+        "flag": "NO_CALIBRATION",
+        "source": "default",
+    }
+
+
+# ============================================================
+# LEAD TIME
+# ============================================================
+
+def infer_lead_days(
+    row
+):
+    try:
+        market_date = datetime.strptime(
+            str(
+                row.get(
+                    "market_date"
+                )
+            )[:10],
+            "%Y-%m-%d",
+        ).date()
+
+        collected = row.get(
+            "collected_at"
+        )
+
+        if not collected:
+            return 1
+
+        text = str(
+            collected
+        )
+
+        if text.endswith("Z"):
+            text = (
+                text[:-1]
+                + "+00:00"
+            )
+
+        collected_dt = datetime.fromisoformat(
+            text
+        )
+
+        if (
+            collected_dt.tzinfo
+            is None
+        ):
+            collected_dt = collected_dt.replace(
+                tzinfo=timezone.utc
+            )
+
+        collection_date = (
+            collected_dt.astimezone(
+                timezone.utc
+            ).date()
+        )
+
+        difference = (
+            market_date
+            - collection_date
+        ).days
+
+        if difference <= 0:
+            return 0
+
+        return difference
+
+    except Exception:
+        return 1
+
+
+# ============================================================
+# CURRENT FORECAST CONSENSUS
+# ============================================================
+
+def build_forecast_stats(
     forecasts,
     station,
     market_date,
     market_type,
-    calibration_table,
-    station_registry,
+    calibration,
 ):
-    matching = []
+    entries = []
 
     for row in forecasts:
+
         row_station = row.get(
             "station"
         )
@@ -1971,111 +968,136 @@ def build_current_forecast_stats(
         ) != market_date:
             continue
 
-        model = (
-            row.get("model")
+        model = str(
+            row.get(
+                "model"
+            )
             or "unknown"
         )
 
-        value = forecast_value_for_market(
-            row,
-            market_type,
-        )
+        if market_type == (
+            "lowest_temperature"
+        ):
+            raw_value = safe_float(
+                row.get(
+                    "temperature_min_c"
+                )
+            )
+        else:
+            raw_value = safe_float(
+                row.get(
+                    "temperature_max_c"
+                )
+            )
 
-        if value is None:
+        if raw_value is None:
             continue
 
-        collected_at = parse_datetime(
-            row.get(
-                "collected_at"
-            )
+        lead_days = infer_lead_days(
+            row
         )
 
-        timezone_name = (
-            get_station_timezone(
-                station,
-                station_registry,
-            )
+        calibrated = lookup_calibration(
+            calibration,
+            station,
+            model,
+            lead_days,
         )
 
-        target_date = parse_date(
-            market_date
+        bias = calibrated[
+            "bias_c"
+        ]
+
+        corrected = (
+            raw_value
+            + bias
         )
 
-        lead_bucket = None
-
-        if collected_at and target_date:
-            lead_bucket = lead_bucket_from_dates(
-                collected_at,
-                target_date,
-                timezone_name,
-            )
-
-        if lead_bucket is None:
-            lead_bucket = MAX_LEAD_BUCKET
-
-        calibration = calibration_lookup(
-            calibration_table,
-            str(station).upper(),
-            str(model),
-            market_type,
-            lead_bucket,
-        )
-
-        calibration = (
-            apply_calibration_shrinkage(
-                calibration
-            )
-        )
-
-        corrected_value = (
-            value
-            + calibration[
-                "bias_c"
+        sigma = safe_float(
+            calibrated[
+                "sigma_c"
             ]
         )
 
-        matching.append(
+        if (
+            sigma is None
+            or sigma <= 0
+        ):
+            sigma = DEFAULT_SIGMA_C
+
+        sigma = max(
+            MIN_SIGMA_C,
+            min(
+                MAX_SIGMA_C,
+                sigma,
+            ),
+        )
+
+        entries.append(
             {
-                "model": str(
-                    model
-                ),
-                "raw_value_c": value,
-                "corrected_value_c": corrected_value,
-                "calibration": calibration,
+                "model": model,
+                "raw_value_c": raw_value,
+                "corrected_value_c": corrected,
+                "sigma_c": sigma,
+                "bias_c": bias,
+                "samples": calibrated[
+                    "samples"
+                ],
+                "calibration_source": calibrated[
+                    "source"
+                ],
+                "calibration_flag": calibrated[
+                    "flag"
+                ],
+                "lead_days": lead_days,
             }
         )
 
-    if not matching:
+    if not entries:
         return None
 
     corrected_values = [
         item[
             "corrected_value_c"
         ]
-        for item in matching
+        for item in entries
+    ]
+
+    raw_values = [
+        item[
+            "raw_value_c"
+        ]
+        for item in entries
     ]
 
     model_sigmas = [
         item[
-            "calibration"
-        ][
             "sigma_c"
         ]
-        for item in matching
+        for item in entries
     ]
 
-    mean_c = mean(
+    mean_corrected = sum(
         corrected_values
+    ) / len(
+        corrected_values
+    )
+
+    raw_mean = sum(
+        raw_values
+    ) / len(
+        raw_values
     )
 
     if len(
         corrected_values
     ) > 1:
+
         between_model_variance = (
             sum(
                 (
                     value
-                    - mean_c
+                    - mean_corrected
                 ) ** 2
                 for value in corrected_values
             )
@@ -2086,19 +1108,23 @@ def build_current_forecast_stats(
                 - 1
             )
         )
+
     else:
         between_model_variance = 0.0
 
-    average_model_variance = mean(
-        [
+    average_model_variance = (
+        sum(
             sigma * sigma
             for sigma in model_sigmas
-        ]
+        )
+        / len(
+            model_sigmas
+        )
     )
 
     combined_sigma = math.sqrt(
         max(
-            0.0,
+            MIN_SIGMA_C,
             average_model_variance
             + between_model_variance,
         )
@@ -2112,32 +1138,25 @@ def build_current_forecast_stats(
         ),
     )
 
-    # Aggregate calibration diagnostics.
     total_samples = sum(
         item[
-            "calibration"
-        ][
             "samples"
         ]
-        for item in matching
+        for item in entries
     )
 
     weighted_bias = (
         sum(
             item[
-                "calibration"
-            ][
                 "bias_c"
             ]
             * max(
                 1,
                 item[
-                    "calibration"
-                ][
                     "samples"
                 ],
             )
-            for item in matching
+            for item in entries
         )
         / max(
             1,
@@ -2145,77 +1164,71 @@ def build_current_forecast_stats(
         )
     )
 
-    source_levels = sorted(
+    sources = sorted(
         set(
             item[
-                "calibration"
-            ][
-                "source_level"
+                "calibration_source"
             ]
-            for item in matching
+            for item in entries
         )
     )
 
-    lead_buckets = sorted(
+    flags = sorted(
         set(
             item[
-                "calibration"
-            ][
-                "lead_bucket"
+                "calibration_flag"
             ]
-            for item in matching
+            for item in entries
         )
+    )
+
+    all_calibrated = all(
+        item[
+            "samples"
+        ]
+        >= MIN_CALIBRATION_SAMPLES
+        and item[
+            "calibration_flag"
+        ]
+        == "OK"
+        for item in entries
     )
 
     return {
         "values": corrected_values,
-
-        "raw_values": [
-            item[
-                "raw_value_c"
-            ]
-            for item in matching
-        ],
-
+        "raw_values": raw_values,
         "models": [
             item[
                 "model"
             ]
-            for item in matching
+            for item in entries
         ],
-
-        "mean_c": mean_c,
-
+        "mean_c": mean_corrected,
+        "raw_mean_c": raw_mean,
         "min_c": min(
             corrected_values
         ),
-
         "max_c": max(
             corrected_values
         ),
-
         "std_c": math.sqrt(
             max(
                 0.0,
                 between_model_variance,
             )
         ),
-
         "sigma_c": combined_sigma,
-
         "calibration_samples": total_samples,
-
         "calibration_bias_c": weighted_bias,
-
-        "calibration_method": ",".join(
-            source_levels
+        "calibration_source": ",".join(
+            sources
         ),
-
-        "calibration_lead_bucket": ",".join(
-            str(
-                item
-            )
-            for item in lead_buckets
+        "calibration_flag": ",".join(
+            flags
+        ),
+        "all_calibrated": all_calibrated,
+        "forecast_count": len(
+            entries
         ),
     }
 
@@ -2240,22 +1253,6 @@ def candidate_entry_price(
         return (
             ask,
             "ask",
-        )
-
-    yes_price = safe_float(
-        market.get(
-            "yes_price"
-        )
-    )
-
-    if (
-        not REQUIRE_EXECUTABLE_ASK
-        and yes_price is not None
-        and 0.0 < yes_price < 1.0
-    ):
-        return (
-            yes_price,
-            "yes_price_research",
         )
 
     return (
@@ -2351,7 +1348,7 @@ def fee_per_share(
 
 
 # ============================================================
-# FAMILY GROUPING / CONSISTENCY
+# FAMILY
 # ============================================================
 
 def group_market_families(
@@ -2360,15 +1357,16 @@ def group_market_families(
     groups = {}
 
     for market in markets:
-        key = market.get(
+
+        event_key = market.get(
             "event_key"
         )
 
-        if not key:
+        if not event_key:
             continue
 
         groups.setdefault(
-            key,
+            event_key,
             [],
         ).append(
             market
@@ -2382,9 +1380,11 @@ def family_probability_sum(
     stats,
 ):
     exclusive = []
+
     cumulative = []
 
     for market in family:
+
         normalized = (
             normalize_bucket_to_celsius(
                 market
@@ -2395,31 +1395,29 @@ def family_probability_sum(
             "bucket_type"
         )
 
-        probability = (
-            bucket_probability(
-                bucket_type,
-                safe_float(
-                    normalized.get(
-                        "bucket_value"
-                    )
-                ),
-                safe_float(
-                    normalized.get(
-                        "bucket_low"
-                    )
-                ),
-                safe_float(
-                    normalized.get(
-                        "bucket_high"
-                    )
-                ),
-                stats[
-                    "mean_c"
-                ],
-                stats[
-                    "sigma_c"
-                ],
-            )
+        probability = bucket_probability(
+            bucket_type,
+            safe_float(
+                normalized.get(
+                    "bucket_value"
+                )
+            ),
+            safe_float(
+                normalized.get(
+                    "bucket_low"
+                )
+            ),
+            safe_float(
+                normalized.get(
+                    "bucket_high"
+                )
+            ),
+            stats[
+                "mean_c"
+            ],
+            stats[
+                "sigma_c"
+            ],
         )
 
         if probability is None:
@@ -2498,7 +1496,7 @@ def normalize_exclusive_probability(
 
 
 # ============================================================
-# SIGNAL CREATION
+# SIGNAL
 # ============================================================
 
 def create_signal(
@@ -2513,39 +1511,33 @@ def create_signal(
         )
     )
 
-    mean_c = forecast_stats[
-        "mean_c"
-    ]
-
-    sigma_c = forecast_stats[
-        "sigma_c"
-    ]
-
     bucket_type = normalized.get(
         "bucket_type"
     )
 
-    raw_probability = (
-        bucket_probability(
-            bucket_type,
-            safe_float(
-                normalized.get(
-                    "bucket_value"
-                )
-            ),
-            safe_float(
-                normalized.get(
-                    "bucket_low"
-                )
-            ),
-            safe_float(
-                normalized.get(
-                    "bucket_high"
-                )
-            ),
-            mean_c,
-            sigma_c,
-        )
+    raw_probability = bucket_probability(
+        bucket_type,
+        safe_float(
+            normalized.get(
+                "bucket_value"
+            )
+        ),
+        safe_float(
+            normalized.get(
+                "bucket_low"
+            )
+        ),
+        safe_float(
+            normalized.get(
+                "bucket_high"
+            )
+        ),
+        forecast_stats[
+            "mean_c"
+        ],
+        forecast_stats[
+            "sigma_c"
+        ],
     )
 
     if raw_probability is None:
@@ -2568,7 +1560,6 @@ def create_signal(
                 ],
             )
         )
-
     else:
         model_probability = (
             raw_probability
@@ -2606,6 +1597,7 @@ def create_signal(
     net_return_if_win = None
 
     if entry_price is not None:
+
         gross_edge = (
             model_probability
             - entry_price
@@ -2623,15 +1615,16 @@ def create_signal(
             - fee
         )
 
-    # ========================================================
-    # EXECUTION QUALITY
-    # ========================================================
+    # --------------------------------------------------------
+    # EXECUTION
+    # --------------------------------------------------------
 
     execution_quality = (
         "NO_EXECUTABLE_ASK"
     )
 
     if entry_source == "ask":
+
         if entry_price <= THIN_ASK_MAX:
             execution_quality = (
                 "THIN_ASK"
@@ -2641,20 +1634,44 @@ def create_signal(
                 "EXECUTABLE_ASK"
             )
 
-    # ========================================================
+    # --------------------------------------------------------
+    # CALIBRATION GATE
+    # --------------------------------------------------------
+
+    calibration_ok = (
+        forecast_stats[
+            "all_calibrated"
+        ]
+    )
+
+    calibration_samples = (
+        forecast_stats[
+            "calibration_samples"
+        ]
+    )
+
+    calibration_flag = (
+        forecast_stats[
+            "calibration_flag"
+        ]
+    )
+
+    # --------------------------------------------------------
     # SIGNAL
-    # ========================================================
+    # --------------------------------------------------------
 
     signal = "NO_TRADE"
 
     reason_parts = []
 
     if entry_price is None:
+
         reason_parts.append(
             "no_executable_ask"
         )
 
     else:
+
         if (
             family_check[
                 "status"
@@ -2669,11 +1686,6 @@ def create_signal(
                 + family_check[
                     "status"
                 ]
-            )
-
-        if entry_source != "ask":
-            reason_parts.append(
-                "not_executable"
             )
 
         if entry_price <= THIN_ASK_MAX:
@@ -2691,28 +1703,40 @@ def create_signal(
                 "ev_below_min"
             )
 
+        if not calibration_ok:
+            reason_parts.append(
+                "calibration_not_fully_valid"
+            )
+
         strong_ok = (
             entry_source == "ask"
+
+            and execution_quality
+            == "EXECUTABLE_ASK"
+
             and family_check[
                 "status"
             ] == "PASS"
-            and entry_price
-            >= STRONG_MIN_ASK
+
             and gross_edge
             >= STRONG_MIN_EDGE
+
             and net_ev
             >= STRONG_MIN_EV
-            and forecast_stats[
-                "calibration_samples"
-            ]
-            >= CALIBRATION_MIN_SAMPLES
+
+            and calibration_ok
+
+            and calibration_samples
+            >= MIN_CALIBRATION_SAMPLES
         )
 
         possible_ok = (
             gross_edge
             >= MIN_EDGE
+
             and net_ev
             >= MIN_EV
+
             and (
                 bucket_type
                 in (
@@ -2727,6 +1751,7 @@ def create_signal(
         )
 
         if strong_ok:
+
             signal = (
                 "STRONG_EDGE"
             )
@@ -2735,11 +1760,8 @@ def create_signal(
                 "strong_thresholds_pass"
             )
 
-            reason_parts.append(
-                "calibrated_sample_gate_pass"
-            )
-
         elif possible_ok:
+
             signal = (
                 "POSSIBLE_EDGE"
             )
@@ -2748,34 +1770,35 @@ def create_signal(
                 "research_thresholds_pass"
             )
 
-            if (
-                forecast_stats[
-                    "calibration_samples"
-                ]
-                < CALIBRATION_MIN_SAMPLES
-            ):
-                reason_parts.append(
-                    "calibration_samples_below_strong_gate"
-                )
-
-    # ========================================================
+    # --------------------------------------------------------
     # PAPER BUY
-    # ========================================================
+    # --------------------------------------------------------
 
     paper_buy = (
-        signal
-        == "STRONG_EDGE"
-        and entry_source
-        == "ask"
+        signal == "STRONG_EDGE"
+
+        and entry_source == "ask"
+
         and execution_quality
         == "EXECUTABLE_ASK"
+
         and family_check[
             "status"
-        ]
-        == "PASS"
+        ] == "PASS"
+
+        and calibration_ok
+
+        and calibration_samples
+        >= MIN_CALIBRATION_SAMPLES
+
+        and not any(
+            flag in BLOCKED_CALIBRATION_FLAGS
+            for flag in calibration_flag.split(",")
+        )
     )
 
     if paper_buy:
+
         signal_output = (
             "PAPER_BUY"
         )
@@ -2792,17 +1815,21 @@ def create_signal(
             "no_trade_conditions"
         )
 
-    # ========================================================
+    # --------------------------------------------------------
     # OBSERVATION
-    # ========================================================
+    # --------------------------------------------------------
 
     observation_temperature = None
+
     observation_time = None
 
     if observation:
+
         observation_temperature = (
-            observation_value(
-                observation
+            safe_float(
+                observation.get(
+                    "temperature_c"
+                )
             )
         )
 
@@ -2868,20 +1895,17 @@ def create_signal(
         ),
 
         "model_probability_raw": rounded(
-            raw_probability,
-            6,
+            raw_probability
         ),
 
         "model_probability": rounded(
-            model_probability,
-            6,
+            model_probability
         ),
 
         "family_exclusive_probability_sum": rounded(
             family_check[
                 "sum"
-            ],
-            6,
+            ]
         ),
 
         "family_probability_status": (
@@ -2891,20 +1915,17 @@ def create_signal(
         ),
 
         "market_probability": rounded(
-            current_probability,
-            6,
+            current_probability
         ),
 
         "entry_price": rounded(
-            entry_price,
-            6,
+            entry_price
         ),
 
         "entry_source": entry_source,
 
         "fee_rate": rounded(
-            fee_rate,
-            6,
+            fee_rate
         ),
 
         "fee_source": fee_source,
@@ -2915,23 +1936,22 @@ def create_signal(
         ),
 
         "gross_edge": rounded(
-            gross_edge,
-            6,
+            gross_edge
         ),
 
         "net_ev_per_share": rounded(
-            net_ev,
-            6,
+            net_ev
         ),
 
         "net_return_if_win": rounded(
-            net_return_if_win,
-            6,
+            net_return_if_win
         ),
 
-        "forecast_count": forecast_stats[
-            "forecast_count"
-        ],
+        "forecast_count": (
+            forecast_stats[
+                "forecast_count"
+            ]
+        ),
 
         "forecast_models": ",".join(
             forecast_stats[
@@ -2940,7 +1960,9 @@ def create_signal(
         ),
 
         "forecast_mean_c": rounded(
-            mean_c,
+            forecast_stats[
+                "mean_c"
+            ],
             4,
         ),
 
@@ -2966,13 +1988,15 @@ def create_signal(
         ),
 
         "forecast_sigma_c": rounded(
-            sigma_c,
+            forecast_stats[
+                "sigma_c"
+            ],
             4,
         ),
 
-        "calibration_method": (
+        "calibration_source": (
             forecast_stats[
-                "calibration_method"
+                "calibration_source"
             ]
         ),
 
@@ -2990,14 +2014,14 @@ def create_signal(
         ),
 
         "calibration_sigma_c": rounded(
-            sigma_c,
+            forecast_stats[
+                "sigma_c"
+            ],
             4,
         ),
 
-        "calibration_lead_bucket": (
-            forecast_stats[
-                "calibration_lead_bucket"
-            ]
+        "calibration_flag": (
+            calibration_flag
         ),
 
         "observation_temperature_c": rounded(
@@ -3005,7 +2029,9 @@ def create_signal(
             4,
         ),
 
-        "observation_time": observation_time,
+        "observation_time": (
+            observation_time
+        ),
 
         "execution_quality": (
             execution_quality
@@ -3063,7 +2089,7 @@ def print_signal(
     )
 
     print(
-        f"  Gross edge: "
+        f"  Edge: "
         f"{signal['gross_edge']}"
     )
 
@@ -3084,9 +2110,10 @@ def print_signal(
 
     print(
         f"  Calibration: "
-        f"{signal['calibration_method']} "
+        f"{signal['calibration_source']} "
         f"n={signal['calibration_samples']} "
-        f"bias={signal['calibration_bias_c']}C"
+        f"bias={signal['calibration_bias_c']}C "
+        f"flag={signal['calibration_flag']}"
     )
 
     print(
@@ -3106,133 +2133,21 @@ def print_signal(
 
 
 # ============================================================
-# CALIBRATION REPORT
-# ============================================================
-
-def create_calibration_report(
-    calibration_rows,
-    daily_observations,
-    forecast_rows,
-    run_timestamp,
-):
-    lines = [
-        f"POLYMARKET WEATHER CALIBRATION V{ENGINE_VERSION}",
-        "HISTORICAL FORECAST ERROR ANALYSIS",
-        "",
-        f"UTC: {run_timestamp}",
-        "",
-        (
-            "Historical forecast rows: "
-            f"{len(forecast_rows)}"
-        ),
-        (
-            "Observed station-days: "
-            f"{len(daily_observations)}"
-        ),
-        (
-            "Calibration records: "
-            f"{len(calibration_rows)}"
-        ),
-        "",
-    ]
-
-    if not calibration_rows:
-        lines.extend(
-            [
-                "NO CALIBRATION DATA AVAILABLE.",
-                "Engine will fall back to default sigma.",
-                "",
-            ]
-        )
-
-    else:
-        valid_rows = [
-            row
-            for row in calibration_rows
-            if safe_int(
-                row.get(
-                    "samples"
-                )
-            )
-            and safe_int(
-                row.get(
-                    "samples"
-                )
-            ) >= CALIBRATION_MIN_SAMPLES
-        ]
-
-        lines.append(
-            "Records meeting strong calibration sample threshold: "
-            f"{len(valid_rows)}"
-        )
-
-        lines.append("")
-
-        ranked = sorted(
-            valid_rows,
-            key=lambda row: (
-                abs(
-                    safe_float(
-                        row.get(
-                            "bias_c"
-                        )
-                    )
-                    or 0.0
-                ),
-                -(
-                    safe_int(
-                        row.get(
-                            "samples"
-                        )
-                    )
-                    or 0
-                ),
-            ),
-            reverse=True,
-        )
-
-        for row in ranked[:50]:
-            lines.append(
-                (
-                    f"{row['station']} | "
-                    f"{row['model']} | "
-                    f"{row['market_type']} | "
-                    f"lead={row['lead_bucket']} | "
-                    f"n={row['samples']} | "
-                    f"bias={row['bias_c']}C | "
-                    f"RMSE={row['rmse_c']}C | "
-                    f"sigma={row['sigma_c']}C"
-                )
-            )
-
-    write_text(
-        CALIBRATION_REPORT_FILE,
-        "\n".join(
-            lines
-        ),
-    )
-
-
-# ============================================================
 # MAIN
 # ============================================================
 
 def main():
-    os.makedirs(
-        EDGE_HISTORY_DIR,
-        exist_ok=True,
-    )
 
     os.makedirs(
-        CALIBRATION_DIR,
+        EDGE_HISTORY_DIR,
         exist_ok=True,
     )
 
     print("=" * 70)
 
     print(
-        f"POLYMARKET WEATHER EDGE ENGINE "
-        f"V{ENGINE_VERSION}"
+        f"POLYMARKET WEATHER "
+        f"EDGE ENGINE V{ENGINE_VERSION}"
     )
 
     print(
@@ -3251,27 +2166,28 @@ def main():
         f"UTC: {run_timestamp}"
     )
 
-    # ========================================================
-    # REQUIRED INPUTS
-    # ========================================================
+    # --------------------------------------------------------
+    # INPUT VALIDATION
+    # --------------------------------------------------------
 
     required_files = [
         ACTIVE_FILE,
         FORECAST_FILE,
-        OBSERVATION_FILE,
+        CALIBRATION_FILE,
     ]
 
-    for required in required_files:
+    for path in required_files:
+
         if not os.path.exists(
-            required
+            path
         ):
             raise FileNotFoundError(
-                required
+                path
             )
 
-    # ========================================================
-    # LOAD DATA
-    # ========================================================
+    # --------------------------------------------------------
+    # LOAD MARKETS
+    # --------------------------------------------------------
 
     active_payload = read_json(
         ACTIVE_FILE
@@ -3282,28 +2198,26 @@ def main():
         []
     )
 
-    all_forecast_rows = read_csv(
+    all_forecasts = read_csv(
         FORECAST_FILE
     )
 
-    all_observation_rows = read_csv(
-        OBSERVATION_FILE
-    )
-
-    station_registry = (
-        load_station_registry()
-    )
-
-    latest_forecasts = (
+    forecasts = (
         select_latest_forecasts(
-            all_forecast_rows
+            all_forecasts
         )
     )
 
-    latest_observations = (
+    observations = (
         select_latest_observations(
-            all_observation_rows
+            read_csv(
+                OBSERVATION_FILE
+            )
         )
+    )
+
+    calibration = (
+        load_calibration()
     )
 
     print(
@@ -3312,104 +2226,41 @@ def main():
     )
 
     print(
-        f"Historical forecast rows: "
-        f"{len(all_forecast_rows)}"
-    )
-
-    print(
         f"Latest forecast records: "
-        f"{len(latest_forecasts)}"
-    )
-
-    print(
-        f"Historical observation rows: "
-        f"{len(all_observation_rows)}"
+        f"{len(forecasts)}"
     )
 
     print(
         f"Latest observations: "
-        f"{len(latest_observations)}"
-    )
-
-    # ========================================================
-    # BUILD GROUND TRUTH
-    # ========================================================
-
-    daily_observations = (
-        build_daily_observations(
-            all_observation_rows,
-            station_registry,
-        )
+        f"{len(observations)}"
     )
 
     print(
-        f"Observed station-days: "
-        f"{len(daily_observations)}"
+        f"Calibration groups: "
+        f"{len(calibration)}"
     )
 
-    # ========================================================
-    # CALIBRATION
-    # ========================================================
-
-    calibration_samples = (
-        build_calibration_samples(
-            all_forecast_rows,
-            daily_observations,
-            station_registry,
-        )
-    )
-
-    calibration_table = (
-        build_calibration_table(
-            calibration_samples
-        )
-    )
-
-    calibration_rows = (
-        save_calibration_outputs(
-            calibration_table,
-            run_timestamp,
-        )
-    )
-
-    create_calibration_report(
-        calibration_rows,
-        daily_observations,
-        all_forecast_rows,
-        run_timestamp,
-    )
-
-    usable_calibration_rows = [
-        row
-        for row in calibration_rows
-        if (
-            safe_int(
-                row.get(
-                    "samples"
-                )
-            )
-            or 0
-        )
-        >= CALIBRATION_MIN_SAMPLES
-    ]
-
-    print(
-        f"Calibration records: "
-        f"{len(calibration_rows)}"
+    usable_calibration = sum(
+        1
+        for item in calibration.values()
+        if item[
+            "usable"
+        ]
     )
 
     print(
-        "Calibration records with "
-        f">={CALIBRATION_MIN_SAMPLES} samples: "
-        f"{len(usable_calibration_rows)}"
+        f"Usable calibration groups: "
+        f"{usable_calibration}"
     )
 
-    # ========================================================
+    # --------------------------------------------------------
     # FAMILIES
-    # ========================================================
+    # --------------------------------------------------------
 
-    families = group_market_families(
-        markets
+    families = (
+        group_market_families(
+            markets
+        )
     )
 
     print(
@@ -3418,17 +2269,20 @@ def main():
     )
 
     signals = []
+
     paper_candidates = []
 
     stats_cache = {}
 
     evaluated = 0
+
     no_station = 0
+
     no_forecast = 0
 
-    # ========================================================
-    # PROCESS FAMILIES
-    # ========================================================
+    # --------------------------------------------------------
+    # PROCESS
+    # --------------------------------------------------------
 
     for event_key, family in families.items():
 
@@ -3453,16 +2307,20 @@ def main():
             not station
             or not market_date
         ):
+
             no_station += len(
                 family
             )
+
             continue
 
         cache_key = (
             str(
                 station
             ).upper(),
+
             market_date,
+
             market_type,
         )
 
@@ -3470,41 +2328,31 @@ def main():
             cache_key
             not in stats_cache
         ):
+
             stats_cache[
                 cache_key
-            ] = (
-                build_current_forecast_stats(
-                    latest_forecasts,
-                    station,
-                    market_date,
-                    market_type,
-                    calibration_table,
-                    station_registry,
-                )
+            ] = build_forecast_stats(
+                forecasts,
+                station,
+                market_date,
+                market_type,
+                calibration,
             )
 
-        forecast_stats = (
-            stats_cache[
-                cache_key
-            ]
-        )
+        stats = stats_cache[
+            cache_key
+        ]
 
-        if not forecast_stats:
+        if not stats:
+
             no_forecast += len(
                 family
             )
+
             continue
 
-        forecast_stats[
-            "forecast_count"
-        ] = len(
-            forecast_stats[
-                "models"
-            ]
-        )
-
         observation = (
-            latest_observations.get(
+            observations.get(
                 str(
                     station
                 ).upper()
@@ -3514,7 +2362,7 @@ def main():
         family_check = (
             family_probability_sum(
                 family,
-                forecast_stats,
+                stats,
             )
         )
 
@@ -3524,18 +2372,19 @@ def main():
 
             signal = create_signal(
                 market,
-                forecast_stats,
+                stats,
                 observation,
                 family_check,
             )
 
-            if signal is not None:
+            if signal is None:
+                continue
 
-                family_signals.append(
-                    signal
-                )
+            family_signals.append(
+                signal
+            )
 
-                evaluated += 1
+            evaluated += 1
 
         family_signals.sort(
             key=lambda item: (
@@ -3562,7 +2411,6 @@ def main():
             reverse=True,
         )
 
-        # Keep best few per family.
         for signal in family_signals[:5]:
 
             signals.append(
@@ -3575,13 +2423,14 @@ def main():
                 ]
                 == "PAPER_BUY"
             ):
+
                 paper_candidates.append(
                     signal
                 )
 
-    # ========================================================
+    # --------------------------------------------------------
     # GLOBAL RANKING
-    # ========================================================
+    # --------------------------------------------------------
 
     signal_rank = {
         "PAPER_BUY": 3,
@@ -3631,12 +2480,11 @@ def main():
         reverse=True,
     )
 
-    # ========================================================
+    # --------------------------------------------------------
     # DISPLAY
-    # ========================================================
+    # --------------------------------------------------------
 
     print("")
-
     print("=" * 70)
     print("TOP SIGNALS")
     print("=" * 70)
@@ -3646,12 +2494,14 @@ def main():
             signal
         )
 
-    # ========================================================
-    # OUTPUT JSON
-    # ========================================================
+    # --------------------------------------------------------
+    # JSON
+    # --------------------------------------------------------
 
     payload = {
-        "engine_version": ENGINE_VERSION,
+        "engine_version": (
+            ENGINE_VERSION
+        ),
 
         "run_at": run_timestamp,
 
@@ -3661,6 +2511,7 @@ def main():
 
         "parameters": {
             "min_edge": MIN_EDGE,
+
             "min_ev": MIN_EV,
 
             "strong_min_edge": (
@@ -3687,12 +2538,8 @@ def main():
                 FAMILY_MAX_COVERAGE
             ),
 
-            "require_executable_ask": (
-                REQUIRE_EXECUTABLE_ASK
-            ),
-
-            "default_weather_fee_rate": (
-                DEFAULT_WEATHER_FEE_RATE
+            "min_calibration_samples": (
+                MIN_CALIBRATION_SAMPLES
             ),
 
             "default_sigma_c": (
@@ -3706,14 +2553,6 @@ def main():
             "max_sigma_c": (
                 MAX_SIGMA_C
             ),
-
-            "calibration_min_samples": (
-                CALIBRATION_MIN_SAMPLES
-            ),
-
-            "calibration_lookback_days": (
-                CALIBRATION_LOOKBACK_DAYS
-            ),
         },
 
         "current_markets": len(
@@ -3724,28 +2563,20 @@ def main():
             families
         ),
 
-        "historical_forecast_rows": len(
-            all_forecast_rows
+        "forecast_records": len(
+            forecasts
         ),
 
-        "latest_forecast_records": len(
-            latest_forecasts
+        "observation_records": len(
+            observations
         ),
 
-        "historical_observation_rows": len(
-            all_observation_rows
+        "calibration_groups": len(
+            calibration
         ),
 
-        "observed_station_days": len(
-            daily_observations
-        ),
-
-        "calibration_records": len(
-            calibration_rows
-        ),
-
-        "calibration_records_usable": len(
-            usable_calibration_rows
+        "usable_calibration_groups": (
+            usable_calibration
         ),
 
         "signals_evaluated": (
@@ -3761,40 +2592,29 @@ def main():
         ),
 
         "diagnostics": {
-            "markets_skipped_no_station": (
-                no_station
+            "calibration_source": (
+                "station_calibration_summary.csv"
             ),
 
-            "markets_skipped_no_forecast": (
-                no_forecast
+            "paper_buy_requires_calibration": True,
+
+            "paper_buy_min_samples": (
+                MIN_CALIBRATION_SAMPLES
             ),
 
-            "paper_buy_definition": (
-                "STRONG_EDGE + executable best_ask + "
-                "passing exclusive family coverage + "
-                "minimum historical calibration sample"
+            "blocked_calibration_flags": sorted(
+                BLOCKED_CALIBRATION_FLAGS
             ),
 
-            "calibration": (
-                "Historical forecast errors are measured "
-                "only when the forecast existed before the "
-                "target local day started."
-            ),
-
-            "bias_correction": (
-                "Forecast value is adjusted by historical "
-                "forecast bias."
-            ),
-
-            "sigma_model": (
-                "Combined model uncertainty plus "
-                "between-model disagreement."
-            ),
+            "paper_buy_requires_executable_ask": True,
 
             "cumulative_bucket_handling": (
-                "or_lower/or_higher are evaluated directly "
-                "and excluded from exclusive family normalization."
+                "or_lower/or_higher are evaluated "
+                "directly and excluded from "
+                "exclusive family normalization"
             ),
+
+            "orders_sent": False,
         },
 
         "signals": signals,
@@ -3805,14 +2625,14 @@ def main():
         payload,
     )
 
-    # ========================================================
-    # TEXT REPORT
-    # ========================================================
+    # --------------------------------------------------------
+    # REPORT
+    # --------------------------------------------------------
 
     report_lines = [
         (
-            f"POLYMARKET WEATHER EDGE ENGINE "
-            f"V{ENGINE_VERSION}"
+            f"POLYMARKET WEATHER "
+            f"EDGE ENGINE V{ENGINE_VERSION}"
         ),
 
         "RESEARCH / PAPER TRADING ONLY",
@@ -3823,63 +2643,49 @@ def main():
 
         "",
 
-        f"Current markets: {len(markets)}",
-
-        f"Families: {len(families)}",
-
         (
-            "Historical forecast rows: "
-            f"{len(all_forecast_rows)}"
+            f"Current markets: "
+            f"{len(markets)}"
         ),
 
         (
-            "Latest forecast records: "
-            f"{len(latest_forecasts)}"
+            f"Families: "
+            f"{len(families)}"
         ),
 
         (
-            "Historical observation rows: "
-            f"{len(all_observation_rows)}"
+            f"Forecast records: "
+            f"{len(forecasts)}"
         ),
 
         (
-            "Observed station-days: "
-            f"{len(daily_observations)}"
+            f"Observation records: "
+            f"{len(observations)}"
         ),
 
         (
-            "Calibration records: "
-            f"{len(calibration_rows)}"
+            f"Calibration groups: "
+            f"{len(calibration)}"
         ),
 
         (
-            "Usable calibration records: "
-            f"{len(usable_calibration_rows)}"
+            f"Usable calibration groups: "
+            f"{usable_calibration}"
         ),
 
         (
-            "Signals evaluated: "
+            f"Signals evaluated: "
             f"{evaluated}"
         ),
 
         (
-            "Signals retained: "
+            f"Signals retained: "
             f"{len(signals)}"
         ),
 
         (
-            "PAPER_BUY candidates: "
+            f"PAPER_BUY candidates: "
             f"{len(paper_candidates)}"
-        ),
-
-        (
-            "Skipped without station: "
-            f"{no_station}"
-        ),
-
-        (
-            "Skipped without forecast: "
-            f"{no_forecast}"
         ),
 
         "",
@@ -3899,16 +2705,23 @@ def main():
                 ),
 
                 (
-                    f"  bucket={signal['bucket_type']} "
-                    f"value={signal['bucket_value']} "
-                    f"low={signal['bucket_low']} "
-                    f"high={signal['bucket_high']}"
+                    f"  bucket="
+                    f"{signal['bucket_type']} "
+                    f"value="
+                    f"{signal['bucket_value']} "
+                    f"low="
+                    f"{signal['bucket_low']} "
+                    f"high="
+                    f"{signal['bucket_high']}"
                 ),
 
                 (
-                    f"  model={signal['model_probability']} "
-                    f"market={signal['market_probability']} "
-                    f"ask={signal['entry_price']}"
+                    f"  model="
+                    f"{signal['model_probability']} "
+                    f"market="
+                    f"{signal['market_probability']} "
+                    f"ask="
+                    f"{signal['entry_price']}"
                 ),
 
                 (
@@ -3919,8 +2732,10 @@ def main():
                 ),
 
                 (
-                    f"  edge={signal['gross_edge']} "
-                    f"net_ev={signal['net_ev_per_share']}"
+                    f"  edge="
+                    f"{signal['gross_edge']} "
+                    f"net_ev="
+                    f"{signal['net_ev_per_share']}"
                 ),
 
                 (
@@ -3932,9 +2747,13 @@ def main():
 
                 (
                     f"  calibration="
-                    f"{signal['calibration_method']} "
-                    f"n={signal['calibration_samples']} "
-                    f"bias={signal['calibration_bias_c']}C"
+                    f"{signal['calibration_source']} "
+                    f"n="
+                    f"{signal['calibration_samples']} "
+                    f"bias="
+                    f"{signal['calibration_bias_c']}C "
+                    f"flag="
+                    f"{signal['calibration_flag']}"
                 ),
 
                 (
@@ -3953,42 +2772,27 @@ def main():
         ),
     )
 
-    # ========================================================
-    # SIGNAL HISTORY
-    # ========================================================
-
-    history_rows = [
-        dict(signal)
-        for signal in signals
-    ]
+    # --------------------------------------------------------
+    # HISTORY
+    # --------------------------------------------------------
 
     append_csv(
         SIGNAL_HISTORY_FILE,
         SIGNAL_FIELDS,
-        history_rows,
+        signals,
     )
-
-    paper_rows = [
-        signal
-        for signal in paper_candidates
-        if signal[
-            "signal"
-        ]
-        == "PAPER_BUY"
-    ]
 
     append_csv(
         PAPER_SIGNAL_FILE,
         SIGNAL_FIELDS,
-        paper_rows,
+        paper_candidates,
     )
 
-    # ========================================================
+    # --------------------------------------------------------
     # SUMMARY
-    # ========================================================
+    # --------------------------------------------------------
 
     print("")
-
     print("=" * 70)
     print("SUMMARY")
     print("=" * 70)
@@ -4009,13 +2813,13 @@ def main():
     )
 
     print(
-        f"Calibration records: "
-        f"{len(calibration_rows)}"
+        f"Calibration groups: "
+        f"{len(calibration)}"
     )
 
     print(
-        f"Usable calibration records: "
-        f"{len(usable_calibration_rows)}"
+        f"Usable calibration groups: "
+        f"{usable_calibration}"
     )
 
     print(
@@ -4026,26 +2830,6 @@ def main():
     print(
         f"Latest report: "
         f"{REPORT_FILE}"
-    )
-
-    print(
-        f"Calibration JSON: "
-        f"{CALIBRATION_LATEST_FILE}"
-    )
-
-    print(
-        f"Calibration report: "
-        f"{CALIBRATION_REPORT_FILE}"
-    )
-
-    print(
-        f"Signal history: "
-        f"{SIGNAL_HISTORY_FILE}"
-    )
-
-    print(
-        f"Paper history: "
-        f"{PAPER_SIGNAL_FILE}"
     )
 
 
