@@ -1,11 +1,11 @@
 {
   "collector_version": "10.2.1",
   "schema_version": "10.2.1",
-  "collected_at": "2026-09-11T03:27:27.574015+00:00",
-  "current_candidates": 2200,
+  "collected_at": "2026-09-11T08:15:53.409435+00:00",
+  "current_candidates": 3157,
   "stations_requested": 45,
   "observations_count": 45,
-  "forecast_rows_count": 270,
+  "forecast_rows_count": 405,
   "station_registry": "data/weather/station_registry.json",
   "observation_file": "data/weather/history/observations.csv",
   "forecast_file": "data/weather/history/forecasts.csv"
