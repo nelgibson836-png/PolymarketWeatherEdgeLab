@@ -1,17 +1,17 @@
 POLYMARKET WEATHER EDGE ENGINE V1.3
 RESEARCH / PAPER TRADING ONLY
 NO ORDERS SENT
-UTC: 2026-09-11T12:56:53.316931+00:00
+UTC: 2026-09-11T14:07:27.579492+00:00
 
-Current markets: 3245
-Families: 295
-Historical forecast rows: 4980
+Current markets: 3300
+Families: 300
+Historical forecast rows: 5385
 Latest forecast records: 540
-Historical observation rows: 585
+Historical observation rows: 630
 Observed station-days: 90
 Calibration records: 0
 Usable calibration records: 0
-Signals evaluated: 2871
+Signals evaluated: 2926
 Signals retained: 100
 PAPER_BUY candidates: 0
 Skipped without station: 374
