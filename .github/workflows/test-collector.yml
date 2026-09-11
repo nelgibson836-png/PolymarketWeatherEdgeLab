@@ -12,6 +12,7 @@ on:
           - normal
           - calibration
           - station_observations
+          - localize
           - both
 
   schedule:
@@ -76,7 +77,7 @@ jobs:
 
 
   # ==========================================================
-  # OPEN-METEO FORECAST CALIBRATION BOOTSTRAP
+  # OPEN-METEO FORECAST CALIBRATION
   # Manual only
   # ==========================================================
 
@@ -127,7 +128,7 @@ jobs:
 
 
   # ==========================================================
-  # STATION OBSERVATION BOOTSTRAP
+  # IEM STATION OBSERVATION BOOTSTRAP
   # Manual only
   # ==========================================================
 
@@ -173,5 +174,53 @@ jobs:
             echo "No new station observation data"
           else
             git commit -m "data: station observation bootstrap $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+            git push
+          fi
+
+
+  # ==========================================================
+  # STATION LOCAL TIMEZONE CONVERSION
+  # Manual only
+  # ==========================================================
+
+  localize:
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.mode == 'localize'
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run Station Observation Localizer V1.0
+        run: |
+          python station_observation_localize.py
+
+      - name: Commit localized station data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add data/edge/calibration/
+
+          if git diff --cached --quiet; then
+            echo "No new localized station data"
+          else
+            git commit -m "data: localize station observations $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
             git push
           fi
