@@ -1,8 +1,7 @@
 {
   "collector_version": "10.2.1",
   "schema_version": "10.2.1",
-  "collected_at": "2026-09-12T08:51:07.184756+00:00",
-  "events_count": 371,
+  "collected_at": "2026-09-12T08:51:07.555572+00:00",
   "markets": [
     {
       "collected_at": "2026-09-12T08:51:07.019341+00:00",
