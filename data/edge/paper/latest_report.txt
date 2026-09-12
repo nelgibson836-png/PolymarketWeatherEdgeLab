@@ -1,17 +1,17 @@
 POLYMARKET WEATHER PAPER TRADER V1.1
 VIRTUAL MONEY ONLY — NO ORDERS SENT
-Updated: 2026-09-11T21:57:34.131937+00:00
+Updated: 2026-09-12T00:03:33.582751+00:00
 Trial start: 2026-09-11T16:03:48.809958+00:00
 Trial end: 2026-09-26T16:03:48.809958+00:00
 Trial active: True
 
-Total trades: 54
+Total trades: 64
 Open trades: 50
-Closed trades: 4
+Closed trades: 14
 Wins: 0
-Losses: 4
+Losses: 14
 Win rate: 0.0
-Closed P&L: -40.0
+Closed P&L: -140.0
 Closed ROI: -1.0
 Open stake: 500.0
-New paper trades this run: 2
+New paper trades this run: 10
