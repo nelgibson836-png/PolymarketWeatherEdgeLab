@@ -1,8 +1,8 @@
 {
   "collector_version": "10.2.1",
   "schema_version": "10.2.1",
-  "collected_at": "2026-09-12T12:40:54.754727+00:00",
-  "current_candidates": 3245,
+  "collected_at": "2026-09-12T15:50:46.424515+00:00",
+  "current_candidates": 3256,
   "stations_requested": 45,
   "observations_count": 45,
   "forecast_rows_count": 405,
