@@ -1,0 +1,179 @@
+{
+  "generated_at": "2026-09-17T19:17:42.274713+00:00",
+  "trial_state": {
+    "updated_at": "2026-09-17T19:17:42.214968+00:00",
+    "trial_days": 15,
+    "trial_start": "2026-09-11T16:03:48.809958+00:00",
+    "trial_end": "2026-09-26T16:03:48.809958+00:00",
+    "trial_active": true,
+    "virtual_bankroll_initial": 1000.0,
+    "stake_per_trade": 10.0,
+    "max_open_trades": 50,
+    "total_trades": 263,
+    "open_trades": 50,
+    "closed_trades": 213,
+    "wins": 9,
+    "losses": 204,
+    "win_rate": 0.04225352112676056,
+    "closed_pnl": 1152.7109440400002,
+    "closed_roi": 0.5411788469671363,
+    "open_stake": 500.0,
+    "virtual_equity_after_closed": 2152.71094404
+  },
+  "ledger": {
+    "updated_at": "2026-09-17T19:17:42.273645+00:00",
+    "closed_trades": 213,
+    "open_trades": 50,
+    "wins": 9,
+    "losses": 204,
+    "observed_win_rate": 0.04225352112676056,
+    "mean_model_probability": 0.2769509530516433,
+    "expected_wins_from_model": 58.99055300000002,
+    "actual_minus_expected_wins": -49.99055300000002,
+    "brier_score": 0.09931861235098119,
+    "log_loss": 0.36527858433356913,
+    "closed_pnl": 1152.7109440400002,
+    "closed_stake": 2130.0,
+    "closed_roi": 0.5411788469671363,
+    "max_realized_drawdown": 942.7777777700001,
+    "max_realized_drawdown_pct_of_prior_peak": 0.4499083044244046,
+    "trades_entry_price_le_0_02": 53,
+    "pnl_entry_price_le_0_02": 1970.0,
+    "share_of_positive_pnl_from_le_0_02": 1.709014744924326,
+    "cumulative_bucket_closed": 8,
+    "cumulative_bucket_win_rate": 0.125,
+    "cumulative_bucket_pnl": -40.0,
+    "exclusive_bucket_closed": 205,
+    "exclusive_bucket_win_rate": 0.03902439024390244,
+    "exclusive_bucket_pnl": 1192.7109440400002,
+    "probability_bins": [
+      {
+        "bin": "00-05%",
+        "lower": 0.0,
+        "upper": 0.05,
+        "n": 0,
+        "mean_probability": null,
+        "actual_win_rate": null,
+        "calibration_error": null,
+        "pnl": 0
+      },
+      {
+        "bin": "05-10%",
+        "lower": 0.05,
+        "upper": 0.1,
+        "n": 0,
+        "mean_probability": null,
+        "actual_win_rate": null,
+        "calibration_error": null,
+        "pnl": 0
+      },
+      {
+        "bin": "10-20%",
+        "lower": 0.1,
+        "upper": 0.2,
+        "n": 42,
+        "mean_probability": 0.16779192857142858,
+        "actual_win_rate": 0.0,
+        "calibration_error": -0.16779192857142858,
+        "pnl": -420.0
+      },
+      {
+        "bin": "20-30%",
+        "lower": 0.2,
+        "upper": 0.3,
+        "n": 94,
+        "mean_probability": 0.25458806382978727,
+        "actual_win_rate": 0.0425531914893617,
+        "calibration_error": -0.21203487234042556,
+        "pnl": 27.857142860000067
+      },
+      {
+        "bin": "30-50%",
+        "lower": 0.3,
+        "upper": 0.5,
+        "n": 74,
+        "mean_probability": 0.3540217297297297,
+        "actual_win_rate": 0.06756756756756757,
+        "calibration_error": -0.28645416216216213,
+        "pnl": 1574.85380118
+      },
+      {
+        "bin": "50-75%",
+        "lower": 0.5,
+        "upper": 0.75,
+        "n": 3,
+        "mean_probability": 0.6048020000000001,
+        "actual_win_rate": 0.0,
+        "calibration_error": -0.6048020000000001,
+        "pnl": -30.0
+      },
+      {
+        "bin": "75-100%",
+        "lower": 0.75,
+        "upper": 1.01,
+        "n": 0,
+        "mean_probability": null,
+        "actual_win_rate": null,
+        "calibration_error": null,
+        "pnl": 0
+      }
+    ],
+    "price_bins": [
+      {
+        "bin": "00-01c",
+        "lower": 0.0,
+        "upper": 0.01,
+        "n": 28,
+        "wins": 1,
+        "win_rate": 0.03571428571428571,
+        "pnl": 1720.0
+      },
+      {
+        "bin": "01-02c",
+        "lower": 0.01,
+        "upper": 0.02,
+        "n": 12,
+        "wins": 0,
+        "win_rate": 0.0,
+        "pnl": -120.0
+      },
+      {
+        "bin": "02-05c",
+        "lower": 0.02,
+        "upper": 0.05,
+        "n": 53,
+        "wins": 1,
+        "win_rate": 0.018867924528301886,
+        "pnl": -30.0
+      },
+      {
+        "bin": "05-100c",
+        "lower": 0.05,
+        "upper": 1.0,
+        "n": 120,
+        "wins": 7,
+        "win_rate": 0.058333333333333334,
+        "pnl": -417.2890559599999
+      }
+    ]
+  },
+  "v17_shadow": {
+    "engine_version": "1.7",
+    "run_at": "2026-09-17T19:17:35.744963+00:00",
+    "signals_evaluated": 1034,
+    "signals_retained": 100,
+    "paper_buy_candidates": 68,
+    "paper_buy_cumulative": 1,
+    "paper_buy_exact_or_range": 67,
+    "paper_buy_exact_or_range_not_pass": 0,
+    "paper_buy_thin_ask": 0,
+    "paper_buy_probability_ge_50pct": 1,
+    "max_paper_buy_probability": 0.668449,
+    "mean_paper_buy_probability": 0.23263958823529415
+  },
+  "interpretation": {
+    "profitability_not_established": true,
+    "reason": "Positive P&L is reported separately from calibration quality; rare low-price wins can dominate P&L.",
+    "live_ready": false
+  }
+}
