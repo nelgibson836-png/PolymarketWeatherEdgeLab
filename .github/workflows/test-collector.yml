@@ -52,10 +52,16 @@ jobs:
       - name: Run Calibrated Edge Engine V1.6
         run: python edge_engine_v16.py
 
+      - name: Run Empirical Shadow Edge Engine V1.7
+        run: python edge_engine_v17.py
+
       - name: Run Paper Trader V1.1
         run: python paper_trader.py
 
-      - name: Commit normal pipeline and paper ledger
+      - name: Run Paper Trial Diagnostics
+        run: python paper_trial_analysis.py
+
+      - name: Commit normal pipeline, shadow engine and diagnostics
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -63,7 +69,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No new normal pipeline data"
           else
-            git commit -m "data: weather edge and paper trial snapshot $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+            git commit -m "data: weather edge paper and validation snapshot $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
             git push
           fi
 
