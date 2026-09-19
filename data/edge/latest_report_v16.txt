@@ -1,58 +1,58 @@
 POLYMARKET WEATHER EDGE ENGINE V1.6
-UTC: 2026-09-18T22:28:38.836844+00:00
-Current markets: 2695
+UTC: 2026-09-19T00:33:12.433628+00:00
+Current markets: 2200
 Forecast records: 1485
 Calibration groups: 203
-Signals evaluated: 935
-PAPER_BUY candidates: 79
+Signals evaluated: 833
+PAPER_BUY candidates: 77
 
-London | EGLC | 2026-09-18 | market_id=4605387 | ask=0.005 | edge=0.438384 | ev=0.438135
-Madrid | LEMD | 2026-09-18 | market_id=4605606 | ask=0.03 | edge=0.419011 | ev=0.417556
-Madrid | LEMD | 2026-09-19 | market_id=4632881 | ask=0.07 | edge=0.31152 | ev=0.308265
-Warsaw | EPWA | 2026-09-20 | market_id=4667896 | ask=0.049 | edge=0.286997 | ev=0.284667
-Madrid | LEMD | 2026-09-20 | market_id=4667888 | ask=0.07 | edge=0.275462 | ev=0.272207
-Shanghai | ZSPD | 2026-09-19 | market_id=4632849 | ask=0.04 | edge=0.261066 | ev=0.259146
+Madrid | LEMD | 2026-09-19 | market_id=4632881 | ask=0.06 | edge=0.32152 | ev=0.3187
+Shanghai | ZSPD | 2026-09-19 | market_id=4632849 | ask=0.02 | edge=0.281066 | ev=0.280086
+Warsaw | EPWA | 2026-09-20 | market_id=4667896 | ask=0.049 | edge=0.263004 | ev=0.260674
 Warsaw | EPWA | 2026-09-19 | market_id=4632892 | ask=0.03 | edge=0.232666 | ev=0.231211
-London | EGLC | 2026-09-19 | market_id=4632738 | ask=0.04 | edge=0.224687 | ev=0.222767
-Seoul (Incheon) | RKSI | 2026-09-19 | market_id=4632028 | ask=0.04 | edge=0.219248 | ev=0.217328
+Seoul (Incheon) | RKSI | 2026-09-19 | market_id=4632028 | ask=0.03 | edge=0.229248 | ev=0.227793
+Madrid | LEMD | 2026-09-20 | market_id=4667888 | ask=0.08 | edge=0.229336 | ev=0.225656
+Karachi | OPKC | 2026-09-20 | market_id=4668084 | ask=0.13 | edge=0.212 | ev=0.206345
+Tokyo | RJTT | 2026-09-19 | market_id=4632093 | ask=0.09 | edge=0.207923 | ev=0.203828
 Madrid | LEMD | 2026-09-19 | market_id=4632144 | ask=0.08 | edge=0.202906 | ev=0.199226
-Warsaw | EPWA | 2026-09-20 | market_id=4667897 | ask=0.12 | edge=0.198492 | ev=0.193212
-Tokyo | RJTT | 2026-09-20 | market_id=4667169 | ask=0.14 | edge=0.186111 | ev=0.180091
-Ankara | LTAC | 2026-09-20 | market_id=4667768 | ask=0.05 | edge=0.182066 | ev=0.179691
-Milan | LIMC | 2026-09-20 | market_id=4667878 | ask=0.03 | edge=0.178912 | ev=0.177457
-Karachi | OPKC | 2026-09-20 | market_id=4668084 | ask=0.13 | edge=0.182234 | ev=0.176579
+Shanghai | ZSPD | 2026-09-20 | market_id=4667847 | ask=0.1 | edge=0.201066 | ev=0.196566
+Kuala Lumpur | WMKK | 2026-09-20 | market_id=4668030 | ask=0.08 | edge=0.195239 | ev=0.191559
+London | EGLC | 2026-09-19 | market_id=4632738 | ask=0.07 | edge=0.194687 | ev=0.191432
+Seoul (Incheon) | RKSI | 2026-09-20 | market_id=4667101 | ask=0.12 | edge=0.196271 | ev=0.190991
 Shanghai | ZSPD | 2026-09-19 | market_id=4632850 | ask=0.003 | edge=0.176493 | ev=0.176343
-Shanghai | ZSPD | 2026-09-19 | market_id=4632116 | ask=0.14 | edge=0.181565 | ev=0.175545
-Shanghai | ZSPD | 2026-09-20 | market_id=4667848 | ask=0.03 | edge=0.168661 | ev=0.167206
-Shanghai | ZSPD | 2026-09-20 | market_id=4667190 | ask=0.08 | edge=0.167731 | ev=0.164051
-Tokyo | RJTT | 2026-09-19 | market_id=4632093 | ask=0.13 | edge=0.167923 | ev=0.162268
-Warsaw | EPWA | 2026-09-20 | market_id=4667895 | ask=0.009 | edge=0.159369 | ev=0.158923
-Seoul (Incheon) | RKSI | 2026-09-20 | market_id=4667101 | ask=0.12 | edge=0.161323 | ev=0.156043
-Shanghai | ZSPD | 2026-09-20 | market_id=4667847 | ask=0.14 | edge=0.161594 | ev=0.155574
-London | EGLC | 2026-09-20 | market_id=4667734 | ask=0.04 | edge=0.15441 | ev=0.15249
-Kuala Lumpur | WMKK | 2026-09-20 | market_id=4668030 | ask=0.09 | edge=0.155582 | ev=0.151487
+Warsaw | EPWA | 2026-09-20 | market_id=4667897 | ask=0.13 | edge=0.180425 | ev=0.17477
+Shanghai | ZSPD | 2026-09-19 | market_id=4632848 | ask=0.1 | edge=0.173912 | ev=0.169412
+Warsaw | EPWA | 2026-09-20 | market_id=4667895 | ask=0.009 | edge=0.155489 | ev=0.155044
+London | EGLC | 2026-09-20 | market_id=4667734 | ask=0.04 | edge=0.156569 | ev=0.154649
+Milan | LIMC | 2026-09-20 | market_id=4667878 | ask=0.04 | edge=0.155865 | ev=0.153945
+Shanghai | ZSPD | 2026-09-20 | market_id=4667848 | ask=0.03 | edge=0.149493 | ev=0.148038
+Helsinki | EFHK | 2026-09-20 | market_id=4668022 | ask=0.12 | edge=0.153099 | ev=0.147819
 Seoul (Incheon) | RKSI | 2026-09-19 | market_id=4632763 | ask=0.02 | edge=0.147686 | ev=0.146706
+London | EGLC | 2026-09-20 | market_id=4667735 | ask=0.16 | edge=0.152904 | ev=0.146184
 Helsinki | EFHK | 2026-09-19 | market_id=4633024 | ask=0.06 | edge=0.148881 | ev=0.146061
-Paris | LFPB | 2026-09-20 | market_id=4667748 | ask=0.15 | edge=0.148492 | ev=0.142117
-Amsterdam | EHAM | 2026-09-20 | market_id=4668008 | ask=0.06 | edge=0.142761 | ev=0.139941
-Tokyo | RJTT | 2026-09-19 | market_id=4632824 | ask=0.009 | edge=0.140207 | ev=0.139761
-Seoul (Incheon) | RKSI | 2026-09-19 | market_id=4632762 | ask=0.14 | edge=0.141565 | ev=0.135545
-Milan | LIMC | 2026-09-19 | market_id=4632871 | ask=0.04 | edge=0.13474 | ev=0.13282
+Tokyo | RJTT | 2026-09-20 | market_id=4667169 | ask=0.16 | edge=0.152531 | ev=0.145811
+Lucknow | VILK | 2026-09-20 | market_id=4667791 | ask=0.05 | edge=0.147553 | ev=0.145178
+Amsterdam | EHAM | 2026-09-20 | market_id=4668008 | ask=0.06 | edge=0.135134 | ev=0.132314
+Shanghai | ZSPD | 2026-09-20 | market_id=4667190 | ask=0.1 | edge=0.136773 | ev=0.132273
+Ankara | LTAC | 2026-09-20 | market_id=4667768 | ask=0.07 | edge=0.134801 | ev=0.131546
+Paris | LFPB | 2026-09-20 | market_id=4667748 | ask=0.19 | edge=0.137832 | ev=0.130137
+Munich | EDDM | 2026-09-19 | market_id=4632805 | ask=0.07 | edge=0.130113 | ev=0.126858
 Guangzhou | ZGGG | 2026-09-19 | market_id=4633066 | ask=0.06 | edge=0.12884 | ev=0.12602
+Seoul (Incheon) | RKSI | 2026-09-19 | market_id=4632762 | ask=0.15 | edge=0.131565 | ev=0.12519
+Seoul (Incheon) | RKSI | 2026-09-20 | market_id=4667761 | ask=0.13 | edge=0.12681 | ev=0.121155
+Ankara | LTAC | 2026-09-19 | market_id=4632771 | ask=0.08 | edge=0.124623 | ev=0.120943
 London | EGLC | 2026-09-19 | market_id=4632737 | ask=0.003 | edge=0.118787 | ev=0.118638
-Lucknow | VILK | 2026-09-20 | market_id=4667791 | ask=0.05 | edge=0.119324 | ev=0.116949
-Singapore | WSSS | 2026-09-19 | market_id=4632859 | ask=0.11 | edge=0.121606 | ev=0.116711
-Karachi | OPKC | 2026-09-20 | market_id=4668083 | ask=0.06 | edge=0.117443 | ev=0.114623
-London | EGLC | 2026-09-19 | market_id=4632739 | ask=0.19 | edge=0.118683 | ev=0.110988
-Helsinki | EFHK | 2026-09-20 | market_id=4668022 | ask=0.12 | edge=0.112338 | ev=0.107058
-Helsinki | EFHK | 2026-09-20 | market_id=4668023 | ask=0.009 | edge=0.106879 | ev=0.106433
-Guangzhou | ZGGG | 2026-09-20 | market_id=4668064 | ask=0.06 | edge=0.107345 | ev=0.104525
+Singapore | WSSS | 2026-09-20 | market_id=4667864 | ask=0.09 | edge=0.119448 | ev=0.115353
+Shanghai | ZSPD | 2026-09-19 | market_id=4632116 | ask=0.2 | edge=0.121565 | ev=0.113565
+Karachi | OPKC | 2026-09-19 | market_id=4633087 | ask=0.12 | edge=0.117724 | ev=0.112444
+Guangzhou | ZGGG | 2026-09-20 | market_id=4668064 | ask=0.07 | edge=0.109382 | ev=0.106127
+Helsinki | EFHK | 2026-09-20 | market_id=4668023 | ask=0.009 | edge=0.104876 | ev=0.10443
 Amsterdam | EHAM | 2026-09-19 | market_id=4633009 | ask=0.04 | edge=0.106087 | ev=0.104167
-Ankara | LTAC | 2026-09-20 | market_id=4667767 | ask=0.008 | edge=0.103337 | ev=0.10294
-Karachi | OPKC | 2026-09-19 | market_id=4633087 | ask=0.13 | edge=0.107724 | ev=0.102069
-Seoul (Incheon) | RKSI | 2026-09-20 | market_id=4667762 | ask=0.03 | edge=0.102484 | ev=0.101029
-Singapore | WSSS | 2026-09-20 | market_id=4667864 | ask=0.09 | edge=0.101359 | ev=0.097264
-Wellington | NZWN | 2026-09-19 | market_id=4632783 | ask=0.25 | edge=0.106583 | ev=0.097208
-London | EGLC | 2026-09-20 | market_id=4667733 | ask=0.008 | edge=0.096053 | ev=0.095656
-Munich | EDDM | 2026-09-19 | market_id=4632805 | ask=0.1 | edge=0.100113 | ev=0.095613
-Paris | LFPB | 2026-09-20 | market_id=4667749 | ask=0.06 | edge=0.097827 | ev=0.095007
+Amsterdam | EHAM | 2026-09-20 | market_id=4668011 | ask=0.01 | edge=0.10332 | ev=0.102825
+Seoul (Incheon) | RKSI | 2026-09-20 | market_id=4667762 | ask=0.03 | edge=0.09958 | ev=0.098125
+Singapore | WSSS | 2026-09-19 | market_id=4632859 | ask=0.13 | edge=0.101606 | ev=0.095951
+Karachi | OPKC | 2026-09-20 | market_id=4668083 | ask=0.06 | edge=0.098244 | ev=0.095424
+Milan | LIMC | 2026-09-20 | market_id=4667879 | ask=0.22 | edge=0.101014 | ev=0.092434
+Tokyo | RJTT | 2026-09-20 | market_id=4667823 | ask=0.05 | edge=0.094128 | ev=0.091753
+Guangzhou | ZGGG | 2026-09-20 | market_id=4668065 | ask=0.16 | edge=0.095938 | ev=0.089218
+Ankara | LTAC | 2026-09-19 | market_id=4632034 | ask=0.019 | edge=0.089668 | ev=0.088736

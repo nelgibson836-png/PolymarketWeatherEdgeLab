@@ -1,57 +1,57 @@
 POLYMARKET WEATHER EDGE ENGINE V1.7
-UTC: 2026-09-18T22:28:39.377268+00:00
+UTC: 2026-09-19T00:33:12.890910+00:00
 Calibration groups accepted: 131
 Calibration groups rejected by sanity: 2
-Signals evaluated: 935
-PAPER_BUY candidates: 68
+Signals evaluated: 833
+PAPER_BUY candidates: 70
 
-Madrid|4605606|p=0.461111|ask=0.03|edge=0.431111|n=89
-London|4605387|p=0.433155|ask=0.005|edge=0.428155|n=89
-Shanghai|4632849|p=0.362162|ask=0.04|edge=0.322162|n=88
-Milan|4667878|p=0.307263|ask=0.03|edge=0.277263|n=88
-London|4632738|p=0.315508|ask=0.04|edge=0.275508|n=89
-Tokyo|4667169|p=0.405405|ask=0.14|edge=0.265405|n=88
-Shanghai|4667190|p=0.308108|ask=0.08|edge=0.228108|n=88
-Warsaw|4667897|p=0.348066|ask=0.12|edge=0.228066|n=89
+Shanghai|4632849|p=0.362162|ask=0.02|edge=0.342162|n=88
+Shanghai|4667847|p=0.362162|ask=0.1|edge=0.262162|n=88
+London|4632738|p=0.315508|ask=0.07|edge=0.245508|n=89
+Madrid|4632881|p=0.294118|ask=0.06|edge=0.234118|n=89
 Madrid|4632144|p=0.305556|ask=0.08|edge=0.225556|n=89
-Madrid|4632881|p=0.294118|ask=0.07|edge=0.224118|n=89
 Warsaw|4632892|p=0.251337|ask=0.03|edge=0.221337|n=89
-Warsaw|4667896|p=0.270718|ask=0.049|edge=0.221718|n=89
-Paris|4667748|p=0.368984|ask=0.15|edge=0.218984|n=89
-Seoul (Incheon)|4667101|p=0.318919|ask=0.12|edge=0.198919|n=88
-Ankara|4667768|p=0.243243|ask=0.05|edge=0.193243|n=89
-Madrid|4667888|p=0.262032|ask=0.07|edge=0.192032|n=89
-Seoul (Incheon)|4632028|p=0.221622|ask=0.04|edge=0.181622|n=88
-Shanghai|4667847|p=0.318919|ask=0.14|edge=0.178919|n=88
-Warsaw|4667895|p=0.171271|ask=0.009|edge=0.162271|n=89
-Milan|4632871|p=0.202186|ask=0.04|edge=0.162186|n=88
-Kuala Lumpur|4668030|p=0.254054|ask=0.09|edge=0.164054|n=88
+Warsaw|4667896|p=0.26776|ask=0.049|edge=0.21876|n=89
+Milan|4667878|p=0.240223|ask=0.04|edge=0.200223|n=88
+Seoul (Incheon)|4632028|p=0.221622|ask=0.03|edge=0.191622|n=88
+Warsaw|4667897|p=0.322404|ask=0.13|edge=0.192404|n=89
+Paris|4667748|p=0.379679|ask=0.19|edge=0.189679|n=89
+Warsaw|4667895|p=0.191257|ask=0.009|edge=0.182257|n=89
+Helsinki|4668022|p=0.304813|ask=0.12|edge=0.184813|n=89
+Seoul (Incheon)|4667101|p=0.297297|ask=0.12|edge=0.177297|n=88
+London|4667734|p=0.213115|ask=0.04|edge=0.173115|n=89
+Madrid|4667888|p=0.251337|ask=0.08|edge=0.171337|n=89
+Tokyo|4667169|p=0.32973|ask=0.16|edge=0.16973|n=88
+Karachi|4667535|p=0.572193|ask=0.4|edge=0.172193|n=89
 Seoul (Incheon)|4632763|p=0.178378|ask=0.02|edge=0.158378|n=88
-Kuala Lumpur|4667483|p=0.351351|ask=0.19|edge=0.161351|n=88
-Singapore|4632859|p=0.264865|ask=0.11|edge=0.154865|n=88
-Karachi|4667535|p=0.561497|ask=0.4|edge=0.161497|n=89
-Shanghai|4667848|p=0.178378|ask=0.03|edge=0.148378|n=88
+Lucknow|4667791|p=0.208556|ask=0.05|edge=0.158556|n=89
+Karachi|4668084|p=0.286486|ask=0.13|edge=0.156486|n=89
+Singapore|4667864|p=0.243243|ask=0.09|edge=0.153243|n=88
+Kuala Lumpur|4668030|p=0.232432|ask=0.08|edge=0.152432|n=88
+London|4667735|p=0.311475|ask=0.16|edge=0.151475|n=89
 Shanghai|4632850|p=0.145946|ask=0.003|edge=0.142946|n=88
-Karachi|4668084|p=0.275676|ask=0.13|edge=0.145676|n=89
+Shanghai|4632848|p=0.243243|ask=0.1|edge=0.143243|n=88
 Guangzhou|4633066|p=0.2|ask=0.06|edge=0.14|n=89
-Seoul (Incheon)|4632762|p=0.275676|ask=0.14|edge=0.135676|n=88
+Seoul (Incheon)|4667761|p=0.26776|ask=0.13|edge=0.13776|n=88
+Munich|4632805|p=0.20442|ask=0.07|edge=0.13442|n=89
+Shanghai|4667190|p=0.234973|ask=0.1|edge=0.134973|n=88
+Tokyo|4632093|p=0.224044|ask=0.09|edge=0.134044|n=88
+Singapore|4632859|p=0.264865|ask=0.13|edge=0.134865|n=88
+Seoul (Incheon)|4667762|p=0.15847|ask=0.03|edge=0.12847|n=88
 Helsinki|4633024|p=0.187166|ask=0.06|edge=0.127166|n=89
-London|4667734|p=0.162011|ask=0.04|edge=0.122011|n=89
-Lucknow|4632797|p=0.2|ask=0.08|edge=0.12|n=89
-Seoul (Incheon)|4667762|p=0.147541|ask=0.03|edge=0.117541|n=88
-London|4667735|p=0.273743|ask=0.16|edge=0.113743|n=89
-Helsinki|4668022|p=0.229947|ask=0.12|edge=0.109947|n=89
-Munich|4632805|p=0.20442|ask=0.1|edge=0.10442|n=89
-Tokyo|4667823|p=0.150838|ask=0.05|edge=0.100838|n=88
+Seoul (Incheon)|4632762|p=0.275676|ask=0.15|edge=0.125676|n=88
+Tokyo|4667170|p=0.167568|ask=0.05|edge=0.117568|n=88
+Shanghai|4667848|p=0.145946|ask=0.03|edge=0.115946|n=88
+Singapore|4667203|p=0.311475|ask=0.19|edge=0.121475|n=88
+Lucknow|4632797|p=0.2|ask=0.09|edge=0.11|n=89
+Helsinki|4633025|p=0.101604|ask=0.004|edge=0.097604|n=89
 Ankara|4632034|p=0.116667|ask=0.019|edge=0.097667|n=89
-Helsinki|4633025|p=0.101604|ask=0.007|edge=0.094604|n=89
+Milan|4632139|p=0.104972|ask=0.008|edge=0.096972|n=88
 Helsinki|4668023|p=0.101604|ask=0.009|edge=0.092604|n=89
-Wellington|4632783|p=0.351351|ask=0.25|edge=0.101351|n=88
-Tokyo|4632093|p=0.224044|ask=0.13|edge=0.094044|n=88
-Tokyo|4667827|p=0.150838|ask=0.06|edge=0.090838|n=88
-London|4667733|p=0.094972|ask=0.008|edge=0.086972|n=89
-London|4632739|p=0.283422|ask=0.19|edge=0.093422|n=89
-Munich|4667805|p=0.189189|ask=0.1|edge=0.089189|n=89
-Munich|4632806|p=0.082873|ask=0.005|edge=0.077873|n=89
-Karachi|4633086|p=0.080214|ask=0.003|edge=0.077214|n=89
-Singapore|4667864|p=0.167568|ask=0.09|edge=0.077568|n=88
+Kuala Lumpur|4667483|p=0.286486|ask=0.19|edge=0.096486|n=88
+Guangzhou|4633065|p=0.091892|ask=0.004|edge=0.087892|n=89
+Milan|4632871|p=0.202186|ask=0.11|edge=0.092186|n=88
+Guangzhou|4668064|p=0.15847|ask=0.07|edge=0.08847|n=89
+Wellington|4667123|p=0.136612|ask=0.05|edge=0.086612|n=88
+Amsterdam|4668011|p=0.090909|ask=0.01|edge=0.080909|n=89
+Amsterdam|4668010|p=0.379679|ask=0.29|edge=0.089679|n=89
