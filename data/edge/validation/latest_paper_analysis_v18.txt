@@ -1,18 +1,18 @@
-generated_at: 2026-09-21T18:44:13.942638+00:00
+generated_at: 2026-09-21T22:18:37.235739+00:00
 engine_version: 1.8
-paper_trial: {'updated_at': '2026-09-21T18:44:13.847744+00:00', 'engine_version': '1.8', 'trial_start': '2026-09-21T06:22:36.056456+00:00', 'trial_end': '2026-10-06T06:22:36.056456+00:00', 'trial_active': True, 'virtual_bankroll_initial': 1000.0, 'stake_per_trade': 10.0, 'max_open_trades': 30, 'closed_trades': 2, 'open_trades': 22, 'wins': 0, 'losses': 2, 'win_rate': 0.0, 'closed_pnl': -20.0, 'closed_roi': -1.0, 'open_stake': 220.0, 'virtual_equity_after_closed': 980.0, 'max_open_per_family': 1, 'max_open_per_city': 3, 'max_open_per_market_date': 8, 'extra_slippage_assumption': 0.005, 'new_paper_trades_this_run': 0}
-closed_trades: 2
+paper_trial: {'updated_at': '2026-09-21T22:18:37.152459+00:00', 'engine_version': '1.8', 'trial_start': '2026-09-21T06:22:36.056456+00:00', 'trial_end': '2026-10-06T06:22:36.056456+00:00', 'trial_active': True, 'virtual_bankroll_initial': 1000.0, 'stake_per_trade': 10.0, 'max_open_trades': 30, 'closed_trades': 4, 'open_trades': 21, 'wins': 0, 'losses': 4, 'win_rate': 0.0, 'closed_pnl': -40.0, 'closed_roi': -1.0, 'open_stake': 210.0, 'virtual_equity_after_closed': 960.0, 'max_open_per_family': 1, 'max_open_per_city': 3, 'max_open_per_market_date': 8, 'extra_slippage_assumption': 0.005, 'new_paper_trades_this_run': 1}
+closed_trades: 4
 wins: 0
-losses: 2
+losses: 4
 observed_win_rate: 0.0
-mean_calibrated_probability: 0.252177
-expected_wins: 0.504354
-actual_minus_expected_wins: -0.504354
-brier_score: 0.063673055685
-log_loss: 0.2906603266665144
-closed_pnl: -20.0
+mean_calibrated_probability: 0.332968
+expected_wins: 1.331872
+actual_minus_expected_wins: -1.331872
+brier_score: 0.118266531781
+log_loss: 0.4135553251614419
+closed_pnl: -40.0
 closed_roi: -1.0
 microprice_le_2c: {'n': 0, 'pnl': 0, 'wins': 0}
-non_microprice_gt_2c: {'n': 2, 'pnl': -20.0, 'wins': 0}
+non_microprice_gt_2c: {'n': 4, 'pnl': -40.0, 'wins': 0}
 live_ready: False
 promotion_rule: Require positive OOS edge after execution costs, not dependent on <=2c tickets, with settlement integrity and sufficient multi-city sample.

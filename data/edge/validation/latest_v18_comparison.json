@@ -1,38 +1,37 @@
 {
   "engine_version": "1.8",
-  "run_at": "2026-09-21T18:43:55.219173+00:00",
+  "run_at": "2026-09-21T22:18:18.289173+00:00",
   "no_orders_sent": true,
-  "v17_paper_buy_candidates": 75,
-  "v18_paper_buy_candidates": 53,
-  "v18_observation_lock_candidates": 1,
+  "v17_paper_buy_candidates": 66,
+  "v18_paper_buy_candidates": 47,
+  "v18_observation_lock_candidates": 0,
   "calibration_groups_accepted": 131,
   "calibration_groups_rejected_sanity": 2,
   "shrinkage": {
-    "n_closed_paper_trades": 337,
+    "n_closed_paper_trades": 349,
     "global_alpha": 1.0,
     "alpha_by_market_type": {
       "highest_temperature": 1.0,
       "lowest_temperature": 1.0
     },
     "walkforward": {
-      "scored_trades": 307,
-      "baseline_brier": 0.10643517792990552,
-      "shrunken_brier": 0.10643517792990552,
-      "baseline_log_loss": 0.3824433960309371,
-      "shrunken_log_loss": 0.3824433960309371,
+      "scored_trades": 319,
+      "baseline_brier": 0.10426478325334479,
+      "shrunken_brier": 0.10426478325334479,
+      "baseline_log_loss": 0.3771951609423786,
+      "shrunken_log_loss": 0.37719516094237865,
       "mean_alpha": 1.0,
       "improved_brier": false,
       "improved_log_loss": false
     }
   },
   "counters": {
-    "excluded_microprice": 423,
-    "excluded_raw_edge": 6,
-    "excluded_cal_edge": 40,
-    "observation_lock_candidates": 1,
-    "skipped_no_station": 330,
-    "skipped_no_forecast": 1518,
-    "paper_buy_v18": 53
+    "excluded_microprice": 435,
+    "excluded_raw_edge": 7,
+    "excluded_cal_edge": 41,
+    "skipped_no_station": 264,
+    "paper_buy_v18": 47,
+    "skipped_no_forecast": 1496
   },
   "guards": {
     "min_entry_price": 0.02,
