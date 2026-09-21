@@ -55,6 +55,9 @@ jobs:
       - name: Run Empirical Shadow Edge Engine V1.7
         run: python edge_engine_v17.py
 
+      - name: Run Calibration Protection Shadow Engine V1.8
+        run: python edge_engine_v18.py
+
       - name: Run Paper Trader V1.1
         run: python paper_trader.py
 
@@ -71,6 +74,7 @@ jobs:
           # because the monthly file is approaching GitHub's 100 MB blob limit.
           git add data/
           git reset -- data/history/ || true
+          git reset -- data/edge/history/ || true
 
           if git diff --cached --quiet; then
             echo "No new normal pipeline data"
