@@ -61,8 +61,17 @@ jobs:
       - name: Run Paper Trader V1.1
         run: python paper_trader.py
 
+      - name: Run Isolated Paper Trader V1.8
+        run: python paper_trader_v18.py
+
       - name: Run Paper Trial Diagnostics
         run: python paper_trial_analysis.py
+
+      - name: Run V1.8 Paper Trial Diagnostics
+        run: python paper_trial_analysis_v18.py
+
+      - name: Run V1.8 Calibration Tests
+        run: python tests/test_v18_calibration.py
 
       - name: Commit normal pipeline, shadow engine and diagnostics
         run: |
