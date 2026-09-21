@@ -1,10 +1,10 @@
 {
   "engine_version": "1.8",
-  "run_at": "2026-09-21T13:11:04.488207+00:00",
+  "run_at": "2026-09-21T18:43:55.219173+00:00",
   "no_orders_sent": true,
-  "v17_paper_buy_candidates": 71,
-  "v18_paper_buy_candidates": 46,
-  "v18_observation_lock_candidates": 0,
+  "v17_paper_buy_candidates": 75,
+  "v18_paper_buy_candidates": 53,
+  "v18_observation_lock_candidates": 1,
   "calibration_groups_accepted": 131,
   "calibration_groups_rejected_sanity": 2,
   "shrinkage": {
@@ -26,12 +26,13 @@
     }
   },
   "counters": {
-    "excluded_microprice": 458,
-    "excluded_cal_edge": 49,
-    "excluded_raw_edge": 3,
-    "skipped_no_station": 374,
-    "paper_buy_v18": 46,
-    "skipped_no_forecast": 1694
+    "excluded_microprice": 423,
+    "excluded_raw_edge": 6,
+    "excluded_cal_edge": 40,
+    "observation_lock_candidates": 1,
+    "skipped_no_station": 330,
+    "skipped_no_forecast": 1518,
+    "paper_buy_v18": 53
   },
   "guards": {
     "min_entry_price": 0.02,
