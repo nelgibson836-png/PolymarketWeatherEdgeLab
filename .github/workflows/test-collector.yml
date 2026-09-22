@@ -54,6 +54,9 @@ jobs:
       - name: Run Weather Collector V10.2.1
         run: python collector.py
 
+      - name: Capture CLOB Execution Snapshot
+        run: python clob_snapshot.py
+
       - name: Run Calibrated Edge Engine V1.6
         run: python edge_engine_v16.py
 
