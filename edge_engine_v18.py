@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
 from v18_probability_calibration import fit_platt, calibrate_probability, walkforward_diagnostics
+from observation_lock_model import fit_lock_table, lookup_lock
 from edge_engine_v17 import (
     f,
     i,
@@ -272,7 +273,7 @@ def localize_observations(rows):
     return localized
 
 
-def observation_lock_for_market(market, observations):
+def observation_lock_for_market(market, observations, lock_table):
     m = normalize_market(market)
     station = str(m.get("resolution_station") or "").upper().strip()
     date = str(m.get("market_date") or "")[:10]
@@ -341,7 +342,14 @@ def observation_lock_for_market(market, observations):
     if ask is None or not 0 < ask < 1:
         return None
 
-    edge = LOCK_PROBABILITY - ask
+    gap = (running - latest["temp_c"]) if mtype == "highest_temperature" else (latest["temp_c"] - running)
+    empirical = lookup_lock(lock_table, station, local_hour, gap, "high" if mtype == "highest_temperature" else "low")
+    if not empirical:
+        return None
+    lock_probability = empirical["probability_lower95"]
+    if lock_probability <= ask:
+        return None
+    edge = lock_probability - ask
     fee = fee_per_share(ask, DEFAULT_WEATHER_FEE_RATE)
     return {
         "locked_value_c": locked_value,
@@ -349,13 +357,17 @@ def observation_lock_for_market(market, observations):
         "local_hour": local_hour,
         "extreme_age_hours": round(age_hours, 2),
         "latest_observation_c": latest["temp_c"],
-        "lock_probability": LOCK_PROBABILITY,
+        "lock_probability": lock_probability,
+        "lock_probability_mean": empirical["probability_mean"],
+        "lock_probability_lower95": empirical["probability_lower95"],
+        "lock_history_n": empirical["n"],
+        "lock_history_days": empirical["days"],
         "ask": ask,
         "gross_edge": round(edge, 6),
         "net_ev_per_share": round(edge - fee, 6),
         "tradeable_price": ask >= MIN_ENTRY_PRICE and ask <= LOCK_MAX_ASK,
         "signal": "OBS_LOCK_CANDIDATE" if edge > 0 and ask >= MIN_ENTRY_PRICE and ask <= LOCK_MAX_ASK else "OBS_LOCK_WATCH",
-        "reason": "observation_lock_two_cooling_reports",
+        "reason": "empirical_observation_lock_lower95",
     }
 
 
@@ -425,7 +437,7 @@ def build_v18_signals(markets, forecasts, groups, residuals, source_variants, ob
         for market in family:
             m = normalize_market(market)
             guard = settlement_guard_for_market(market, source_variants)
-            lock = observation_lock_for_market(market, observations)
+            lock = observation_lock_for_market(market, observations, lock_table)
 
             ask = f(m.get("best_ask"))
             if ask is None or not 0 < ask < 1:
@@ -589,7 +601,9 @@ def main():
 
     history = load_source_history()
     variants = source_guard(history)
-    observations = localize_observations(read_csv(OBS_FILE))
+    raw_observations = read_csv(OBS_FILE)
+    observations = localize_observations(raw_observations)
+    lock_table = fit_lock_table(raw_observations, STATION_TIMEZONES)
 
     signals, counters = build_v18_signals(
         markets,
@@ -634,10 +648,12 @@ def main():
         },
         "observation_lock": {
             "enabled": LOCK_ENABLED,
+            "empirical_cells": len(lock_table),
+            "method": "empirical station/hour/gap lower95",
             "min_local_hour": LOCK_MIN_LOCAL_HOUR,
             "min_extreme_age_hours": LOCK_MIN_MAX_AGE_HOURS,
             "cooling_gap_c": LOCK_COOLING_GAP_C,
-            "probability": LOCK_PROBABILITY,
+            "legacy_probability_parameter": LOCK_PROBABILITY,
         },
     }
     write_json(COMPARISON_FILE, comparison)
