@@ -37,15 +37,21 @@ def main():
     stake=sum(f(r.get("stake")) or 0 for r in closed)
     brier=sum((p-y)**2 for p,y in zip(ps,ys))/n if n else None
     ll=sum(logloss(p,y) for p,y in zip(ps,ys))/n if n else None
+    market_ps=[f(r.get("entry_price")) for r in closed]
+    market_ps=[p for p in market_ps if p is not None and 0 < p < 1]
+    market_pairs=[(f(r.get("entry_price")), y) for r,y in zip(closed,ys) if f(r.get("entry_price")) is not None and 0 < f(r.get("entry_price")) < 1]
+    market_brier=sum((p-y)**2 for p,y in market_pairs)/len(market_pairs) if market_pairs else None
+    market_ll=sum(logloss(p,y) for p,y in market_pairs)/len(market_pairs) if market_pairs else None
     micro=[r for r in closed if (f(r.get("entry_price")) or 0)<=.02]
     nonmicro=[r for r in closed if (f(r.get("entry_price")) or 0)>.02]
     result={"generated_at":datetime.now(timezone.utc).isoformat(),"engine_version":"1.8","paper_trial":read_json(SUMMARY),
       "closed_trades":n,"wins":wins,"losses":n-wins,"observed_win_rate":wins/n if n else None,
       "mean_calibrated_probability":sum(ps)/n if n else None,"expected_wins":sum(ps) if n else None,
-      "actual_minus_expected_wins":wins-sum(ps) if n else None,"brier_score":brier,"log_loss":ll,
+      "actual_minus_expected_wins":wins-sum(ps) if n else None,"brier_score":brier,"log_loss":ll,"market_brier_score":market_brier,"market_log_loss":market_ll,
       "closed_pnl":pnl,"closed_roi":pnl/stake if stake else None,
       "microprice_le_2c":{"n":len(micro),"pnl":sum(f(r.get("pnl")) or 0 for r in micro),"wins":sum(r.get("result")=="WIN" for r in micro)},
       "non_microprice_gt_2c":{"n":len(nonmicro),"pnl":sum(f(r.get("pnl")) or 0 for r in nonmicro),"wins":sum(r.get("result")=="WIN" for r in nonmicro)},
+      "market_comparison": {"model_minus_market_brier": (brier-market_brier) if brier is not None and market_brier is not None else None, "model_minus_market_log_loss": (ll-market_ll) if ll is not None and market_ll is not None else None},
       "live_ready":False,
       "promotion_rule":"Require positive OOS edge after execution costs, not dependent on <=2c tickets, with settlement integrity and sufficient multi-city sample."
     }
