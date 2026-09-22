@@ -162,6 +162,8 @@ def build_trade(signal, seq, free_cash):
         return None
     if calibrated_p is None or raw_p is None:
         return None
+    if signal.get("execution_source") != "clob_book":
+        return None
 
     execution = min(0.999999, ask + EXTRA_SLIPPAGE)
     budget = min(STAKE_PER_TRADE, free_cash)
