@@ -6,6 +6,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
+from v18_probability_calibration import fit_platt, calibrate_probability, walkforward_diagnostics
 from edge_engine_v17 import (
     f,
     i,
@@ -31,7 +32,7 @@ SUMMARY_FILE = os.path.join(DATA_DIR, "edge", "calibration", "station_calibratio
 MATCHES_FILE = os.path.join(DATA_DIR, "edge", "calibration", "station_calibration_matches.csv")
 OBS_FILE = os.path.join(DATA_DIR, "weather", "history", "observations.csv")
 HISTORY_DIR = os.path.join(DATA_DIR, "history")
-PAPER_TRADES_FILE = os.path.join(DATA_DIR, "edge", "paper", "trades.csv")
+PAPER_TRADES_FILE = os.path.join(DATA_DIR, "edge", "paper_v18", "trades.csv")
 V17_FILE = os.path.join(DATA_DIR, "edge", "latest_signals_v17.json")
 
 EDGE_DIR = os.path.join(DATA_DIR, "edge")
@@ -148,93 +149,44 @@ def closed_paper_trades():
     for row in rows:
         if str(row.get("status") or "").upper() != "CLOSED":
             continue
-        p = f(row.get("model_probability"))
+        p = f(row.get("raw_model_probability"))
         result = str(row.get("result") or "").upper()
-        if p is None or result not in ("WIN", "LOSS"):
-            continue
-        outcome = 1.0 if result == "WIN" else 0.0
-        entry = f(row.get("entry_price"))
-        market_type = str(row.get("market_type") or "unknown")
-        bucket = str(row.get("bucket_type") or "")
-        if p <= 0 or p >= 1:
+        if p is None or result not in ("WIN", "LOSS") or not 0.0 < p < 1.0:
             continue
         out.append({
-            "opened_at": str(row.get("opened_at") or ""),
-            "p": p,
-            "outcome": outcome,
-            "entry_price": entry,
-            "market_type": market_type,
-            "bucket_type": bucket,
+            "decision_at": str(row.get("opened_at") or ""),
+            "resolved_at": str(row.get("resolved_at") or ""),
+            "raw_model_probability": p,
+            "outcome": 1.0 if result == "WIN" else 0.0,
+            "market_type": str(row.get("market_type") or "unknown"),
+            "event_key": str(row.get("event_key") or ""),
+            "market_date": str(row.get("market_date") or ""),
+            "calibration_eligible": "true",
         })
-    out.sort(key=lambda x: x["opened_at"])
     return out
 
 
-def fit_alpha(trades, min_trades=SHRINK_MIN_TRADES):
-    if len(trades) < min_trades:
-        return 1.0
-    best_alpha = 1.0
-    best_loss = float("inf")
-    # Conservative grid; alpha < 1 pulls probabilities toward 0.5.
-    for step in range(25, 101):
-        alpha = step / 100.0
-        loss = 0.0
-        for t in trades:
-            p = apply_shrink(t["p"], alpha)
-            p = min(1.0 - 1e-9, max(1e-9, p))
-            y = t["outcome"]
-            loss += -(y * math.log(p) + (1.0 - y) * math.log(1.0 - p))
-        loss /= len(trades)
-        if loss < best_loss:
-            best_loss = loss
-            best_alpha = alpha
-    return max(SHRINK_MIN_ALPHA, min(SHRINK_MAX_ALPHA, best_alpha))
+def calibration_params(trades, market_type=None):
+    params = fit_platt(trades, cutoff=now_iso(), market_type=market_type)
+    if not params["ready"] and market_type is not None:
+        params = fit_platt(trades, cutoff=now_iso())
+        params["scope"] = "global"
+    return params
 
 
-def fit_alpha_by_type(trades):
-    result = {}
-    for market_type in sorted({t["market_type"] for t in trades}):
-        subset = [t for t in trades if t["market_type"] == market_type]
-        if len(subset) >= SHRINK_MIN_TRADES:
-            result[market_type] = fit_alpha(subset)
-    return result
+def calibrated_probability(raw_probability, params):
+    if not params.get("ready"):
+        return float(raw_probability)
+    return calibrate_probability(
+        raw_probability,
+        params.get("intercept", 0.0),
+        params.get("slope", 1.0),
+    )
 
 
-def walkforward_shrink_diagnostics(trades):
-    base_brier = []
-    shrink_brier = []
-    base_log = []
-    shrink_log = []
-    scored = 0
-    alpha_used = []
+def walkforward_calibration_diagnostics(trades):
+    return walkforward_diagnostics(trades)
 
-    history = []
-    for trade in trades:
-        if len(history) >= SHRINK_MIN_TRADES:
-            alpha = fit_alpha(history)
-            p0 = trade["p"]
-            p1 = apply_shrink(p0, alpha)
-            y = trade["outcome"]
-            base_brier.append((p0 - y) ** 2)
-            shrink_brier.append((p1 - y) ** 2)
-            base_log.append(-(y * math.log(max(1e-9, min(1 - 1e-9, p0))) +
-                              (1 - y) * math.log(max(1e-9, min(1 - 1e-9, 1 - p0)))))
-            shrink_log.append(-(y * math.log(max(1e-9, min(1 - 1e-9, p1))) +
-                                (1 - y) * math.log(max(1e-9, min(1 - 1e-9, 1 - p1)))))
-            scored += 1
-            alpha_used.append(alpha)
-        history.append(trade)
-
-    return {
-        "scored_trades": scored,
-        "baseline_brier": (sum(base_brier) / len(base_brier)) if base_brier else None,
-        "shrunken_brier": (sum(shrink_brier) / len(shrink_brier)) if shrink_brier else None,
-        "baseline_log_loss": (sum(base_log) / len(base_log)) if base_log else None,
-        "shrunken_log_loss": (sum(shrink_log) / len(shrink_log)) if shrink_log else None,
-        "mean_alpha": (sum(alpha_used) / len(alpha_used)) if alpha_used else None,
-        "improved_brier": (sum(shrink_brier) < sum(base_brier)) if base_brier else None,
-        "improved_log_loss": (sum(shrink_log) < sum(base_log)) if base_log else None,
-    }
 
 
 def load_source_history():
@@ -417,7 +369,7 @@ def price_bucket(ask):
     return "normal_price_>=5c"
 
 
-def build_v18_signals(markets, forecasts, groups, residuals, source_variants, observations, alpha_global, alpha_by_type):
+def build_v18_signals(markets, forecasts, groups, residuals, source_variants, observations, cal_global, cal_by_type):
     families = defaultdict(list)
     for market in markets:
         key = market.get("event_key")
@@ -494,8 +446,9 @@ def build_v18_signals(markets, forecasts, groups, residuals, source_variants, ob
             if m.get("bucket_type") in ("exact", "range") and family_value and family_value > 0:
                 normalized_raw_p = max(0.0, min(1.0, raw_p / family_value))
 
-            alpha = alpha_by_type.get(str(market_type), alpha_global)
-            cal_p = apply_shrink(normalized_raw_p, alpha)
+            params = cal_by_type.get(str(market_type), cal_global)
+            cal_p = calibrated_probability(normalized_raw_p, params)
+            alpha = params.get("slope", 1.0) if params.get("ready") else 1.0
             fee = fee_per_share(ask, DEFAULT_WEATHER_FEE_RATE)
             edge = cal_p - ask
             ev = edge - fee
@@ -626,9 +579,13 @@ def main():
     residuals = load_residuals(groups)
 
     paper_trades = closed_paper_trades()
-    alpha_global = fit_alpha(paper_trades)
-    alpha_by_type = fit_alpha_by_type(paper_trades)
-    walkforward = walkforward_shrink_diagnostics(paper_trades)
+    cal_global = calibration_params(paper_trades)
+    cal_by_type = {}
+    for market_type in sorted({x.get("market_type") for x in paper_trades if x.get("market_type")}):
+        params = calibration_params(paper_trades, market_type=market_type)
+        if params.get("ready"):
+            cal_by_type[market_type] = params
+    walkforward = walkforward_calibration_diagnostics(paper_trades)
 
     history = load_source_history()
     variants = source_guard(history)
@@ -641,8 +598,8 @@ def main():
         residuals,
         variants,
         observations,
-        alpha_global,
-        alpha_by_type,
+        cal_global,
+        cal_by_type,
     )
 
     paper_v18 = [x for x in signals if x.get("signal") == "PAPER_BUY_V18"]
@@ -663,8 +620,8 @@ def main():
         "calibration_groups_rejected_sanity": rejected_sanity,
         "shrinkage": {
             "n_closed_paper_trades": len(paper_trades),
-            "global_alpha": alpha_global,
-            "alpha_by_market_type": alpha_by_type,
+            "global_calibration": cal_global,
+            "calibration_by_market_type": cal_by_type,
             "walkforward": walkforward,
         },
         "counters": dict(counters),
@@ -693,9 +650,9 @@ def main():
         "probability_method": "empirical_station_lead + shrinkage",
         "calibration_groups_accepted": usable_count,
         "calibration_groups_rejected_sanity": rejected_sanity,
-        "shrink_alpha_global": alpha_global,
-        "shrink_alpha_by_market_type": alpha_by_type,
-        "walkforward_shrink_diagnostics": walkforward,
+        "calibration_global": cal_global,
+        "calibration_by_market_type": cal_by_type,
+        "walkforward_calibration_diagnostics": walkforward,
         "signals_evaluated": len(signals),
         "paper_buy_v18": len(paper_v18),
         "observation_lock_candidates": len(locks),
@@ -719,10 +676,10 @@ def main():
         h.write(f"V1.7 PAPER_BUY snapshot: {v17_paper}\n")
         h.write(f"V1.8 PAPER_BUY_V18: {len(paper_v18)}\n")
         h.write(f"Observation-lock candidates: {len(locks)}\n")
-        h.write(f"Global shrink alpha: {alpha_global:.2f}\n")
-        if alpha_by_type:
-            h.write(f"Shrink alpha by type: {json.dumps(alpha_by_type, sort_keys=True)}\n")
-        h.write(f"Walk-forward shrink diagnostics: {json.dumps(walkforward, sort_keys=True)}\n\n")
+        h.write(f"Global calibration: {json.dumps(cal_global, sort_keys=True)}\n")
+        if cal_by_type:
+            h.write(f"Calibration by type: {json.dumps(cal_by_type, sort_keys=True)}\n")
+        h.write(f"Walk-forward calibration diagnostics: {json.dumps(walkforward, sort_keys=True)}\n\n")
         h.write("GUARDS\n")
         h.write(f"min_entry_price={MIN_ENTRY_PRICE:.3f}\n")
         h.write(f"max_raw_edge={MAX_RAW_EDGE:.2f}\n")
@@ -745,9 +702,9 @@ def main():
     print(f"V1.7 PAPER_BUY candidates: {v17_paper}")
     print(f"V1.8 PAPER_BUY_V18 candidates: {len(paper_v18)}")
     print(f"Observation-lock candidates: {len(locks)}")
-    print(f"Global shrink alpha: {alpha_global:.2f}")
+    print(f"Global calibration: {cal_global}")
     print(f"Closed paper trades used for shrink fit: {len(paper_trades)}")
-    print(f"Walk-forward scored trades: {walkforward['scored_trades']}")
+    print(f"Walk-forward scored observations: {walkforward.get('scored_oos', 0)}")
     print(f"Accepted calibration groups: {usable_count}")
     print(f"Excluded microprice: {counters.get('excluded_microprice', 0)}")
     print(f"Excluded source-change: {counters.get('excluded_source_change', 0)}")
