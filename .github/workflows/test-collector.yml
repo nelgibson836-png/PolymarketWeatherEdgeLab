@@ -81,6 +81,9 @@ jobs:
       - name: Run V1.8 Paper Trader Tests
         run: python tests/test_paper_trader_v18.py
 
+      - name: Run Observation Lock Tests
+        run: python tests/test_observation_lock.py
+
       - name: Commit normal pipeline, shadow engine and diagnostics
         run: |
           git config user.name "github-actions[bot]"
