@@ -32,6 +32,7 @@ FORECAST_FILE = os.path.join(DATA_DIR, "weather", "history", "forecasts.csv")
 SUMMARY_FILE = os.path.join(DATA_DIR, "edge", "calibration", "station_calibration_summary.csv")
 MATCHES_FILE = os.path.join(DATA_DIR, "edge", "calibration", "station_calibration_matches.csv")
 OBS_FILE = os.path.join(DATA_DIR, "weather", "history", "observations.csv")
+CLOB_FILE = os.path.join(DATA_DIR, "edge", "execution", "latest_clob_books.json")
 HISTORY_DIR = os.path.join(DATA_DIR, "history")
 PAPER_TRADES_FILE = os.path.join(DATA_DIR, "edge", "paper_v18", "trades.csv")
 V17_FILE = os.path.join(DATA_DIR, "edge", "latest_signals_v17.json")
@@ -75,7 +76,7 @@ FIELDS = [
     "net_ev_per_share","forecast_count","forecast_models","forecast_mean_c",
     "calibration_sigma_c","calibration_source","calibration_samples","calibration_bias_c",
     "calibration_lead_days","family_probability_sum","family_status","settlement_guard",
-    "source_variants","source_changed","price_bucket","signal","reason"
+    "source_variants","source_changed","price_bucket","execution_source","clob_best_ask","clob_best_bid","clob_best_ask_depth","signal","reason"
 ]
 
 STATION_TIMEZONES = {
@@ -381,7 +382,16 @@ def price_bucket(ask):
     return "normal_price_>=5c"
 
 
-def build_v18_signals(markets, forecasts, groups, residuals, source_variants, observations, cal_global, cal_by_type):
+
+def load_clob_books():
+    if not os.path.exists(CLOB_FILE):
+        return {}
+    try:
+        return read_json(CLOB_FILE).get("markets", {})
+    except Exception:
+        return {}
+
+def build_v18_signals(markets, forecasts, groups, residuals, source_variants, observations, lock_table, clob_books, cal_global, cal_by_type):
     families = defaultdict(list)
     for market in markets:
         key = market.get("event_key")
@@ -439,7 +449,13 @@ def build_v18_signals(markets, forecasts, groups, residuals, source_variants, ob
             guard = settlement_guard_for_market(market, source_variants)
             lock = observation_lock_for_market(market, observations, lock_table)
 
-            ask = f(m.get("best_ask"))
+            gamma_ask = f(m.get("best_ask"))
+            book = clob_books.get(str(m.get("market_id") or ""), {})
+            clob_ask = f(book.get("best_ask"))
+            clob_bid = f(book.get("best_bid"))
+            clob_depth = f(book.get("depth_ask_at_best")) or 0.0
+            ask = clob_ask if clob_ask is not None else gamma_ask
+            execution_source = "clob_book" if clob_ask is not None else "gamma_reference"
             if ask is None or not 0 < ask < 1:
                 continue
 
@@ -493,6 +509,8 @@ def build_v18_signals(markets, forecasts, groups, residuals, source_variants, ob
             strong = (
                 ask >= MIN_ENTRY_PRICE and
                 not guard["changed"] and
+                execution_source == "clob_book" and
+                clob_depth >= 10.0 / max(ask, 0.0001) and
                 raw_edge <= MAX_RAW_EDGE and
                 edge <= MAX_CALIBRATED_EDGE and
                 edge >= STRONG_MIN_EDGE and
@@ -524,7 +542,11 @@ def build_v18_signals(markets, forecasts, groups, residuals, source_variants, ob
                 "shrunken_model_probability": r(cal_p),
                 "market_probability": r(f(m.get("yes_price"))),
                 "entry_price": r(ask),
-                "entry_source": "ask",
+                "entry_source": execution_source,
+                "execution_source": execution_source,
+                "clob_best_ask": r(clob_ask),
+                "clob_best_bid": r(clob_bid),
+                "clob_best_ask_depth": r(clob_depth, 6),
                 "fee_rate": DEFAULT_WEATHER_FEE_RATE,
                 "fee_per_share": r(fee, 8),
                 "gross_edge": r(edge),
@@ -604,6 +626,7 @@ def main():
     raw_observations = read_csv(OBS_FILE)
     observations = localize_observations(raw_observations)
     lock_table = fit_lock_table(raw_observations, STATION_TIMEZONES)
+    clob_books = load_clob_books()
 
     signals, counters = build_v18_signals(
         markets,
@@ -612,6 +635,8 @@ def main():
         residuals,
         variants,
         observations,
+        lock_table,
+        clob_books,
         cal_global,
         cal_by_type,
     )
