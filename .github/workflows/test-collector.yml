@@ -22,6 +22,11 @@ on:
 permissions:
   contents: write
 
+# Never allow two scheduled collectors to mutate the same paper ledger concurrently.
+concurrency:
+  group: polymarket-weather-lab
+  cancel-in-progress: false
+
 jobs:
 
   normal:
@@ -72,6 +77,9 @@ jobs:
 
       - name: Run V1.8 Calibration Tests
         run: python tests/test_v18_calibration.py
+
+      - name: Run V1.8 Paper Trader Tests
+        run: python tests/test_paper_trader_v18.py
 
       - name: Commit normal pipeline, shadow engine and diagnostics
         run: |
