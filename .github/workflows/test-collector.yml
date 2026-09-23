@@ -1,6 +1,14 @@
 name: Polymarket Weather Lab
 
 on:
+  push:
+    paths:
+      - "tests/test_v18_calibration.py"
+      - "tests/test_paper_trader_v18.py"
+      - "tests/test_observation_lock.py"
+      - "v18_probability_calibration.py"
+      - "paper_trader_v18.py"
+      - "observation_lock_model.py"
   workflow_dispatch:
     inputs:
       mode:
@@ -31,6 +39,7 @@ jobs:
 
   normal:
     if: >
+      github.event_name == 'push' ||
       github.event_name == 'schedule' ||
       github.event.inputs.mode == 'normal' ||
       github.event.inputs.mode == 'both'
