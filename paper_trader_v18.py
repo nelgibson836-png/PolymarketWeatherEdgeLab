@@ -167,6 +167,8 @@ def build_trade(signal, seq, free_cash):
 
     execution = min(0.999999, ask + EXTRA_SLIPPAGE)
     budget = min(STAKE_PER_TRADE, free_cash)
+    if budget <= 0.0:
+        return None
 
     # Stake is the total cash budget, including estimated fee.
     denom = execution + max(0.0, fee_per_share)
