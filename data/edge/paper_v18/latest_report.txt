@@ -2,7 +2,7 @@ POLYMARKET WEATHER PAPER TRADER V1.8
 VIRTUAL MONEY ONLY — NO ORDERS SENT
 NET P&L INCLUDES RECORDED EXECUTION FEE AND SLIPPAGE ASSUMPTION
 
-updated_at: 2026-09-24T11:49:28.123423+00:00
+updated_at: 2026-09-24T16:40:15.340485+00:00
 engine_version: 1.8
 trial_start: 2026-09-21T06:22:36.056456+00:00
 trial_end: 2026-10-06T06:22:36.056456+00:00
@@ -10,16 +10,16 @@ trial_active: True
 virtual_bankroll_initial: 1000.0
 stake_target: 10.0
 max_open_trades: 30
-closed_trades: 25
-open_trades: 8
-wins: 0
-losses: 25
-win_rate: 0.0
-closed_pnl_net: -250.0
-closed_roi_net: -1.0
-open_committed_cash: 80.0
-free_cash_before_new_orders: 920.0
-mark_to_unsettled: 670.0
+closed_trades: 28
+open_trades: 5
+wins: 1
+losses: 27
+win_rate: 0.03571428571428571
+closed_pnl_net: -255.30864198
+closed_roi_net: -0.9118165785
+open_committed_cash: 50.0
+free_cash_before_new_orders: 950.0
+mark_to_unsettled: 694.69135802
 max_open_per_family: 1
 max_open_per_city: 3
 max_open_per_market_date: 8

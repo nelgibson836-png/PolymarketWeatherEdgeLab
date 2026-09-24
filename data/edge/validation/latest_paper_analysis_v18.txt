@@ -1,21 +1,21 @@
-generated_at: 2026-09-24T11:49:28.253242+00:00
+generated_at: 2026-09-24T16:40:15.468494+00:00
 engine_version: 1.8
-paper_trial: {'updated_at': '2026-09-24T11:49:28.123423+00:00', 'engine_version': '1.8', 'trial_start': '2026-09-21T06:22:36.056456+00:00', 'trial_end': '2026-10-06T06:22:36.056456+00:00', 'trial_active': True, 'virtual_bankroll_initial': 1000.0, 'stake_target': 10.0, 'max_open_trades': 30, 'closed_trades': 25, 'open_trades': 8, 'wins': 0, 'losses': 25, 'win_rate': 0.0, 'closed_pnl_net': -250.0, 'closed_roi_net': -1.0, 'open_committed_cash': 80.0, 'free_cash_before_new_orders': 920.0, 'mark_to_unsettled': 670.0, 'max_open_per_family': 1, 'max_open_per_city': 3, 'max_open_per_market_date': 8, 'extra_slippage_assumption': 0.005, 'signal_max_age_minutes': 20, 'new_paper_trades_this_run': 0, 'execution_model': 'whole-budget-fill-at-ask-plus-slippage; no historical CLOB depth', 'live_ready': False}
-closed_trades: 25
-wins: 0
-losses: 25
-observed_win_rate: 0.0
-mean_calibrated_probability: 0.28971864
-expected_wins: 7.242966000000001
-actual_minus_expected_wins: -7.242966000000001
-brier_score: 0.09708085044311997
-log_loss: 0.3584773474599436
-market_brier_score: 0.033444
-market_log_loss: 0.15995952172028122
-closed_pnl: -250.0
-closed_roi: -1.0
+paper_trial: {'updated_at': '2026-09-24T16:40:15.340485+00:00', 'engine_version': '1.8', 'trial_start': '2026-09-21T06:22:36.056456+00:00', 'trial_end': '2026-10-06T06:22:36.056456+00:00', 'trial_active': True, 'virtual_bankroll_initial': 1000.0, 'stake_target': 10.0, 'max_open_trades': 30, 'closed_trades': 28, 'open_trades': 5, 'wins': 1, 'losses': 27, 'win_rate': 0.03571428571428571, 'closed_pnl_net': -255.30864198, 'closed_roi_net': -0.9118165785, 'open_committed_cash': 50.0, 'free_cash_before_new_orders': 950.0, 'mark_to_unsettled': 694.69135802, 'max_open_per_family': 1, 'max_open_per_city': 3, 'max_open_per_market_date': 8, 'extra_slippage_assumption': 0.005, 'signal_max_age_minutes': 20, 'new_paper_trades_this_run': 0, 'execution_model': 'whole-budget-fill-at-ask-plus-slippage; no historical CLOB depth', 'live_ready': False}
+closed_trades: 28
+wins: 1
+losses: 27
+observed_win_rate: 0.03571428571428571
+mean_calibrated_probability: 0.2976766785714286
+expected_wins: 8.334947000000001
+actual_minus_expected_wins: -7.334947000000001
+brier_score: 0.10395993880917855
+log_loss: 0.3715427015431231
+market_brier_score: 0.047150000000000004
+market_log_loss: 0.19238870305335337
+closed_pnl: -255.30864198
+closed_roi: -0.9118165785
 microprice_le_2c: {'n': 3, 'pnl': -30.0, 'wins': 0}
-non_microprice_gt_2c: {'n': 22, 'pnl': -220.0, 'wins': 0}
-market_comparison: {'model_minus_market_brier': 0.06363685044311997, 'model_minus_market_log_loss': 0.19851782573966237}
+non_microprice_gt_2c: {'n': 25, 'pnl': -225.30864198, 'wins': 1}
+market_comparison: {'model_minus_market_brier': 0.05680993880917854, 'model_minus_market_log_loss': 0.1791539984897697}
 live_ready: False
 promotion_rule: Require positive OOS edge after execution costs, not dependent on <=2c tickets, with settlement integrity and sufficient multi-city sample.
