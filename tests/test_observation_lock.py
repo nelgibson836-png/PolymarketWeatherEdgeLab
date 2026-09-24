@@ -16,7 +16,7 @@ def test_lock_table_is_station_specific():
             {"station":"TEST","observation_time":f"{date}T18:00:00Z","temperature_c":"27"},
         ])
     table = fit_lock_table(rows, {"TEST":"UTC"})
-    cell = lookup_lock(table, "TEST", 18, 3, "high")
+    cell = lookup_lock(table, "TEST", 18, 0, "high")
     assert cell is not None
     assert cell["days"] >= 30
     assert 0 <= cell["probability_lower95"] <= cell["probability_mean"] <= 1
