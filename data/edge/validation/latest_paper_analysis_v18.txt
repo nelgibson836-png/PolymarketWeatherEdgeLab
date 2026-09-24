@@ -1,6 +1,6 @@
-generated_at: 2026-09-24T06:12:17.416807+00:00
+generated_at: 2026-09-24T11:49:28.253242+00:00
 engine_version: 1.8
-paper_trial: {'updated_at': '2026-09-24T06:12:17.329158+00:00', 'engine_version': '1.8', 'trial_start': '2026-09-21T06:22:36.056456+00:00', 'trial_end': '2026-10-06T06:22:36.056456+00:00', 'trial_active': True, 'virtual_bankroll_initial': 1000.0, 'stake_target': 10.0, 'max_open_trades': 30, 'closed_trades': 25, 'open_trades': 8, 'wins': 0, 'losses': 25, 'win_rate': 0.0, 'closed_pnl_net': -250.0, 'closed_roi_net': -1.0, 'open_committed_cash': 80.0, 'free_cash_before_new_orders': 920.0, 'mark_to_unsettled': 670.0, 'max_open_per_family': 1, 'max_open_per_city': 3, 'max_open_per_market_date': 8, 'extra_slippage_assumption': 0.005, 'signal_max_age_minutes': 20, 'new_paper_trades_this_run': 0, 'execution_model': 'whole-budget-fill-at-ask-plus-slippage; no historical CLOB depth', 'live_ready': False}
+paper_trial: {'updated_at': '2026-09-24T11:49:28.123423+00:00', 'engine_version': '1.8', 'trial_start': '2026-09-21T06:22:36.056456+00:00', 'trial_end': '2026-10-06T06:22:36.056456+00:00', 'trial_active': True, 'virtual_bankroll_initial': 1000.0, 'stake_target': 10.0, 'max_open_trades': 30, 'closed_trades': 25, 'open_trades': 8, 'wins': 0, 'losses': 25, 'win_rate': 0.0, 'closed_pnl_net': -250.0, 'closed_roi_net': -1.0, 'open_committed_cash': 80.0, 'free_cash_before_new_orders': 920.0, 'mark_to_unsettled': 670.0, 'max_open_per_family': 1, 'max_open_per_city': 3, 'max_open_per_market_date': 8, 'extra_slippage_assumption': 0.005, 'signal_max_age_minutes': 20, 'new_paper_trades_this_run': 0, 'execution_model': 'whole-budget-fill-at-ask-plus-slippage; no historical CLOB depth', 'live_ready': False}
 closed_trades: 25
 wins: 0
 losses: 25
