@@ -1,37 +1,40 @@
 {
   "engine_version": "1.8",
-  "run_at": "2026-09-22T11:48:48.616724+00:00",
+  "run_at": "2026-09-24T00:14:15.842413+00:00",
   "no_orders_sent": true,
-  "v17_paper_buy_candidates": 80,
-  "v18_paper_buy_candidates": 48,
+  "v17_paper_buy_candidates": 73,
+  "v18_paper_buy_candidates": 0,
   "v18_observation_lock_candidates": 0,
   "calibration_groups_accepted": 131,
   "calibration_groups_rejected_sanity": 2,
   "shrinkage": {
-    "n_closed_paper_trades": 366,
-    "global_alpha": 1.0,
-    "alpha_by_market_type": {
-      "highest_temperature": 1.0,
-      "lowest_temperature": 1.0
+    "n_closed_paper_trades": 9,
+    "global_calibration": {
+      "ready": false,
+      "rows": 9,
+      "independent_groups": 9,
+      "intercept": 0.0,
+      "slope": 1.0,
+      "reason": "insufficient_resolved_independent_groups"
     },
+    "calibration_by_market_type": {},
     "walkforward": {
-      "scored_trades": 336,
-      "baseline_brier": 0.10221612409108034,
-      "shrunken_brier": 0.10221612409108034,
-      "baseline_log_loss": 0.3725020352388063,
-      "shrunken_log_loss": 0.3725020352388064,
-      "mean_alpha": 1.0,
-      "improved_brier": false,
-      "improved_log_loss": false
+      "scored_oos": 0,
+      "baseline_brier": null,
+      "calibrated_brier": null,
+      "baseline_log_loss": null,
+      "calibrated_log_loss": null,
+      "improved_brier": null,
+      "improved_log_loss": null,
+      "method": "point_in_time_by_resolution_availability",
+      "group_weighting": "equal_event_weight"
     }
   },
   "counters": {
-    "excluded_microprice": 495,
-    "excluded_cal_edge": 52,
-    "excluded_raw_edge": 7,
-    "skipped_no_station": 374,
-    "paper_buy_v18": 48,
-    "skipped_no_forecast": 1551
+    "skipped_no_station": 242,
+    "skipped_no_forecast": 1100,
+    "excluded_microprice": 237,
+    "excluded_cal_edge": 18
   },
   "guards": {
     "min_entry_price": 0.02,
@@ -42,9 +45,11 @@
   },
   "observation_lock": {
     "enabled": true,
+    "empirical_cells": 0,
+    "method": "empirical station/hour/gap lower95",
     "min_local_hour": 17,
     "min_extreme_age_hours": 2.0,
     "cooling_gap_c": 2.0,
-    "probability": 0.97
+    "legacy_probability_parameter": 0.97
   }
 }
