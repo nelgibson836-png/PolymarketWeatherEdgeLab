@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-28T06:59:27.670778+00:00",
+  "updated_at": "2026-09-28T15:17:58.861543+00:00",
   "trial_days": 15,
   "trial_start": "2026-09-11T16:03:48.809958+00:00",
   "trial_end": "2026-09-26T16:03:48.809958+00:00",
@@ -8,13 +8,13 @@
   "stake_per_trade": 10.0,
   "max_open_trades": 50,
   "total_trades": 531,
-  "open_trades": 5,
-  "closed_trades": 526,
+  "open_trades": 4,
+  "closed_trades": 527,
   "wins": 24,
-  "losses": 502,
-  "win_rate": 0.045627376425855515,
-  "closed_pnl": -280.04894312999977,
-  "closed_roi": -0.053241243941064595,
-  "open_stake": 50.0,
-  "virtual_equity_after_closed": 719.9510568700002
+  "losses": 503,
+  "win_rate": 0.04554079696394687,
+  "closed_pnl": -290.04894312999977,
+  "closed_roi": -0.05503775011954455,
+  "open_stake": 40.0,
+  "virtual_equity_after_closed": 709.9510568700002
 }
