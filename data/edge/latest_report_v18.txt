@@ -1,8 +1,8 @@
 POLYMARKET WEATHER EDGE ENGINE V1.8
 SHADOW VALIDATION — NO ORDERS SENT
-UTC: 2026-09-28T21:20:52.694448+00:00
+UTC: 2026-09-29T01:10:58.625741+00:00
 
-V1.7 PAPER_BUY snapshot: 76
+V1.7 PAPER_BUY snapshot: 71
 V1.8 PAPER_BUY_V18: 0
 Observation-lock candidates: 0
 Global calibration: {"independent_groups": 33, "intercept": 0.0, "ready": false, "reason": "insufficient_resolved_independent_groups", "rows": 33, "slope": 1.0}
@@ -16,53 +16,53 @@ microprice_cutoff<0.02
 settlement_source_guard=enabled
 
 TOP V1.8 SHADOW SIGNALS
-POSSIBLE_EDGE_V18|Madrid|2026-09-30|p_raw=0.716129|p_cal=0.716129|ask=0.18|edge=0.536129|alpha=1.0|reason=raw_edge_too_large; calibrated_edge_too_large; family=INCOMPLETE
-POSSIBLE_EDGE_V18|Shanghai|2026-09-29|p_raw=0.524324|p_cal=0.524324|ask=0.14|edge=0.384324|alpha=1.0|reason=calibrated_edge_too_large
-POSSIBLE_EDGE_V18|Kuala Lumpur|2026-09-29|p_raw=0.297297|p_cal=0.297297|ask=0.02|edge=0.277297|alpha=1.0|reason=calibrated_edge_too_large
-POSSIBLE_EDGE_V18|Seoul (Incheon)|2026-09-29|p_raw=0.297297|p_cal=0.297297|ask=0.05|edge=0.247297|alpha=1.0|reason=calibrated_edge_too_large
-POSSIBLE_EDGE_V18|Tokyo|2026-09-29|p_raw=0.275676|p_cal=0.275676|ask=0.03|edge=0.245676|alpha=1.0|reason=calibrated_edge_too_large
-POSSIBLE_EDGE_V18|Tokyo|2026-09-29|p_raw=0.351351|p_cal=0.351351|ask=0.11|edge=0.241351|alpha=1.0|reason=calibrated_edge_too_large
-POSSIBLE_EDGE_V18|Helsinki|2026-09-29|p_raw=0.418182|p_cal=0.418182|ask=0.18|edge=0.238182|alpha=1.0|reason=calibrated_edge_too_large
-POSSIBLE_EDGE_V18|Ankara|2026-09-30|p_raw=0.297297|p_cal=0.297297|ask=0.08|edge=0.217297|alpha=1.0|reason=calibrated_edge_too_large
-POSSIBLE_EDGE_V18|Paris|2026-09-30|p_raw=0.333333|p_cal=0.333333|ask=0.12|edge=0.213333|alpha=1.0|reason=calibrated_edge_too_large
-POSSIBLE_EDGE_V18|Paris|2026-09-29|p_raw=0.227778|p_cal=0.227778|ask=0.023|edge=0.204778|alpha=1.0|reason=calibrated_edge_too_large
-POSSIBLE_EDGE_V18|Ankara|2026-09-29|p_raw=0.297297|p_cal=0.297297|ask=0.09|edge=0.207297|alpha=1.0|reason=calibrated_edge_too_large
-POSSIBLE_EDGE_V18|Warsaw|2026-09-29|p_raw=0.315508|p_cal=0.315508|ask=0.12|edge=0.195508|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Seoul (Incheon)|2026-09-30|p_raw=0.351351|p_cal=0.351351|ask=0.155|edge=0.196351|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Shanghai|2026-09-30|p_raw=0.351351|p_cal=0.351351|ask=0.16|edge=0.191351|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Helsinki|2026-09-29|p_raw=0.2|p_cal=0.2|ask=0.02|edge=0.18|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Madrid|2026-09-29|p_raw=0.578947|p_cal=0.578947|ask=0.4|edge=0.178947|alpha=1.0|reason=family=INCOMPLETE
-POSSIBLE_EDGE_V18|Amsterdam|2026-09-29|p_raw=0.27044|p_cal=0.27044|ask=0.1|edge=0.17044|alpha=1.0|reason=family=INCOMPLETE
-POSSIBLE_EDGE_V18|Shanghai|2026-09-30|p_raw=0.278689|p_cal=0.278689|ask=0.11|edge=0.168689|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Amsterdam|2026-09-29|p_raw=0.534591|p_cal=0.534591|ask=0.36|edge=0.174591|alpha=1.0|reason=family=INCOMPLETE
-POSSIBLE_EDGE_V18|Seoul (Incheon)|2026-09-29|p_raw=0.191257|p_cal=0.191257|ask=0.033|edge=0.158257|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Shanghai|2026-09-29|p_raw=0.202186|p_cal=0.202186|ask=0.044|edge=0.158186|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Madrid|2026-09-30|p_raw=0.216667|p_cal=0.216667|ask=0.06|edge=0.156667|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Tokyo|2026-09-30|p_raw=0.236994|p_cal=0.236994|ask=0.08|edge=0.156994|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Singapore|2026-09-29|p_raw=0.210811|p_cal=0.210811|ask=0.06|edge=0.150811|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Seoul (Incheon)|2026-09-30|p_raw=0.167568|p_cal=0.167568|ask=0.02|edge=0.147568|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Warsaw|2026-09-30|p_raw=0.219251|p_cal=0.219251|ask=0.07|edge=0.149251|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Karachi|2026-09-30|p_raw=0.197861|p_cal=0.197861|ask=0.06|edge=0.137861|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Paris|2026-09-30|p_raw=0.367232|p_cal=0.367232|ask=0.24|edge=0.127232|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Guangzhou|2026-09-29|p_raw=0.2|p_cal=0.2|ask=0.08|edge=0.12|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Ankara|2026-09-30|p_raw=0.135135|p_cal=0.135135|ask=0.02|edge=0.115135|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|London|2026-09-29|p_raw=0.362162|p_cal=0.362162|ask=0.24|edge=0.122162|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Kuala Lumpur|2026-09-29|p_raw=0.254054|p_cal=0.254054|ask=0.14|edge=0.114054|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Karachi|2026-09-30|p_raw=0.122995|p_cal=0.122995|ask=0.02|edge=0.102995|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Karachi|2026-09-30|p_raw=0.513514|p_cal=0.513514|ask=0.4|edge=0.113514|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Guangzhou|2026-09-30|p_raw=0.150838|p_cal=0.150838|ask=0.048|edge=0.102838|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Warsaw|2026-09-30|p_raw=0.368984|p_cal=0.368984|ask=0.26|edge=0.108984|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Milan|2026-09-29|p_raw=0.234973|p_cal=0.234973|ask=0.13|edge=0.104973|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Amsterdam|2026-09-30|p_raw=0.222857|p_cal=0.222857|ask=0.12|edge=0.102857|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|London|2026-09-30|p_raw=0.15508|p_cal=0.15508|ask=0.06|edge=0.09508|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Paris|2026-09-29|p_raw=0.328859|p_cal=0.328859|ask=0.23|edge=0.098859|alpha=1.0|reason=family=INCOMPLETE
-POSSIBLE_EDGE_V18|Guangzhou|2026-09-29|p_raw=0.124324|p_cal=0.124324|ask=0.035|edge=0.089324|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Beijing|2026-09-29|p_raw=0.138122|p_cal=0.138122|ask=0.05|edge=0.088122|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Seoul (Incheon)|2026-09-30|p_raw=0.167568|p_cal=0.167568|ask=0.08|edge=0.087568|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Amsterdam|2026-09-29|p_raw=0.106918|p_cal=0.106918|ask=0.024|edge=0.082918|alpha=1.0|reason=family=INCOMPLETE
-POSSIBLE_EDGE_V18|London|2026-09-30|p_raw=0.101604|p_cal=0.101604|ask=0.02|edge=0.081604|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Beijing|2026-09-30|p_raw=0.101604|p_cal=0.101604|ask=0.02|edge=0.081604|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Wellington|2026-09-29|p_raw=0.47027|p_cal=0.47027|ask=0.38|edge=0.09027|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Amsterdam|2026-09-30|p_raw=0.417143|p_cal=0.417143|ask=0.33|edge=0.087143|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Shanghai|2026-09-29|p_raw=0.333333|p_cal=0.333333|ask=0.25|edge=0.083333|alpha=1.0|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Seoul (Incheon)|2026-09-30|p_raw=0.178378|p_cal=0.178378|ask=0.1|edge=0.078378|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Madrid|2026-09-30|p_raw=0.607843|p_cal=0.607843|ask=0.18|edge=0.427843|alpha=1.0|reason=raw_edge_too_large; calibrated_edge_too_large; family=INCOMPLETE
+POSSIBLE_EDGE_V18|Tokyo|2026-09-30|p_raw=0.333333|p_cal=0.333333|ask=0.05|edge=0.283333|alpha=1.0|reason=calibrated_edge_too_large; family=INCOMPLETE
+POSSIBLE_EDGE_V18|Karachi|2026-09-29|p_raw=0.336898|p_cal=0.336898|ask=0.07|edge=0.266898|alpha=1.0|reason=calibrated_edge_too_large
+POSSIBLE_EDGE_V18|Warsaw|2026-09-30|p_raw=0.283422|p_cal=0.283422|ask=0.04|edge=0.243422|alpha=1.0|reason=calibrated_edge_too_large
+POSSIBLE_EDGE_V18|Paris|2026-09-30|p_raw=0.344262|p_cal=0.344262|ask=0.1|edge=0.244262|alpha=1.0|reason=calibrated_edge_too_large
+POSSIBLE_EDGE_V18|Ankara|2026-09-30|p_raw=0.294118|p_cal=0.294118|ask=0.06|edge=0.234118|alpha=1.0|reason=calibrated_edge_too_large
+POSSIBLE_EDGE_V18|Tokyo|2026-09-30|p_raw=0.351351|p_cal=0.351351|ask=0.13|edge=0.221351|alpha=1.0|reason=calibrated_edge_too_large
+POSSIBLE_EDGE_V18|Warsaw|2026-09-29|p_raw=0.315508|p_cal=0.315508|ask=0.1|edge=0.215508|alpha=1.0|reason=calibrated_edge_too_large
+POSSIBLE_EDGE_V18|Helsinki|2026-09-29|p_raw=0.418182|p_cal=0.418182|ask=0.21|edge=0.208182|alpha=1.0|reason=calibrated_edge_too_large
+POSSIBLE_EDGE_V18|Shanghai|2026-09-30|p_raw=0.362162|p_cal=0.362162|ask=0.16|edge=0.202162|alpha=1.0|reason=calibrated_edge_too_large
+POSSIBLE_EDGE_V18|London|2026-09-29|p_raw=0.362162|p_cal=0.362162|ask=0.17|edge=0.192162|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Ankara|2026-09-29|p_raw=0.297297|p_cal=0.297297|ask=0.11|edge=0.187297|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Seoul (Incheon)|2026-09-30|p_raw=0.2|p_cal=0.2|ask=0.02|edge=0.18|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Seoul (Incheon)|2026-09-29|p_raw=0.191257|p_cal=0.191257|ask=0.034|edge=0.157257|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Paris|2026-09-30|p_raw=0.398907|p_cal=0.398907|ask=0.24|edge=0.158907|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Ankara|2026-09-30|p_raw=0.315508|p_cal=0.315508|ask=0.16|edge=0.155508|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Karachi|2026-09-30|p_raw=0.556757|p_cal=0.556757|ask=0.4|edge=0.156757|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Madrid|2026-09-30|p_raw=0.216667|p_cal=0.216667|ask=0.07|edge=0.146667|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Amsterdam|2026-09-30|p_raw=0.222857|p_cal=0.222857|ask=0.08|edge=0.142857|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Tokyo|2026-09-30|p_raw=0.275676|p_cal=0.275676|ask=0.135|edge=0.140676|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Amsterdam|2026-09-29|p_raw=0.27044|p_cal=0.27044|ask=0.13|edge=0.14044|alpha=1.0|reason=family=INCOMPLETE
+POSSIBLE_EDGE_V18|London|2026-09-30|p_raw=0.372973|p_cal=0.372973|ask=0.23|edge=0.142973|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Milan|2026-09-30|p_raw=0.206704|p_cal=0.206704|ask=0.07|edge=0.136704|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Shanghai|2026-09-29|p_raw=0.202186|p_cal=0.202186|ask=0.07|edge=0.132186|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Singapore|2026-09-29|p_raw=0.210811|p_cal=0.210811|ask=0.08|edge=0.130811|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Amsterdam|2026-09-29|p_raw=0.534591|p_cal=0.534591|ask=0.4|edge=0.134591|alpha=1.0|reason=family=INCOMPLETE
+POSSIBLE_EDGE_V18|Shanghai|2026-09-30|p_raw=0.234973|p_cal=0.234973|ask=0.11|edge=0.124973|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Kuala Lumpur|2026-09-29|p_raw=0.254054|p_cal=0.254054|ask=0.13|edge=0.124054|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Lucknow|2026-09-29|p_raw=0.145946|p_cal=0.145946|ask=0.028|edge=0.117946|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Munich|2026-09-30|p_raw=0.240642|p_cal=0.240642|ask=0.12|edge=0.120642|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Karachi|2026-09-30|p_raw=0.176471|p_cal=0.176471|ask=0.06|edge=0.116471|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Seoul (Incheon)|2026-09-30|p_raw=0.178378|p_cal=0.178378|ask=0.07|edge=0.108378|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Lucknow|2026-09-30|p_raw=0.144385|p_cal=0.144385|ask=0.039|edge=0.105385|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Madrid|2026-09-29|p_raw=0.44385|p_cal=0.44385|ask=0.33|edge=0.11385|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Seoul (Incheon)|2026-09-30|p_raw=0.394595|p_cal=0.394595|ask=0.286|edge=0.108595|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Guangzhou|2026-09-29|p_raw=0.2|p_cal=0.2|ask=0.1|edge=0.1|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Beijing|2026-09-29|p_raw=0.160221|p_cal=0.160221|ask=0.066|edge=0.094221|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Guangzhou|2026-09-30|p_raw=0.138122|p_cal=0.138122|ask=0.05|edge=0.088122|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Lucknow|2026-09-29|p_raw=0.2|p_cal=0.2|ask=0.11|edge=0.09|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Karachi|2026-09-30|p_raw=0.101604|p_cal=0.101604|ask=0.02|edge=0.081604|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Warsaw|2026-09-30|p_raw=0.347594|p_cal=0.347594|ask=0.26|edge=0.087594|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Guangzhou|2026-09-29|p_raw=0.124324|p_cal=0.124324|ask=0.045|edge=0.079324|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Milan|2026-09-30|p_raw=0.139665|p_cal=0.139665|ask=0.06|edge=0.079665|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|London|2026-09-30|p_raw=0.219251|p_cal=0.219251|ask=0.14|edge=0.079251|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Shanghai|2026-09-30|p_raw=0.344262|p_cal=0.344262|ask=0.27|edge=0.074262|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Beijing|2026-09-30|p_raw=0.189189|p_cal=0.189189|ask=0.12|edge=0.069189|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Seoul (Incheon)|2026-09-30|p_raw=0.167568|p_cal=0.167568|ask=0.1|edge=0.067568|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|London|2026-09-30|p_raw=0.124324|p_cal=0.124324|ask=0.06|edge=0.064324|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|London|2026-09-29|p_raw=0.081081|p_cal=0.081081|ask=0.02|edge=0.061081|alpha=1.0|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Seoul (Incheon)|2026-09-30|p_raw=0.297297|p_cal=0.297297|ask=0.23|edge=0.067297|alpha=1.0|reason=v18_thresholds_pass

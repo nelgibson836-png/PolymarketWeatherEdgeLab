@@ -1,20 +1,20 @@
 POLYMARKET WEATHER PAPER TRIAL ANALYSIS
-Generated: 2026-09-28T21:20:58.153677+00:00
+Generated: 2026-09-29T01:11:03.466492+00:00
 
 CURRENT TRIAL
 Trial start: 2026-09-11T16:03:48.809958+00:00
 Trial end: 2026-09-26T16:03:48.809958+00:00
-Closed trades: 529
-Open trades: 2
-Observed win rate: 0.045369
-Mean model probability: 0.269789
-Expected wins from model: 142.718313
-Actual minus expected wins: -118.718313
-Brier score: 0.097014
-Log loss: 0.363680
-Closed P&L: -310.048943
-Closed ROI: -0.058610
-Max realized drawdown: 2405.537665
+Closed trades: 531
+Open trades: 0
+Observed win rate: 0.045198
+Mean model probability: 0.269955
+Expected wins from model: 143.346160
+Actual minus expected wins: -119.346160
+Brier score: 0.097022
+Log loss: 0.363732
+Closed P&L: -330.048943
+Closed ROI: -0.062156
+Max realized drawdown: 2425.537665
 P&L from entry <= $0.02: 1270.000000
 Share of positive P&L from entry <= $0.02: n/a
 
@@ -22,19 +22,19 @@ BUCKET TYPE
 Cumulative buckets closed: 22
 Cumulative win rate: 0.045455
 Cumulative P&L: -180.000000
-Exact/range closed: 507
-Exact/range win rate: 0.045365
-Exact/range P&L: -130.048943
+Exact/range closed: 509
+Exact/range win rate: 0.045187
+Exact/range P&L: -150.048943
 
 V1.7 SHADOW
-Signals evaluated: 965
-PAPER_BUY candidates: 76
-PAPER_BUY cumulative: 4
-PAPER_BUY exact/range: 72
+Signals evaluated: 783
+PAPER_BUY candidates: 71
+PAPER_BUY cumulative: 3
+PAPER_BUY exact/range: 68
 Exact/range not PASS: 0
 Thin asks: 0
-PAPER_BUY p >= 50%: 2
-Max PAPER_BUY probability: 0.524324
+PAPER_BUY p >= 50%: 1
+Max PAPER_BUY probability: 0.556757
 
 DECISION NOTE
 Positive P&L alone is not treated as proof of predictive edge.
@@ -45,7 +45,7 @@ PROBABILITY BINS
 00-05%: n=0 mean_p=n/a observed=n/a error=n/a pnl=0
 05-10%: n=2 mean_p=0.095886 observed=0.000000 error=-0.095886 pnl=-20.000000
 10-20%: n=109 mean_p=0.167207 observed=0.000000 error=-0.167207 pnl=-1090.000000
-20-30%: n=247 mean_p=0.253768 observed=0.048583 error=-0.205185 pnl=-367.153827
-30-50%: n=166 mean_p=0.351263 observed=0.072289 error=-0.278973 pnl=1217.104883
+20-30%: n=248 mean_p=0.253901 observed=0.048387 error=-0.205514 pnl=-377.153827
+30-50%: n=167 mean_p=0.351201 observed=0.071856 error=-0.279345 pnl=1207.104883
 50-75%: n=4 mean_p=0.580003 observed=0.000000 error=-0.580003 pnl=-40.000000
 75-100%: n=1 mean_p=0.990632 observed=0.000000 error=-0.990632 pnl=-10.000000
