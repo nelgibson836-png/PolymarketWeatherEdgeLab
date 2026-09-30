@@ -120,6 +120,20 @@ def resolve_market(mid):
         return "LOSS", 0.0, "binary_no_resolved"
     return None, None, f"non_binary_or_disputed:{prices}"
 
+def settle_trade(shares, payout_per_share, stake):
+    """Return gross payout and P&L without charging the entry fee twice.
+
+    The paper entry budget already includes fee_total in stake. Resolution of
+    a held-to-settlement position does not incur a second taker entry fee.
+    """
+    shares = f(shares) or 0.0
+    payout_per_share = f(payout_per_share) or 0.0
+    stake = f(stake) or 0.0
+    gross_payout = shares * payout_per_share
+    net_pnl = gross_payout - stake
+    return gross_payout, net_pnl
+
+
 def load_state():
     os.makedirs(PAPER_DIR, exist_ok=True)
     if os.path.exists(STATE_FILE):
@@ -280,12 +294,10 @@ def main():
         if result is None:
             continue
 
-        shares = f(trade.get("shares")) or 0.0
-        fee_total = f(trade.get("fee_total")) or 0.0
-        gross_payout = shares * payout
-        net_payout = max(0.0, gross_payout - fee_total)
         stake = f(trade.get("stake")) or 0.0
-        net_pnl = net_payout - stake
+        shares = f(trade.get("shares")) or 0.0
+        gross_payout, net_pnl = settle_trade(shares, payout, stake)
+        net_payout = gross_payout
 
         trade.update({
             "status": "CLOSED",
