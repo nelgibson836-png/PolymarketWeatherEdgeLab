@@ -708,6 +708,7 @@ def build_v18_signals(markets, forecasts, groups, residuals, source_variants, ob
                 "forecast_count": len(stats["entries"]),
                 "forecast_models": ",".join(stats["models"]),
                 "model_count": model_count,
+                "calibration_ready": bool(params.get("ready", False)),
                 "forecast_mean_c": r(stats["forecast"], 4),
                 "calibration_sigma_c": r(stats["sigma"], 4),
                 "calibration_source": "station_model_lead_empirical",
