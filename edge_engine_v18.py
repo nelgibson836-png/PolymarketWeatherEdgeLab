@@ -250,8 +250,25 @@ def update_shadow_log(rows, candidates):
         and str(row.get("market_date") or "")[:10] < now.date().isoformat()
     ]
     unresolved.sort(key=lambda row: str(row.get("decision_at") or ""))
-    for row in unresolved[:SHADOW_RESOLVE_MAX]:
-        outcome, note = resolve_shadow_market(row["market_id"])
+    market_ids = []
+    seen_market_ids = set()
+    for row in unresolved:
+        market_id = str(row.get("market_id") or "")
+        if market_id and market_id not in seen_market_ids:
+            seen_market_ids.add(market_id)
+            market_ids.append(market_id)
+        if len(market_ids) >= SHADOW_RESOLVE_MAX:
+            break
+
+    outcomes = {
+        market_id: resolve_shadow_market(market_id)
+        for market_id in market_ids
+    }
+    for row in unresolved:
+        market_id = str(row.get("market_id") or "")
+        if market_id not in outcomes:
+            continue
+        outcome, note = outcomes[market_id]
         if outcome is None:
             if note:
                 row["resolution_note"] = note
@@ -674,7 +691,7 @@ def build_v18_signals(markets, forecasts, groups, residuals, source_variants, ob
                 "bucket_value": m.get("bucket_value"),
                 "bucket_low": m.get("bucket_low"),
                 "bucket_high": m.get("bucket_high"),
-                "probability_method": "empirical_station_lead + walkforward_shrink_shadow",
+                "probability_method": "empirical_station_lead + calibrated_model_consensus + shrinkage",
                 "raw_model_probability": r(normalized_raw_p),
                 "shrunken_model_probability": r(cal_p),
                 "market_probability": r(f(m.get("yes_price"))),
