@@ -120,6 +120,58 @@ def resolve_market(mid):
         return "LOSS", 0.0, "binary_no_resolved"
     return None, None, f"non_binary_or_disputed:{prices}"
 
+def simulate_clob_fill(book, budget, fee_rate=0.05):
+    """Fill a paper buy across real captured ask levels without lookahead."""
+    asks = []
+    for level in (book or {}).get("asks", []):
+        try:
+            price = float(level.get("price"))
+            size = float(level.get("size"))
+        except (TypeError, ValueError):
+            continue
+        if 0.0 < price < 1.0 and size > 0.0:
+            asks.append((price, size))
+    asks.sort(key=lambda item: item[0])
+    if not asks or budget <= 0.0:
+        return None
+
+    remaining = float(budget)
+    shares_total = 0.0
+    gross_cost = 0.0
+    fee_total = 0.0
+    first_price = asks[0][0]
+
+    for price, available in asks:
+        fee_per_share = max(0.0, fee_rate * price * (1.0 - price))
+        cash_per_share = price + fee_per_share
+        if cash_per_share <= 0.0:
+            continue
+        level_shares = min(available, remaining / cash_per_share)
+        if level_shares <= 0.0:
+            continue
+        level_gross = level_shares * price
+        level_fee = level_shares * fee_per_share
+        shares_total += level_shares
+        gross_cost += level_gross
+        fee_total += level_fee
+        remaining -= level_gross + level_fee
+        if remaining <= 1e-9:
+            break
+
+    if shares_total <= 0.0:
+        return None
+    total_cash = gross_cost + fee_total
+    return {
+        "shares": shares_total,
+        "gross_cost": gross_cost,
+        "fee_total": fee_total,
+        "total_cash": total_cash,
+        "execution_price": gross_cost / shares_total,
+        "slippage_per_share": gross_cost / shares_total - first_price,
+        "remaining_budget": max(0.0, remaining),
+    }
+
+
 def settle_trade(shares, payout_per_share, stake):
     """Return gross payout and P&L without charging the entry fee twice.
 
@@ -132,6 +184,17 @@ def settle_trade(shares, payout_per_share, stake):
     gross_payout = shares * payout_per_share
     net_pnl = gross_payout - stake
     return gross_payout, net_pnl
+
+
+def load_books():
+    path = os.path.join(EDGE_DIR, "execution", "latest_clob_books.json")
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path, encoding="utf-8") as handle:
+            return json.load(handle).get("markets", {})
+    except Exception:
+        return {}
 
 
 def load_state():
@@ -166,7 +229,7 @@ def signal_is_fresh(signal):
     age = (now() - dt).total_seconds() / 60.0
     return -5.0 <= age <= SIGNAL_MAX_AGE_MINUTES
 
-def build_trade(signal, seq, free_cash):
+def build_trade(signal, seq, free_cash, book=None):
     ask = f(signal.get("entry_price"))
     raw_p = f(signal.get("raw_model_probability"))
     calibrated_p = f(signal.get("shrunken_model_probability"))
@@ -179,22 +242,18 @@ def build_trade(signal, seq, free_cash):
     if signal.get("execution_source") != "clob_book":
         return None
 
-    execution = min(0.999999, ask + EXTRA_SLIPPAGE)
     budget = min(STAKE_PER_TRADE, free_cash)
     if budget <= 0.0:
         return None
 
-    # Stake is the total cash budget, including estimated fee.
-    denom = execution + max(0.0, fee_per_share)
-    if denom <= 0:
+    fee_rate = f(signal.get("fee_rate")) or 0.05
+    fill = simulate_clob_fill(book, budget, fee_rate=fee_rate)
+    if not fill:
         return None
-    shares = budget / denom
-    fee_total = shares * max(0.0, fee_per_share)
-    gross_cost = shares * execution
-    total_cash = gross_cost + fee_total
-
-    if total_cash > free_cash + 1e-9:
-        return None
+    shares = fill["shares"]
+    fee_total = fill["fee_total"]
+    gross_cost = fill["gross_cost"]
+    total_cash = fill["total_cash"]
 
     return {
         "trade_id": f"paper18-{seq:06d}",
@@ -212,12 +271,12 @@ def build_trade(signal, seq, free_cash):
         "bucket_low": signal.get("bucket_low") or "",
         "bucket_high": signal.get("bucket_high") or "",
         "entry_price": ask,
-        "execution_price": execution,
+        "execution_price": fill["execution_price"],
         "shares": shares,
         "stake": total_cash,
         "fee_total": fee_total,
         "fee_per_share": fee_per_share,
-        "slippage_per_share": EXTRA_SLIPPAGE,
+        "slippage_per_share": fill["slippage_per_share"],
         "model_probability": calibrated_p,
         "raw_model_probability": raw_p,
         "gross_edge": f(signal.get("gross_edge")) or "",
@@ -358,7 +417,13 @@ def main():
             if free_cash < 0.01:
                 break
 
-            trade = build_trade(signal, seq, free_cash)
+            books = load_books()
+            trade = build_trade(
+                signal,
+                seq,
+                free_cash,
+                books.get(mid),
+            )
             if not trade:
                 continue
 
