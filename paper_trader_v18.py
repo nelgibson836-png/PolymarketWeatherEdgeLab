@@ -390,6 +390,7 @@ def main():
 
     seq = len(trades) + 1
     added = 0
+    books = load_books()
 
     if active:
         for signal in candidates:
@@ -417,7 +418,6 @@ def main():
             if free_cash < 0.01:
                 break
 
-            books = load_books()
             trade = build_trade(
                 signal,
                 seq,
