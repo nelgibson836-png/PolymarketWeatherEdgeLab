@@ -22,6 +22,8 @@ def _signal():
         "run_at": "2026-09-22T12:00:00+00:00",
         "signal": "PAPER_BUY_V18",
         "execution_source": "clob_book",
+        "calibration_ready": True,
+        "model_count": 2,
     }
 
 
