@@ -2,6 +2,8 @@ import csv
 import json
 import math
 import os
+
+import requests
 from collections import defaultdict
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
@@ -43,6 +45,8 @@ REPORT_FILE = os.path.join(EDGE_DIR, "latest_report_v18.txt")
 HISTORY_FILE = os.path.join(EDGE_DIR, "history", "signals_v18.csv")
 VALIDATION_DIR = os.path.join(EDGE_DIR, "validation")
 COMPARISON_FILE = os.path.join(VALIDATION_DIR, "latest_v18_comparison.json")
+SHADOW_FILE = os.path.join(VALIDATION_DIR, "v18_shadow_decisions.csv")
+SHADOW_RESOLVE_MAX = 100
 
 DEFAULT_WEATHER_FEE_RATE = 0.05
 MIN_CALIBRATION_SAMPLES = 15
@@ -55,6 +59,7 @@ MIN_EDGE = 0.03
 MIN_EV = 0.015
 STRONG_MIN_EDGE = 0.06
 STRONG_MIN_EV = 0.02
+MIN_MODELS_FOR_STRONG = 2
 
 SHRINK_MIN_ALPHA = 0.25
 SHRINK_MAX_ALPHA = 1.00
@@ -67,6 +72,12 @@ LOCK_COOLING_GAP_C = 2.0
 LOCK_LOOKBACK_OBS = 2
 LOCK_PROBABILITY = 0.97
 LOCK_MAX_ASK = 0.95
+
+SHADOW_FIELDS = [
+    "decision_at","market_id","event_key","city","station","market_date","market_type",
+    "bucket_type","bucket_value","raw_model_probability","market_probability","entry_price",
+    "execution_source","signal","resolved_at","outcome","resolution_note"
+]
 
 FIELDS = [
     "run_at","city","station","market_date","market_type","market_id","event_key",
@@ -143,6 +154,144 @@ def logit(p):
 
 def apply_shrink(p, alpha):
     return sigmoid(alpha * logit(p))
+
+
+def consensus_probability(market, stats):
+    """Combine calibrated station-model probabilities conservatively."""
+    probs = []
+    for entry in stats.get("entries", []):
+        p = empirical_probability(
+            market.get("bucket_type"),
+            f(market.get("bucket_value")),
+            f(market.get("bucket_low")),
+            f(market.get("bucket_high")),
+            entry.get("forecast"),
+            entry.get("errors"),
+        )
+        if p is not None:
+            probs.append(float(p))
+    if not probs:
+        return None, 0
+    return sum(probs) / len(probs), len(probs)
+
+
+def read_shadow_rows():
+    return read_csv(SHADOW_FILE)
+
+
+def resolve_shadow_market(market_id):
+    try:
+        response = requests.get(
+            f"https://gamma-api.polymarket.com/markets/{market_id}",
+            timeout=15,
+            headers={"User-Agent": "PolymarketWeatherEdgeLab/1.8-shadow"},
+        )
+        response.raise_for_status()
+        market = response.json()
+    except Exception:
+        return None, None
+    if not bool(market.get("closed")) and not bool(market.get("resolved")):
+        return None, None
+    prices = market.get("outcomePrices")
+    if isinstance(prices, str):
+        try:
+            prices = json.loads(prices)
+        except Exception:
+            prices = None
+    if not isinstance(prices, list) or len(prices) < 2:
+        return None, "closed_without_final_prices"
+    values = [f(x) for x in prices[:2]]
+    if values == [1.0, 0.0]:
+        return 1.0, "binary_yes_resolved"
+    if values == [0.0, 1.0]:
+        return 0.0, "binary_no_resolved"
+    return None, f"non_binary_or_disputed:{prices}"
+
+
+def update_shadow_log(rows, candidates):
+    now = datetime.now(timezone.utc)
+    existing = {
+        (str(row.get("market_id") or ""), str(row.get("decision_at") or "")): dict(row)
+        for row in rows
+    }
+    for row in candidates:
+        decision_at = str(row.get("run_at") or "")
+        market_id = str(row.get("market_id") or "")
+        if not decision_at or not market_id:
+            continue
+        key = (market_id, decision_at)
+        existing.setdefault(
+            key,
+            {
+                "decision_at": decision_at,
+                "market_id": market_id,
+                "event_key": row.get("event_key") or "",
+                "city": row.get("city") or "",
+                "station": row.get("station") or "",
+                "market_date": row.get("market_date") or "",
+                "market_type": row.get("market_type") or "",
+                "bucket_type": row.get("bucket_type") or "",
+                "bucket_value": row.get("bucket_value") or "",
+                "raw_model_probability": row.get("raw_model_probability") or "",
+                "market_probability": row.get("market_probability") or "",
+                "entry_price": row.get("entry_price") or "",
+                "execution_source": row.get("execution_source") or "",
+                "signal": row.get("signal") or "",
+                "resolved_at": "",
+                "outcome": "",
+                "resolution_note": "",
+            },
+        )
+
+    unresolved = [
+        row for row in existing.values()
+        if not str(row.get("outcome") or "")
+        and str(row.get("market_id") or "")
+        and str(row.get("market_date") or "")[:10] < now.date().isoformat()
+    ]
+    unresolved.sort(key=lambda row: str(row.get("decision_at") or ""))
+    for row in unresolved[:SHADOW_RESOLVE_MAX]:
+        outcome, note = resolve_shadow_market(row["market_id"])
+        if outcome is None:
+            if note:
+                row["resolution_note"] = note
+            continue
+        row["outcome"] = outcome
+        row["resolved_at"] = now.isoformat()
+        row["resolution_note"] = note
+
+    os.makedirs(os.path.dirname(SHADOW_FILE), exist_ok=True)
+    ordered = sorted(
+        existing.values(),
+        key=lambda row: (str(row.get("decision_at") or ""), str(row.get("market_id") or "")),
+    )
+    with open(SHADOW_FILE, "w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=SHADOW_FIELDS, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(ordered)
+    return ordered
+
+
+def closed_shadow_trades(rows):
+    out = []
+    for row in rows:
+        if str(row.get("outcome") or "") not in ("0.0", "1.0", "0", "1"):
+            continue
+        p = f(row.get("raw_model_probability"))
+        outcome = f(row.get("outcome"))
+        if p is None or outcome not in (0.0, 1.0):
+            continue
+        out.append({
+            "decision_at": row.get("decision_at") or "",
+            "resolved_at": row.get("resolved_at") or "",
+            "raw_model_probability": p,
+            "outcome": outcome,
+            "market_type": row.get("market_type") or "unknown",
+            "event_key": row.get("event_key") or "",
+            "market_date": row.get("market_date") or "",
+            "calibration_eligible": "true",
+        })
+    return out
 
 
 def closed_paper_trades():
@@ -422,14 +571,7 @@ def build_v18_signals(markets, forecasts, groups, residuals, source_variants, ob
             m = normalize_market(market)
             if m.get("bucket_type") not in ("exact", "range"):
                 continue
-            p = empirical_probability(
-                m.get("bucket_type"),
-                f(m.get("bucket_value")),
-                f(m.get("bucket_low")),
-                f(m.get("bucket_high")),
-                stats["entries"][0]["forecast"],
-                stats["entries"][0]["errors"],
-            )
+            p, _ = consensus_probability(m, stats)
             if p is not None:
                 exact.append(p)
         if exact:
@@ -459,14 +601,7 @@ def build_v18_signals(markets, forecasts, groups, residuals, source_variants, ob
             if ask is None or not 0 < ask < 1:
                 continue
 
-            raw_p = empirical_probability(
-                m.get("bucket_type"),
-                f(m.get("bucket_value")),
-                f(m.get("bucket_low")),
-                f(m.get("bucket_high")),
-                stats["entries"][0]["forecast"],
-                stats["entries"][0]["errors"],
-            )
+            raw_p, model_count = consensus_probability(m, stats)
             if raw_p is None:
                 continue
 
@@ -516,6 +651,8 @@ def build_v18_signals(markets, forecasts, groups, residuals, source_variants, ob
                 edge >= STRONG_MIN_EDGE and
                 ev >= STRONG_MIN_EV and
                 stats["samples"] >= MIN_CALIBRATION_SAMPLES and
+                model_count >= MIN_MODELS_FOR_STRONG and
+                params.get("ready", False) and
                 (m.get("bucket_type") not in ("exact", "range") or family_status == "PASS")
             )
 
@@ -553,6 +690,7 @@ def build_v18_signals(markets, forecasts, groups, residuals, source_variants, ob
                 "net_ev_per_share": r(ev),
                 "forecast_count": len(stats["entries"]),
                 "forecast_models": ",".join(stats["models"]),
+                "model_count": model_count,
                 "forecast_mean_c": r(stats["forecast"], 4),
                 "calibration_sigma_c": r(stats["sigma"], 4),
                 "calibration_source": "station_model_lead_empirical",
@@ -612,7 +750,8 @@ def main():
     groups, usable_count, rejected_sanity = load_calibration_groups()
     residuals = load_residuals(groups)
 
-    paper_trades = closed_paper_trades()
+    shadow_rows = read_shadow_rows()
+    paper_trades = closed_paper_trades() + closed_shadow_trades(shadow_rows)
     cal_global = calibration_params(paper_trades)
     cal_by_type = {}
     for market_type in sorted({x.get("market_type") for x in paper_trades if x.get("market_type")}):
@@ -641,6 +780,9 @@ def main():
         cal_by_type,
     )
 
+    updated_shadow_rows = update_shadow_log(shadow_rows, signals[:250])
+    shadow_closed = closed_shadow_trades(updated_shadow_rows)
+    paper_trades_for_report = paper_trades
     paper_v18 = [x for x in signals if x.get("signal") == "PAPER_BUY_V18"]
     locks = [x for x in signals if x.get("signal") == "OBS_LOCK_CANDIDATE"]
 
@@ -658,7 +800,9 @@ def main():
         "calibration_groups_accepted": usable_count,
         "calibration_groups_rejected_sanity": rejected_sanity,
         "shrinkage": {
-            "n_closed_paper_trades": len(paper_trades),
+            "n_closed_paper_trades": len(closed_paper_trades()),
+            "n_closed_shadow_decisions": len(closed_shadow_trades(updated_shadow_rows)),
+            "n_calibration_rows": len(paper_trades),
             "global_calibration": cal_global,
             "calibration_by_market_type": cal_by_type,
             "walkforward": walkforward,
@@ -668,6 +812,8 @@ def main():
             "min_entry_price": MIN_ENTRY_PRICE,
             "max_raw_edge": MAX_RAW_EDGE,
             "max_calibrated_edge": MAX_CALIBRATED_EDGE,
+            "min_models_for_strong": MIN_MODELS_FOR_STRONG,
+            "calibration_ready_required_for_strong": True,
             "microprice_cutoff": MICROPRICE_MAX,
             "settlement_source_guard": True,
         },
@@ -688,7 +834,7 @@ def main():
         "run_at": run_at,
         "mode": "shadow_validation",
         "no_orders_sent": True,
-        "probability_method": "empirical_station_lead + shrinkage",
+        "probability_method": "empirical_station_lead + calibrated_model_consensus + shrinkage",
         "calibration_groups_accepted": usable_count,
         "calibration_groups_rejected_sanity": rejected_sanity,
         "calibration_global": cal_global,
