@@ -166,6 +166,7 @@ def simulate_clob_fill(book, budget, fee_rate=0.05):
         "gross_cost": gross_cost,
         "fee_total": fee_total,
         "total_cash": total_cash,
+        "fee_per_share": fee_total / shares_total,
         "execution_price": gross_cost / shares_total,
         "slippage_per_share": gross_cost / shares_total - first_price,
         "remaining_budget": max(0.0, remaining),
@@ -233,8 +234,6 @@ def build_trade(signal, seq, free_cash, book=None):
     ask = f(signal.get("entry_price"))
     raw_p = f(signal.get("raw_model_probability"))
     calibrated_p = f(signal.get("shrunken_model_probability"))
-    fee_per_share = f(signal.get("fee_per_share")) or 0.0
-
     if ask is None or not 0.0 < ask < 1.0:
         return None
     if calibrated_p is None or raw_p is None:
@@ -275,7 +274,7 @@ def build_trade(signal, seq, free_cash, book=None):
         "shares": shares,
         "stake": total_cash,
         "fee_total": fee_total,
-        "fee_per_share": fee_per_share,
+        "fee_per_share": fill["fee_per_share"],
         "slippage_per_share": fill["slippage_per_share"],
         "model_probability": calibrated_p,
         "raw_model_probability": raw_p,
@@ -446,7 +445,7 @@ def main():
         "extra_slippage_assumption": EXTRA_SLIPPAGE,
         "signal_max_age_minutes": SIGNAL_MAX_AGE_MINUTES,
         "new_paper_trades_this_run": added,
-        "execution_model": "whole-budget-fill-at-ask-plus-slippage; no historical CLOB depth",
+        "execution_model": "captured-CLOB-depth fill across ask levels; no historical queue position",
         "live_ready": False,
     })
 
@@ -456,7 +455,7 @@ def main():
     with open(REPORT_FILE, "w", encoding="utf-8") as h:
         h.write("POLYMARKET WEATHER PAPER TRADER V1.8\n")
         h.write("VIRTUAL MONEY ONLY — NO ORDERS SENT\n")
-        h.write("NET P&L INCLUDES RECORDED EXECUTION FEE AND SLIPPAGE ASSUMPTION\n\n")
+        h.write("NET P&L INCLUDES CAPTURED-CLOB FILL COSTS AND PER-MATCH FEES\n\n")
         for key, value in summary.items():
             h.write(f"{key}: {value}\n")
 
