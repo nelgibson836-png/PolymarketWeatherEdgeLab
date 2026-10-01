@@ -38,7 +38,12 @@ def test_decision_key_is_stable():
 
 
 def test_trade_budget_includes_fee():
-    t = build_trade(_signal(), 1, 10.0)
+    t = build_trade(
+        _signal(),
+        1,
+        10.0,
+        {"asks": [{"price": "0.20", "size": "100"}]},
+    )
     assert t is not None
     assert t["stake"] <= 10.0 + 1e-9
     assert t["fee_total"] > 0
