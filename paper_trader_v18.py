@@ -238,6 +238,10 @@ def build_trade(signal, seq, free_cash, book=None):
         return None
     if calibrated_p is None or raw_p is None:
         return None
+    if not bool(signal.get("calibration_ready")):
+        return None
+    if (f(signal.get("model_count")) or 0.0) < 2.0:
+        return None
     if signal.get("execution_source") != "clob_book":
         return None
 
@@ -442,7 +446,7 @@ def main():
         "max_open_per_family": MAX_OPEN_PER_FAMILY,
         "max_open_per_city": MAX_OPEN_PER_CITY,
         "max_open_per_market_date": MAX_OPEN_PER_MARKET_DATE,
-        "extra_slippage_assumption": EXTRA_SLIPPAGE,
+        "extra_slippage_assumption": 0.0,
         "signal_max_age_minutes": SIGNAL_MAX_AGE_MINUTES,
         "new_paper_trades_this_run": added,
         "execution_model": "captured-CLOB-depth fill across ask levels; no historical queue position",
