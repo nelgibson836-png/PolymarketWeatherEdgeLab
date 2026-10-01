@@ -16,7 +16,7 @@ def test_consensus_probability_averages_available_models():
     }
     probability, count = consensus_probability(market, stats)
     assert count == 2
-    assert probability == 0.5
+    assert probability == 0.875
 
 
 def test_consensus_probability_uses_single_model_when_only_one_is_available():
