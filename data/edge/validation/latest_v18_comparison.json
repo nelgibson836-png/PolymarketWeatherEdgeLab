@@ -1,25 +1,44 @@
 {
   "engine_version": "1.8",
-  "run_at": "2026-10-04T02:41:16.208998+00:00",
+  "run_at": "2026-10-04T08:49:43.199194+00:00",
   "no_orders_sent": true,
-  "v17_paper_buy_candidates": 75,
+  "v17_paper_buy_candidates": 80,
   "v18_paper_buy_candidates": 0,
   "v18_observation_lock_candidates": 0,
   "calibration_groups_accepted": 131,
   "calibration_groups_rejected_sanity": 2,
   "shrinkage": {
     "n_closed_paper_trades": 33,
-    "n_closed_shadow_decisions": 209,
-    "n_calibration_rows": 215,
+    "n_closed_shadow_decisions": 523,
+    "n_calibration_rows": 556,
     "global_calibration": {
-      "ready": false,
-      "rows": 215,
-      "independent_groups": 64,
-      "intercept": 0.0,
-      "slope": 1.0,
-      "reason": "insufficient_resolved_independent_groups"
+      "ready": true,
+      "rows": 556,
+      "independent_groups": 92,
+      "intercept": -1.03272455,
+      "slope": 1.82363017,
+      "reason": "point_in_time_platt_logit_recalibration"
     },
-    "calibration_by_market_type": {},
+    "calibration_by_market_type": {
+      "highest_temperature": {
+        "ready": true,
+        "rows": 556,
+        "independent_groups": 92,
+        "intercept": -1.03272455,
+        "slope": 1.82363017,
+        "reason": "point_in_time_platt_logit_recalibration",
+        "scope": "global"
+      },
+      "lowest_temperature": {
+        "ready": true,
+        "rows": 556,
+        "independent_groups": 92,
+        "intercept": -1.03272455,
+        "slope": 1.82363017,
+        "reason": "point_in_time_platt_logit_recalibration",
+        "scope": "global"
+      }
+    },
     "walkforward": {
       "scored_oos": 0,
       "baseline_brier": null,
@@ -33,11 +52,10 @@
     }
   },
   "counters": {
-    "excluded_microprice": 113,
-    "excluded_raw_edge": 2,
-    "excluded_cal_edge": 16,
-    "skipped_no_station": 220,
-    "skipped_no_forecast": 1056
+    "excluded_microprice": 230,
+    "excluded_raw_edge": 3,
+    "skipped_no_station": 330,
+    "skipped_no_forecast": 1419
   },
   "guards": {
     "min_entry_price": 0.02,
