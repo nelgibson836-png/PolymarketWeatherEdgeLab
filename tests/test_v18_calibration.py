@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, ".")
 
-from v18_probability_calibration import calibrate_probability, fit_platt
+from v18_probability_calibration import calibrate_probability, fit_platt, walkforward_diagnostics
 
 
 def _rows(n=80):
@@ -42,8 +42,17 @@ def test_insufficient_history_is_not_used():
     assert p["slope"] == 1.0
 
 
+def test_walkforward_scores_outcomes_that_resolve_after_their_decision():
+    # Each trade resolves one hour after its decision. The resolved outcome
+    # must be usable for later decisions, but never as future information
+    # for its own calibration parameters.
+    result = walkforward_diagnostics(_rows(80))
+    assert result["scored_oos"] == 5
+
+
 if __name__ == "__main__":
     test_ready_requires_real_point_in_time_rows()
     test_calibration_is_bounded()
     test_insufficient_history_is_not_used()
+    test_walkforward_scores_outcomes_that_resolve_after_their_decision()
     print("v18 calibration tests: PASS")
