@@ -166,9 +166,12 @@ def walkforward_diagnostics(rows, min_groups=MIN_GROUPS):
         except (TypeError, ValueError):
             continue
         resolved_at = parse_dt(row.get("resolved_at"))
-        decision_dt = parse_dt(decision_at)
-        if resolved_at is None or decision_dt is None or resolved_at >= decision_dt:
+        if resolved_at is None:
             continue
+        # A row's own outcome is expected to resolve after its decision.
+        # The point-in-time guard is enforced inside choose_params(): only
+        # rows whose outcomes were available before this decision are used
+        # to fit the calibration parameters for this row.
         cal = calibrate_probability(raw, params["intercept"], params["slope"])
         base_brier.append((raw - y) ** 2)
         cal_brier.append((cal - y) ** 2)
