@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-04T08:49:47.801204+00:00",
+  "generated_at": "2026-10-04T14:40:19.126890+00:00",
   "trial_state": {
-    "updated_at": "2026-10-04T08:49:47.619238+00:00",
+    "updated_at": "2026-10-04T14:40:18.955092+00:00",
     "trial_days": 15,
     "trial_start": "2026-09-11T16:03:48.809958+00:00",
     "trial_end": "2026-09-26T16:03:48.809958+00:00",
@@ -21,7 +21,7 @@
     "virtual_equity_after_closed": 669.9510568700002
   },
   "ledger": {
-    "updated_at": "2026-10-04T08:49:47.800343+00:00",
+    "updated_at": "2026-10-04T14:40:19.126045+00:00",
     "closed_trades": 531,
     "open_trades": 0,
     "wins": 24,
@@ -159,17 +159,17 @@
   },
   "v17_shadow": {
     "engine_version": "1.7",
-    "run_at": "2026-10-04T08:49:41.599593+00:00",
-    "signals_evaluated": 1164,
+    "run_at": "2026-10-04T14:40:13.477251+00:00",
+    "signals_evaluated": 1135,
     "signals_retained": 100,
-    "paper_buy_candidates": 80,
+    "paper_buy_candidates": 76,
     "paper_buy_cumulative": 4,
-    "paper_buy_exact_or_range": 76,
+    "paper_buy_exact_or_range": 72,
     "paper_buy_exact_or_range_not_pass": 0,
     "paper_buy_thin_ask": 0,
-    "paper_buy_probability_ge_50pct": 2,
-    "max_paper_buy_probability": 0.561497,
-    "mean_paper_buy_probability": 0.236190775
+    "paper_buy_probability_ge_50pct": 4,
+    "max_paper_buy_probability": 0.593583,
+    "mean_paper_buy_probability": 0.21531722368421047
   },
   "interpretation": {
     "profitability_not_established": true,
