@@ -1,15 +1,15 @@
 {
   "engine_version": "1.8",
-  "run_at": "2026-10-03T23:05:43.720195+00:00",
+  "run_at": "2026-10-04T02:41:16.208998+00:00",
   "no_orders_sent": true,
-  "v17_paper_buy_candidates": 83,
+  "v17_paper_buy_candidates": 75,
   "v18_paper_buy_candidates": 0,
   "v18_observation_lock_candidates": 0,
   "calibration_groups_accepted": 131,
   "calibration_groups_rejected_sanity": 2,
   "shrinkage": {
     "n_closed_paper_trades": 33,
-    "n_closed_shadow_decisions": 182,
+    "n_closed_shadow_decisions": 209,
     "n_calibration_rows": 215,
     "global_calibration": {
       "ready": false,
@@ -33,11 +33,11 @@
     }
   },
   "counters": {
-    "excluded_cal_edge": 23,
-    "skipped_no_station": 244,
-    "excluded_microprice": 199,
-    "skipped_no_forecast": 1409,
-    "excluded_raw_edge": 1
+    "excluded_microprice": 113,
+    "excluded_raw_edge": 2,
+    "excluded_cal_edge": 16,
+    "skipped_no_station": 220,
+    "skipped_no_forecast": 1056
   },
   "guards": {
     "min_entry_price": 0.02,
