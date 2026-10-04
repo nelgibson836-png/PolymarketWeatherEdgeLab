@@ -1111,3 +1111,8 @@ decision_at,market_id,event_key,city,station,market_date,market_type,bucket_type
 2026-10-04T21:09:41.761669+00:00,5225479,helsinki|2026_10_05|highest_temperature|c|efhk,Helsinki,EFHK,2026-10-05,highest_temperature,exact,16.0,0.311475,0.021,0.029,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-04T21:09:41.853221+00:00,5266639,lucknow|2026_10_06|highest_temperature|c|vilk,Lucknow,VILK,2026-10-06,highest_temperature,exact,28.0,0.333333,0.045,0.06,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-04T21:09:41.869534+00:00,5266729,madrid|2026_10_06|highest_temperature|c|lemd,Madrid,LEMD,2026-10-06,highest_temperature,exact,20.0,0.593583,0.22,0.23,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-04T21:47:30.388765+00:00,5225191,london|2026_10_05|highest_temperature|c|eglc,London,EGLC,2026-10-05,highest_temperature,exact,20.0,0.358289,0.037,0.04,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-04T21:47:30.403035+00:00,5225236,wellington|2026_10_05|highest_temperature|c|nzwn,Wellington,NZWN,2026-10-05,highest_temperature,exact,14.0,0.535135,0.165,0.18,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-04T21:47:30.428239+00:00,5225337,madrid|2026_10_05|highest_temperature|c|lemd,Madrid,LEMD,2026-10-05,highest_temperature,exact,23.0,0.44385,0.1,0.11,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-04T21:47:30.446394+00:00,5225479,helsinki|2026_10_05|highest_temperature|c|efhk,Helsinki,EFHK,2026-10-05,highest_temperature,exact,16.0,0.311475,0.022,0.029,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-04T21:47:30.586138+00:00,5266729,madrid|2026_10_06|highest_temperature|c|lemd,Madrid,LEMD,2026-10-06,highest_temperature,exact,20.0,0.593583,0.215,0.22,gamma_reference,POSSIBLE_EDGE_V18,,,
