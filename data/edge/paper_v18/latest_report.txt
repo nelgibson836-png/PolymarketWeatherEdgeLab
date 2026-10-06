@@ -2,11 +2,11 @@ POLYMARKET WEATHER PAPER TRADER V1.8
 VIRTUAL MONEY ONLY — NO ORDERS SENT
 NET P&L INCLUDES CAPTURED-CLOB FILL COSTS AND PER-MATCH FEES
 
-updated_at: 2026-10-06T01:56:13.648606+00:00
+updated_at: 2026-10-06T08:41:17.393784+00:00
 engine_version: 1.8
 trial_start: 2026-09-21T06:22:36.056456+00:00
 trial_end: 2026-10-06T06:22:36.056456+00:00
-trial_active: True
+trial_active: False
 virtual_bankroll_initial: 1000.0
 stake_target: 10.0
 max_open_trades: 30
