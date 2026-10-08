@@ -1,8 +1,8 @@
 POLYMARKET WEATHER EDGE ENGINE V1.8
 SHADOW VALIDATION — NO ORDERS SENT
-UTC: 2026-10-08T10:25:06.935503+00:00
+UTC: 2026-10-08T17:32:55.203715+00:00
 
-V1.7 PAPER_BUY snapshot: 91
+V1.7 PAPER_BUY snapshot: 78
 V1.8 PAPER_BUY_V18: 0
 Observation-lock candidates: 0
 Global calibration: {"independent_groups": 170, "intercept": -1.23849001, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1221, "slope": 1.26585687}
@@ -17,11 +17,8 @@ microprice_cutoff<0.02
 settlement_source_guard=enabled
 
 TOP V1.8 SHADOW SIGNALS
-POSSIBLE_EDGE_V18|Madrid|2026-10-10|p_raw=0.606557|p_cal=0.4449|ask=0.21|edge=0.2349|alpha=1.6858|reason=calibrated_edge_too_large
-POSSIBLE_EDGE_V18|Madrid|2026-10-09|p_raw=0.545946|p_cal=0.345174|ask=0.2|edge=0.145174|alpha=1.6858|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Milan|2026-10-08|p_raw=0.44382|p_cal=0.208919|ask=0.106|edge=0.102919|alpha=1.6858|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Tokyo|2026-10-08|p_raw=0.351955|p_cal=0.118028|ask=0.039|edge=0.079028|alpha=1.2659|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Tokyo|2026-10-08|p_raw=0.318436|p_cal=0.099592|ask=0.049|edge=0.050592|alpha=1.2659|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Wellington|2026-10-09|p_raw=0.416216|p_cal=0.179261|ask=0.13|edge=0.049261|alpha=1.6858|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Madrid|2026-10-09|p_raw=0.243243|p_cal=0.053944|ask=0.02|edge=0.033944|alpha=1.6858|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Madrid|2026-10-08|p_raw=0.294118|p_cal=0.081147|ask=0.048|edge=0.033147|alpha=1.6858|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Munich|2026-10-10|p_raw=0.524752|p_cal=0.313465|ask=0.08|edge=0.233465|alpha=1.6858|reason=raw_edge_too_large; calibrated_edge_too_large; family=INCOMPLETE
+POSSIBLE_EDGE_V18|Munich|2026-10-10|p_raw=0.483333|p_cal=0.256652|ask=0.066|edge=0.190652|alpha=1.6858|reason=raw_edge_too_large
+POSSIBLE_EDGE_V18|Wellington|2026-10-09|p_raw=0.405405|p_cal=0.168449|ask=0.11|edge=0.058449|alpha=1.6858|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Munich|2026-10-09|p_raw=0.396226|p_cal=0.159615|ask=0.105|edge=0.054615|alpha=1.6858|reason=family=INCOMPLETE
+POSSIBLE_EDGE_V18|Madrid|2026-10-10|p_raw=0.383784|p_cal=0.14814|ask=0.1|edge=0.04814|alpha=1.6858|reason=v18_thresholds_pass

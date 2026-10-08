@@ -1254,3 +1254,8 @@ decision_at,market_id,event_key,city,station,market_date,market_type,bucket_type
 2026-10-08T10:25:14.507382+00:00,5397813,madrid|2026_10_09|highest_temperature|c|lemd,Madrid,LEMD,2026-10-09,highest_temperature,exact,19.0,0.243243,0.0155,0.02,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-08T10:25:14.507638+00:00,5397814,madrid|2026_10_09|highest_temperature|c|lemd,Madrid,LEMD,2026-10-09,highest_temperature,exact,20.0,0.545946,0.195,0.2,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-08T10:25:14.673635+00:00,5423779,madrid|2026_10_10|highest_temperature|c|lemd,Madrid,LEMD,2026-10-10,highest_temperature,exact,22.0,0.606557,0.125,0.21,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-08T17:33:02.999272+00:00,5397718,wellington|2026_10_09|highest_temperature|c|nzwn,Wellington,NZWN,2026-10-09,highest_temperature,exact,20.0,0.405405,0.105,0.11,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-08T17:33:03.007475+00:00,5397741,munich|2026_10_09|highest_temperature|c|eddm,Munich,EDDM,2026-10-09,highest_temperature,exact,17.0,0.396226,0.091,0.105,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-08T17:33:03.178168+00:00,5423708,munich|2026_10_10|highest_temperature|c|eddm,Munich,EDDM,2026-10-10,highest_temperature,exact,17.0,0.524752,0.042,0.08,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-08T17:33:03.178415+00:00,5423709,munich|2026_10_10|highest_temperature|c|eddm,Munich,EDDM,2026-10-10,highest_temperature,or_higher,18.0,0.483333,0.0335,0.066,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-08T17:33:03.196788+00:00,5423779,madrid|2026_10_10|highest_temperature|c|lemd,Madrid,LEMD,2026-10-10,highest_temperature,exact,22.0,0.383784,0.07,0.1,gamma_reference,POSSIBLE_EDGE_V18,,,
