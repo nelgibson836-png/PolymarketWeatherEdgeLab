@@ -1,8 +1,8 @@
 POLYMARKET WEATHER EDGE ENGINE V1.8
 SHADOW VALIDATION — NO ORDERS SENT
-UTC: 2026-10-07T23:43:24.747855+00:00
+UTC: 2026-10-08T03:00:35.442652+00:00
 
-V1.7 PAPER_BUY snapshot: 69
+V1.7 PAPER_BUY snapshot: 77
 V1.8 PAPER_BUY_V18: 0
 Observation-lock candidates: 0
 Global calibration: {"independent_groups": 156, "intercept": -1.17114718, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1184, "slope": 1.27842357}
@@ -17,10 +17,8 @@ microprice_cutoff<0.02
 settlement_source_guard=enabled
 
 TOP V1.8 SHADOW SIGNALS
-POSSIBLE_EDGE_V18|Wellington|2026-10-09|p_raw=0.491892|p_cal=0.299227|ask=0.05|edge=0.249227|alpha=1.816|reason=raw_edge_too_large; calibrated_edge_too_large
-POSSIBLE_EDGE_V18|Madrid|2026-10-09|p_raw=0.47027|p_cal=0.267315|ask=0.16|edge=0.107315|alpha=1.816|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Madrid|2026-10-09|p_raw=0.340541|p_cal=0.120022|ask=0.026|edge=0.094022|alpha=1.816|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Tokyo|2026-10-08|p_raw=0.351955|p_cal=0.124383|ask=0.05|edge=0.074383|alpha=1.2784|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Helsinki|2026-10-08|p_raw=0.326203|p_cal=0.108187|ask=0.037|edge=0.071187|alpha=1.816|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Singapore|2026-10-09|p_raw=0.289617|p_cal=0.081552|ask=0.02|edge=0.061552|alpha=1.816|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Karachi|2026-10-08|p_raw=0.336898|p_cal=0.116938|ask=0.075|edge=0.041938|alpha=1.816|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Madrid|2026-10-09|p_raw=0.545946|p_cal=0.387604|ask=0.19|edge=0.197604|alpha=1.816|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Wellington|2026-10-09|p_raw=0.416216|p_cal=0.196792|ask=0.05|edge=0.146792|alpha=1.816|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Tokyo|2026-10-08|p_raw=0.351955|p_cal=0.124383|ask=0.039|edge=0.085383|alpha=1.2784|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Milan|2026-10-08|p_raw=0.432584|p_cal=0.216738|ask=0.135|edge=0.081738|alpha=1.816|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Tokyo|2026-10-08|p_raw=0.318436|p_cal=0.104894|ask=0.049|edge=0.055894|alpha=1.2784|reason=v18_thresholds_pass
