@@ -1,13 +1,13 @@
 POLYMARKET WEATHER EDGE ENGINE V1.8
 SHADOW VALIDATION — NO ORDERS SENT
-UTC: 2026-10-11T00:32:58.643083+00:00
+UTC: 2026-10-11T06:29:47.239449+00:00
 
-V1.7 PAPER_BUY snapshot: 81
+V1.7 PAPER_BUY snapshot: 75
 V1.8 PAPER_BUY_V18: 0
 Observation-lock candidates: 0
-Global calibration: {"independent_groups": 197, "intercept": -1.33121098, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1314, "slope": 1.21904312}
-Calibration by type: {"highest_temperature": {"independent_groups": 137, "intercept": -1.00467055, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1098, "slope": 1.60106902}, "lowest_temperature": {"independent_groups": 197, "intercept": -1.33121098, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1314, "scope": "global", "slope": 1.21904312}}
-Walk-forward calibration diagnostics: {"baseline_brier": 0.17873192016658476, "baseline_log_loss": 0.5438800276355074, "calibrated_brier": 0.10724472302953528, "calibrated_log_loss": 0.35979135340001045, "group_weighting": "equal_event_weight", "improved_brier": true, "improved_log_loss": true, "method": "point_in_time_by_resolution_availability", "scored_oos": 195}
+Global calibration: {"independent_groups": 206, "intercept": -1.4528223, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1343, "slope": 1.14641648}
+Calibration by type: {"highest_temperature": {"independent_groups": 143, "intercept": -1.1323619, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1121, "slope": 1.52066893}, "lowest_temperature": {"independent_groups": 206, "intercept": -1.4528223, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1343, "scope": "global", "slope": 1.14641648}}
+Walk-forward calibration diagnostics: {"baseline_brier": 0.17714439143905808, "baseline_log_loss": 0.5408011492387577, "calibrated_brier": 0.09838847119812888, "calibrated_log_loss": 0.33898147513337035, "group_weighting": "equal_event_weight", "improved_brier": true, "improved_log_loss": true, "method": "point_in_time_by_resolution_availability", "scored_oos": 224}
 
 GUARDS
 min_entry_price=0.020
@@ -17,12 +17,12 @@ microprice_cutoff<0.02
 settlement_source_guard=enabled
 
 TOP V1.8 SHADOW SIGNALS
-POSSIBLE_EDGE_V18|Wellington|2026-10-12|p_raw=0.513514|p_cal=0.285344|ask=0.09|edge=0.195344|alpha=1.6011|reason=raw_edge_too_large
-POSSIBLE_EDGE_V18|Madrid|2026-10-12|p_raw=0.44385|p_cal=0.203301|ask=0.034|edge=0.169301|alpha=1.6011|reason=raw_edge_too_large
-POSSIBLE_EDGE_V18|Seoul (Incheon)|2026-10-11|p_raw=0.502703|p_cal=0.211146|ask=0.097|edge=0.114146|alpha=1.219|reason=raw_edge_too_large
-POSSIBLE_EDGE_V18|London|2026-10-11|p_raw=0.377049|p_cal=0.140813|ask=0.034|edge=0.106813|alpha=1.6011|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Helsinki|2026-10-12|p_raw=0.379679|p_cal=0.142993|ask=0.04|edge=0.102993|alpha=1.6011|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Helsinki|2026-10-11|p_raw=0.348571|p_cal=0.118589|ask=0.029|edge=0.089589|alpha=1.6011|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Tokyo|2026-10-11|p_raw=0.355191|p_cal=0.113234|ask=0.05|edge=0.063234|alpha=1.219|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Milan|2026-10-12|p_raw=0.340782|p_cal=0.112938|ask=0.05|edge=0.062938|alpha=1.6011|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Ankara|2026-10-12|p_raw=0.28655|p_cal=0.078336|ask=0.021|edge=0.057336|alpha=1.6011|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Seoul (Incheon)|2026-10-11|p_raw=0.502703|p_cal=0.191479|ask=0.033|edge=0.158479|alpha=1.1464|reason=raw_edge_too_large
+POSSIBLE_EDGE_V18|Madrid|2026-10-12|p_raw=0.582888|p_cal=0.348989|ask=0.23|edge=0.118989|alpha=1.5207|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Wellington|2026-10-12|p_raw=0.459459|p_cal=0.201089|ask=0.09|edge=0.111089|alpha=1.5207|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|London|2026-10-11|p_raw=0.36612|p_cal=0.122706|ask=0.027|edge=0.095706|alpha=1.5207|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Madrid|2026-10-11|p_raw=0.368984|p_cal=0.124737|ask=0.032|edge=0.092737|alpha=1.5207|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Helsinki|2026-10-11|p_raw=0.347594|p_cal=0.11009|ask=0.029|edge=0.08109|alpha=1.5207|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|London|2026-10-11|p_raw=0.44385|p_cal=0.152983|ask=0.09|edge=0.062983|alpha=1.1464|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Madrid|2026-10-12|p_raw=0.272727|p_cal=0.067617|ask=0.022|edge=0.045617|alpha=1.5207|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Milan|2026-10-12|p_raw=0.337017|p_cal=0.103282|ask=0.06|edge=0.043282|alpha=1.5207|reason=v18_thresholds_pass
