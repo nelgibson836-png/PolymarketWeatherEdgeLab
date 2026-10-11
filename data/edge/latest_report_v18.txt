@@ -1,8 +1,8 @@
 POLYMARKET WEATHER EDGE ENGINE V1.8
 SHADOW VALIDATION — NO ORDERS SENT
-UTC: 2026-10-11T18:19:56.231075+00:00
+UTC: 2026-10-11T22:18:32.951056+00:00
 
-V1.7 PAPER_BUY snapshot: 71
+V1.7 PAPER_BUY snapshot: 81
 V1.8 PAPER_BUY_V18: 0
 Observation-lock candidates: 0
 Global calibration: {"independent_groups": 206, "intercept": -1.4528223, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1343, "slope": 1.14641648}
@@ -17,10 +17,9 @@ microprice_cutoff<0.02
 settlement_source_guard=enabled
 
 TOP V1.8 SHADOW SIGNALS
-POSSIBLE_EDGE_V18|Singapore|2026-10-13|p_raw=0.394595|p_cal=0.1439|ask=0.021|edge=0.1229|alpha=1.5207|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Madrid|2026-10-13|p_raw=0.47027|p_cal=0.211916|ask=0.11|edge=0.101916|alpha=1.5207|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|London|2026-10-11|p_raw=0.390374|p_cal=0.123054|ask=0.028|edge=0.095054|alpha=1.1464|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Wellington|2026-10-12|p_raw=0.394595|p_cal=0.1439|ask=0.058|edge=0.0859|alpha=1.5207|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Tokyo|2026-10-12|p_raw=0.377049|p_cal=0.11625|ask=0.05|edge=0.06625|alpha=1.1464|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Madrid|2026-10-12|p_raw=0.582888|p_cal=0.348989|ask=0.29|edge=0.058989|alpha=1.5207|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|London|2026-10-12|p_raw=0.44385|p_cal=0.152983|ask=0.11|edge=0.042983|alpha=1.1464|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Wellington|2026-10-12|p_raw=0.394595|p_cal=0.1439|ask=0.028|edge=0.1159|alpha=1.5207|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Singapore|2026-10-12|p_raw=0.348571|p_cal=0.110733|ask=0.048|edge=0.062733|alpha=1.5207|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Tokyo|2026-10-12|p_raw=0.26776|p_cal=0.068744|ask=0.02|edge=0.048744|alpha=1.1464|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Ankara|2026-10-13|p_raw=0.264865|p_cal=0.063881|ask=0.021|edge=0.042881|alpha=1.5207|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|London|2026-10-13|p_raw=0.281768|p_cal=0.072074|ask=0.03|edge=0.042074|alpha=1.5207|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Helsinki|2026-10-13|p_raw=0.352601|p_cal=0.113411|ask=0.07|edge=0.043411|alpha=1.5207|reason=v18_thresholds_pass
