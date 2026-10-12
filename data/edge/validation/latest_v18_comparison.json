@@ -1,49 +1,49 @@
 {
   "engine_version": "1.8",
-  "run_at": "2026-10-12T01:34:54.625728+00:00",
+  "run_at": "2026-10-12T08:01:56.851172+00:00",
   "no_orders_sent": true,
-  "v17_paper_buy_candidates": 80,
+  "v17_paper_buy_candidates": 78,
   "v18_paper_buy_candidates": 0,
   "v18_observation_lock_candidates": 0,
   "calibration_groups_accepted": 131,
   "calibration_groups_rejected_sanity": 2,
   "shrinkage": {
     "n_closed_paper_trades": 33,
-    "n_closed_shadow_decisions": 1310,
-    "n_calibration_rows": 1343,
+    "n_closed_shadow_decisions": 1355,
+    "n_calibration_rows": 1388,
     "global_calibration": {
       "ready": true,
-      "rows": 1343,
-      "independent_groups": 206,
-      "intercept": -1.4528223,
-      "slope": 1.14641648,
+      "rows": 1388,
+      "independent_groups": 221,
+      "intercept": -1.57018291,
+      "slope": 1.11414067,
       "reason": "point_in_time_platt_logit_recalibration"
     },
     "calibration_by_market_type": {
       "highest_temperature": {
         "ready": true,
-        "rows": 1121,
-        "independent_groups": 143,
-        "intercept": -1.1323619,
-        "slope": 1.52066893,
+        "rows": 1156,
+        "independent_groups": 153,
+        "intercept": -1.23846074,
+        "slope": 1.49955759,
         "reason": "point_in_time_platt_logit_recalibration"
       },
       "lowest_temperature": {
         "ready": true,
-        "rows": 1343,
-        "independent_groups": 206,
-        "intercept": -1.4528223,
-        "slope": 1.14641648,
+        "rows": 1388,
+        "independent_groups": 221,
+        "intercept": -1.57018291,
+        "slope": 1.11414067,
         "reason": "point_in_time_platt_logit_recalibration",
         "scope": "global"
       }
     },
     "walkforward": {
-      "scored_oos": 224,
-      "baseline_brier": 0.17714439143905808,
-      "calibrated_brier": 0.09838847119812888,
-      "baseline_log_loss": 0.5408011492387577,
-      "calibrated_log_loss": 0.33898147513337035,
+      "scored_oos": 269,
+      "baseline_brier": 0.17201029041110785,
+      "calibrated_brier": 0.08624716727958771,
+      "baseline_log_loss": 0.5301999108509344,
+      "calibrated_log_loss": 0.30871408593495275,
       "improved_brier": true,
       "improved_log_loss": true,
       "method": "point_in_time_by_resolution_availability",
@@ -51,9 +51,9 @@
     }
   },
   "counters": {
-    "excluded_microprice": 116,
-    "skipped_no_station": 220,
-    "skipped_no_forecast": 1056
+    "excluded_microprice": 216,
+    "skipped_no_station": 330,
+    "skipped_no_forecast": 1419
   },
   "guards": {
     "min_entry_price": 0.02,
