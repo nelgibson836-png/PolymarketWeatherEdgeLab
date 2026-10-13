@@ -1,13 +1,13 @@
 POLYMARKET WEATHER EDGE ENGINE V1.8
 SHADOW VALIDATION — NO ORDERS SENT
-UTC: 2026-10-13T06:53:35.715773+00:00
+UTC: 2026-10-13T14:51:13.448365+00:00
 
-V1.7 PAPER_BUY snapshot: 77
+V1.7 PAPER_BUY snapshot: 89
 V1.8 PAPER_BUY_V18: 0
 Observation-lock candidates: 0
-Global calibration: {"independent_groups": 229, "intercept": -1.6329577, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1426, "slope": 1.09191671}
-Calibration by type: {"highest_temperature": {"independent_groups": 160, "intercept": -1.35356073, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1188, "slope": 1.42920738}, "lowest_temperature": {"independent_groups": 229, "intercept": -1.6329577, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1426, "scope": "global", "slope": 1.09191671}}
-Walk-forward calibration diagnostics: {"baseline_brier": 0.1714250807631694, "baseline_log_loss": 0.5290659964965916, "calibrated_brier": 0.08001491043521153, "calibrated_log_loss": 0.2936806924795433, "group_weighting": "equal_event_weight", "improved_brier": true, "improved_log_loss": true, "method": "point_in_time_by_resolution_availability", "scored_oos": 307}
+Global calibration: {"independent_groups": 230, "intercept": -1.64443075, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1429, "slope": 1.08518638}
+Calibration by type: {"highest_temperature": {"independent_groups": 160, "intercept": -1.35356073, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1188, "slope": 1.42920738}, "lowest_temperature": {"independent_groups": 230, "intercept": -1.64443075, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1429, "scope": "global", "slope": 1.08518638}}
+Walk-forward calibration diagnostics: {"baseline_brier": 0.17155379447110644, "baseline_log_loss": 0.5293815364312681, "calibrated_brier": 0.07942213381344068, "calibrated_log_loss": 0.2922587551145837, "group_weighting": "equal_event_weight", "improved_brier": true, "improved_log_loss": true, "method": "point_in_time_by_resolution_availability", "scored_oos": 310}
 
 GUARDS
 min_entry_price=0.020
@@ -17,7 +17,9 @@ microprice_cutoff<0.02
 settlement_source_guard=enabled
 
 TOP V1.8 SHADOW SIGNALS
-POSSIBLE_EDGE_V18|Karachi|2026-10-13|p_raw=0.486631|p_cal=0.155597|ask=0.02|edge=0.135597|alpha=1.0919|reason=raw_edge_too_large
-POSSIBLE_EDGE_V18|Seoul (Incheon)|2026-10-14|p_raw=0.360544|p_cal=0.102247|ask=0.024|edge=0.078247|alpha=1.4292|reason=family=INCOMPLETE
-POSSIBLE_EDGE_V18|Helsinki|2026-10-14|p_raw=0.336898|p_cal=0.089371|ask=0.024|edge=0.065371|alpha=1.4292|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|London|2026-10-14|p_raw=0.318919|p_cal=0.080323|ask=0.03|edge=0.050323|alpha=1.4292|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Helsinki|2026-10-14|p_raw=0.336898|p_cal=0.089371|ask=0.027|edge=0.062371|alpha=1.4292|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Warsaw|2026-10-13|p_raw=0.32973|p_cal=0.085689|ask=0.026|edge=0.059689|alpha=1.4292|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Seoul (Incheon)|2026-10-14|p_raw=0.30719|p_cal=0.074749|ask=0.023|edge=0.051749|alpha=1.4292|reason=family=INCOMPLETE
+POSSIBLE_EDGE_V18|Helsinki|2026-10-13|p_raw=0.294118|p_cal=0.069495|ask=0.02|edge=0.049495|alpha=1.0852|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Madrid|2026-10-13|p_raw=0.545946|p_cal=0.25159|ask=0.196|edge=0.05559|alpha=1.4292|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Helsinki|2026-10-13|p_raw=0.262032|p_cal=0.059074|ask=0.02|edge=0.039074|alpha=1.0852|reason=v18_thresholds_pass

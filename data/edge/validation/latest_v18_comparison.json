@@ -1,22 +1,22 @@
 {
   "engine_version": "1.8",
-  "run_at": "2026-10-13T06:53:35.715773+00:00",
+  "run_at": "2026-10-13T14:51:13.448365+00:00",
   "no_orders_sent": true,
-  "v17_paper_buy_candidates": 77,
+  "v17_paper_buy_candidates": 89,
   "v18_paper_buy_candidates": 0,
   "v18_observation_lock_candidates": 0,
   "calibration_groups_accepted": 131,
   "calibration_groups_rejected_sanity": 2,
   "shrinkage": {
     "n_closed_paper_trades": 33,
-    "n_closed_shadow_decisions": 1393,
-    "n_calibration_rows": 1426,
+    "n_closed_shadow_decisions": 1396,
+    "n_calibration_rows": 1429,
     "global_calibration": {
       "ready": true,
-      "rows": 1426,
-      "independent_groups": 229,
-      "intercept": -1.6329577,
-      "slope": 1.09191671,
+      "rows": 1429,
+      "independent_groups": 230,
+      "intercept": -1.64443075,
+      "slope": 1.08518638,
       "reason": "point_in_time_platt_logit_recalibration"
     },
     "calibration_by_market_type": {
@@ -30,20 +30,20 @@
       },
       "lowest_temperature": {
         "ready": true,
-        "rows": 1426,
-        "independent_groups": 229,
-        "intercept": -1.6329577,
-        "slope": 1.09191671,
+        "rows": 1429,
+        "independent_groups": 230,
+        "intercept": -1.64443075,
+        "slope": 1.08518638,
         "reason": "point_in_time_platt_logit_recalibration",
         "scope": "global"
       }
     },
     "walkforward": {
-      "scored_oos": 307,
-      "baseline_brier": 0.1714250807631694,
-      "calibrated_brier": 0.08001491043521153,
-      "baseline_log_loss": 0.5290659964965916,
-      "calibrated_log_loss": 0.2936806924795433,
+      "scored_oos": 310,
+      "baseline_brier": 0.17155379447110644,
+      "calibrated_brier": 0.07942213381344068,
+      "baseline_log_loss": 0.5293815364312681,
+      "calibrated_log_loss": 0.2922587551145837,
       "improved_brier": true,
       "improved_log_loss": true,
       "method": "point_in_time_by_resolution_availability",
@@ -51,10 +51,10 @@
     }
   },
   "counters": {
-    "excluded_microprice": 219,
+    "excluded_microprice": 315,
     "skipped_no_station": 330,
-    "skipped_no_forecast": 1243,
-    "excluded_raw_edge": 3
+    "skipped_no_forecast": 1584,
+    "excluded_raw_edge": 2
   },
   "guards": {
     "min_entry_price": 0.02,
