@@ -1466,3 +1466,6 @@ decision_at,market_id,event_key,city,station,market_date,market_type,bucket_type
 2026-10-15T00:32:39.352728+00:00,5641893,munich|2026_10_15|highest_temperature|c|eddm,Munich,EDDM,2026-10-15,highest_temperature,or_higher,18.0,0.938889,0.675,0.73,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-15T05:16:28.617943+00:00,5641355,tokyo|2026_10_15|lowest_temperature|c|rjtt,Tokyo,RJTT,2026-10-15,lowest_temperature,exact,17.0,0.311475,0.012,0.024,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-15T05:16:28.712947+00:00,5641946,singapore|2026_10_15|highest_temperature|c|wsss,Singapore,WSSS,2026-10-15,highest_temperature,exact,33.0,0.393939,0.0665,0.073,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-15T10:11:59.565745+00:00,5641355,tokyo|2026_10_15|lowest_temperature|c|rjtt,Tokyo,RJTT,2026-10-15,lowest_temperature,exact,17.0,0.311475,0.0115,0.023,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-15T10:11:59.642992+00:00,5642172,karachi|2026_10_15|highest_temperature|c|opkc,Karachi,OPKC,2026-10-15,highest_temperature,exact,36.0,0.40107,0.0175,0.033,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-15T10:11:59.733065+00:00,5678977,warsaw|2026_10_16|highest_temperature|c|epwa,Warsaw,EPWA,2026-10-16,highest_temperature,exact,13.0,0.723077,0.25,0.26,gamma_reference,POSSIBLE_EDGE_V18,,,
