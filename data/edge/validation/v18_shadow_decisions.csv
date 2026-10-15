@@ -1469,3 +1469,5 @@ decision_at,market_id,event_key,city,station,market_date,market_type,bucket_type
 2026-10-15T10:11:59.565745+00:00,5641355,tokyo|2026_10_15|lowest_temperature|c|rjtt,Tokyo,RJTT,2026-10-15,lowest_temperature,exact,17.0,0.311475,0.0115,0.023,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-15T10:11:59.642992+00:00,5642172,karachi|2026_10_15|highest_temperature|c|opkc,Karachi,OPKC,2026-10-15,highest_temperature,exact,36.0,0.40107,0.0175,0.033,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-15T10:11:59.733065+00:00,5678977,warsaw|2026_10_16|highest_temperature|c|epwa,Warsaw,EPWA,2026-10-16,highest_temperature,exact,13.0,0.723077,0.25,0.26,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-15T15:04:09.649674+00:00,5678977,warsaw|2026_10_16|highest_temperature|c|epwa,Warsaw,EPWA,2026-10-16,highest_temperature,exact,13.0,0.706667,0.305,0.31,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-15T15:04:09.681968+00:00,5679169,karachi|2026_10_16|highest_temperature|c|opkc,Karachi,OPKC,2026-10-16,highest_temperature,exact,35.0,0.390374,0.038,0.056,gamma_reference,POSSIBLE_EDGE_V18,,,
