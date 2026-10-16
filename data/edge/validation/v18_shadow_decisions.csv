@@ -1480,3 +1480,7 @@ decision_at,market_id,event_key,city,station,market_date,market_type,bucket_type
 2026-10-16T05:04:21.631139+00:00,5679169,karachi|2026_10_16|highest_temperature|c|opkc,Karachi,OPKC,2026-10-16,highest_temperature,exact,35.0,0.40107,0.0195,0.029,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-16T09:51:01.421058+00:00,5678853,ankara|2026_10_16|highest_temperature|c|ltac,Ankara,LTAC,2026-10-16,highest_temperature,exact,13.0,0.368984,0.032,0.043,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-16T09:51:01.700393+00:00,5766985,madrid|2026_10_18|highest_temperature|c|lemd,Madrid,LEMD,2026-10-18,highest_temperature,exact,19.0,0.595092,0.075,0.08,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-16T14:37:26.496657+00:00,5678830,paris|2026_10_16|highest_temperature|c|lfpb,Paris,LFPB,2026-10-16,highest_temperature,exact,22.0,0.416216,0.0295,0.039,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-16T14:37:26.531796+00:00,5678951,milan|2026_10_16|highest_temperature|c|limc,Milan,LIMC,2026-10-16,highest_temperature,exact,21.0,0.333333,0.024,0.028,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-16T14:37:26.558857+00:00,5679104,helsinki|2026_10_16|highest_temperature|c|efhk,Helsinki,EFHK,2026-10-16,highest_temperature,exact,14.0,0.379679,0.03,0.039,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-16T14:37:26.776170+00:00,5721017,karachi|2026_10_17|highest_temperature|c|opkc,Karachi,OPKC,2026-10-17,highest_temperature,exact,35.0,0.390374,0.03,0.04,gamma_reference,POSSIBLE_EDGE_V18,,,
