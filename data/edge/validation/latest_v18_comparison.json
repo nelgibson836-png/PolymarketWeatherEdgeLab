@@ -1,8 +1,8 @@
 {
   "engine_version": "1.8",
-  "run_at": "2026-10-16T21:33:52.370239+00:00",
+  "run_at": "2026-10-16T23:55:14.059706+00:00",
   "no_orders_sent": true,
-  "v17_paper_buy_candidates": 67,
+  "v17_paper_buy_candidates": 72,
   "v18_paper_buy_candidates": 0,
   "v18_observation_lock_candidates": 0,
   "calibration_groups_accepted": 131,
@@ -50,9 +50,9 @@
     }
   },
   "counters": {
-    "excluded_microprice": 276,
-    "skipped_no_station": 301,
-    "skipped_no_forecast": 1434
+    "excluded_microprice": 189,
+    "skipped_no_station": 242,
+    "skipped_no_forecast": 1397
   },
   "guards": {
     "min_entry_price": 0.02,
