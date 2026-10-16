@@ -1,8 +1,8 @@
 POLYMARKET WEATHER EDGE ENGINE V1.8
 SHADOW VALIDATION — NO ORDERS SENT
-UTC: 2026-10-16T18:24:19.820787+00:00
+UTC: 2026-10-16T21:33:52.370239+00:00
 
-V1.7 PAPER_BUY snapshot: 63
+V1.7 PAPER_BUY snapshot: 67
 V1.8 PAPER_BUY_V18: 0
 Observation-lock candidates: 0
 Global calibration: {"independent_groups": 263, "intercept": -1.77495133, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1501, "slope": 1.14583649}
@@ -17,3 +17,4 @@ microprice_cutoff<0.02
 settlement_source_guard=enabled
 
 TOP V1.8 SHADOW SIGNALS
+POSSIBLE_EDGE_V18|Munich|2026-10-18|p_raw=0.302857|p_cal=0.06125|ask=0.029|edge=0.03225|alpha=1.4443|reason=v18_thresholds_pass
