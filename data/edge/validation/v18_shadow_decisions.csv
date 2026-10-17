@@ -1489,3 +1489,6 @@ decision_at,market_id,event_key,city,station,market_date,market_type,bucket_type
 2026-10-16T23:55:25.342603+00:00,5766906,munich|2026_10_18|highest_temperature|c|eddm,Munich,EDDM,2026-10-18,highest_temperature,exact,17.0,0.302857,0.0235,0.024,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-17T12:08:02.551869+00:00,5720666,london|2026_10_17|highest_temperature|c|eglc,London,EGLC,2026-10-17,highest_temperature,exact,13.0,0.315508,0.0245,0.025,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-17T12:08:02.682845+00:00,5766963,singapore|2026_10_18|highest_temperature|c|wsss,Singapore,WSSS,2026-10-18,highest_temperature,exact,34.0,0.414966,0.0465,0.053,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-17T15:36:35.428280+00:00,5720680,paris|2026_10_17|highest_temperature|c|lfpb,Paris,LFPB,2026-10-17,highest_temperature,exact,17.0,0.340541,0.0185,0.027,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-17T15:36:35.867496+00:00,5795735,singapore|2026_10_19|highest_temperature|c|wsss,Singapore,WSSS,2026-10-19,highest_temperature,exact,34.0,0.477124,0.085,0.1,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-17T15:36:35.867796+00:00,5795736,singapore|2026_10_19|highest_temperature|c|wsss,Singapore,WSSS,2026-10-19,highest_temperature,exact,35.0,0.333333,0.0135,0.02,gamma_reference,POSSIBLE_EDGE_V18,,,
