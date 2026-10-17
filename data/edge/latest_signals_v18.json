@@ -1,6 +1,6 @@
 {
   "engine_version": "1.8",
-  "run_at": "2026-10-17T03:22:03.202854+00:00",
+  "run_at": "2026-10-17T07:59:28.471027+00:00",
   "mode": "shadow_validation",
   "no_orders_sent": true,
   "probability_method": "empirical_station_lead + calibrated_model_consensus + shrinkage",
@@ -8,19 +8,19 @@
   "calibration_groups_rejected_sanity": 2,
   "calibration_global": {
     "ready": true,
-    "rows": 1501,
-    "independent_groups": 263,
-    "intercept": -1.77495133,
-    "slope": 1.14583649,
+    "rows": 1514,
+    "independent_groups": 270,
+    "intercept": -1.855273,
+    "slope": 1.08037166,
     "reason": "point_in_time_platt_logit_recalibration"
   },
   "calibration_by_market_type": {
     "highest_temperature": {
       "ready": true,
-      "rows": 1243,
-      "independent_groups": 183,
-      "intercept": -1.52545728,
-      "slope": 1.44426105,
+      "rows": 1256,
+      "independent_groups": 190,
+      "intercept": -1.68201539,
+      "slope": 1.29635946,
       "reason": "point_in_time_platt_logit_recalibration"
     },
     "lowest_temperature": {
@@ -33,11 +33,11 @@
     }
   },
   "walkforward_calibration_diagnostics": {
-    "scored_oos": 382,
-    "baseline_brier": 0.1652745112478508,
-    "calibrated_brier": 0.06836792421069725,
-    "baseline_log_loss": 0.5149793184197883,
-    "calibrated_log_loss": 0.26299821304681026,
+    "scored_oos": 395,
+    "baseline_brier": 0.16743540019433176,
+    "calibrated_brier": 0.06762939839944532,
+    "baseline_log_loss": 0.5197777799242783,
+    "calibrated_log_loss": 0.26098783250499885,
     "improved_brier": true,
     "improved_log_loss": true,
     "method": "point_in_time_by_resolution_availability",

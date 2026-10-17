@@ -1,13 +1,13 @@
 POLYMARKET WEATHER EDGE ENGINE V1.8
 SHADOW VALIDATION — NO ORDERS SENT
-UTC: 2026-10-17T03:22:03.202854+00:00
+UTC: 2026-10-17T07:59:28.471027+00:00
 
-V1.7 PAPER_BUY snapshot: 58
+V1.7 PAPER_BUY snapshot: 74
 V1.8 PAPER_BUY_V18: 0
 Observation-lock candidates: 0
-Global calibration: {"independent_groups": 263, "intercept": -1.77495133, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1501, "slope": 1.14583649}
-Calibration by type: {"highest_temperature": {"independent_groups": 183, "intercept": -1.52545728, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1243, "slope": 1.44426105}, "lowest_temperature": {"independent_groups": 80, "intercept": -2.18740652, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 258, "slope": 0.63783407}}
-Walk-forward calibration diagnostics: {"baseline_brier": 0.1652745112478508, "baseline_log_loss": 0.5149793184197883, "calibrated_brier": 0.06836792421069725, "calibrated_log_loss": 0.26299821304681026, "group_weighting": "equal_event_weight", "improved_brier": true, "improved_log_loss": true, "method": "point_in_time_by_resolution_availability", "scored_oos": 382}
+Global calibration: {"independent_groups": 270, "intercept": -1.855273, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1514, "slope": 1.08037166}
+Calibration by type: {"highest_temperature": {"independent_groups": 190, "intercept": -1.68201539, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 1256, "slope": 1.29635946}, "lowest_temperature": {"independent_groups": 80, "intercept": -2.18740652, "ready": true, "reason": "point_in_time_platt_logit_recalibration", "rows": 258, "slope": 0.63783407}}
+Walk-forward calibration diagnostics: {"baseline_brier": 0.16743540019433176, "baseline_log_loss": 0.5197777799242783, "calibrated_brier": 0.06762939839944532, "calibrated_log_loss": 0.26098783250499885, "group_weighting": "equal_event_weight", "improved_brier": true, "improved_log_loss": true, "method": "point_in_time_by_resolution_availability", "scored_oos": 395}
 
 GUARDS
 min_entry_price=0.020
