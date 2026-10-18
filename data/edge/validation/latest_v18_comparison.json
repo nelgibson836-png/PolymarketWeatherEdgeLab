@@ -1,31 +1,31 @@
 {
   "engine_version": "1.8",
-  "run_at": "2026-10-18T00:24:17.241385+00:00",
+  "run_at": "2026-10-18T04:57:33.592304+00:00",
   "no_orders_sent": true,
-  "v17_paper_buy_candidates": 72,
+  "v17_paper_buy_candidates": 66,
   "v18_paper_buy_candidates": 0,
   "v18_observation_lock_candidates": 0,
   "calibration_groups_accepted": 131,
   "calibration_groups_rejected_sanity": 2,
   "shrinkage": {
     "n_closed_paper_trades": 33,
-    "n_closed_shadow_decisions": 1481,
-    "n_calibration_rows": 1514,
+    "n_closed_shadow_decisions": 1487,
+    "n_calibration_rows": 1518,
     "global_calibration": {
       "ready": true,
-      "rows": 1514,
-      "independent_groups": 270,
-      "intercept": -1.855273,
-      "slope": 1.08037166,
+      "rows": 1518,
+      "independent_groups": 274,
+      "intercept": -1.86937866,
+      "slope": 1.0859605,
       "reason": "point_in_time_platt_logit_recalibration"
     },
     "calibration_by_market_type": {
       "highest_temperature": {
         "ready": true,
-        "rows": 1256,
-        "independent_groups": 190,
-        "intercept": -1.68201539,
-        "slope": 1.29635946,
+        "rows": 1260,
+        "independent_groups": 194,
+        "intercept": -1.7028856,
+        "slope": 1.30432496,
         "reason": "point_in_time_platt_logit_recalibration"
       },
       "lowest_temperature": {
@@ -38,11 +38,11 @@
       }
     },
     "walkforward": {
-      "scored_oos": 395,
-      "baseline_brier": 0.16743540019433176,
-      "calibrated_brier": 0.06762939839944532,
-      "baseline_log_loss": 0.5197777799242783,
-      "calibrated_log_loss": 0.26098783250499885,
+      "scored_oos": 399,
+      "baseline_brier": 0.16696338012477704,
+      "calibrated_brier": 0.06701572286408516,
+      "baseline_log_loss": 0.5188305086413976,
+      "calibrated_log_loss": 0.259195362974223,
       "improved_brier": true,
       "improved_log_loss": true,
       "method": "point_in_time_by_resolution_availability",
@@ -50,9 +50,10 @@
     }
   },
   "counters": {
-    "excluded_microprice": 91,
-    "skipped_no_station": 220,
-    "skipped_no_forecast": 1056
+    "excluded_microprice": 133,
+    "skipped_no_station": 275,
+    "skipped_no_forecast": 1133,
+    "excluded_raw_edge": 1
   },
   "guards": {
     "min_entry_price": 0.02,
