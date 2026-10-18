@@ -1511,3 +1511,7 @@ decision_at,market_id,event_key,city,station,market_date,market_type,bucket_type
 2026-10-18T13:27:29.744491+00:00,5855284,paris|2026_10_20|highest_temperature|c|lfpb,Paris,LFPB,2026-10-20,highest_temperature,exact,16.0,0.6,0.07,0.09,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-18T13:27:29.744798+00:00,5855285,paris|2026_10_20|highest_temperature|c|lfpb,Paris,LFPB,2026-10-20,highest_temperature,or_higher,17.0,0.461111,0.024,0.027,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-18T13:27:29.794197+00:00,5855440,beijing|2026_10_20|highest_temperature|c|zbaa,Beijing,ZBAA,2026-10-20,highest_temperature,or_lower,12.0,0.538889,0.105,0.14,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-18T16:45:45.357812+00:00,5795116,london|2026_10_19|lowest_temperature|c|eglc,London,EGLC,2026-10-19,lowest_temperature,exact,7.0,0.411765,0.0345,0.049,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-18T16:45:45.506957+00:00,5795724,shanghai|2026_10_19|highest_temperature|c|zspd,Shanghai,ZSPD,2026-10-19,highest_temperature,exact,27.0,0.371429,0.034,0.044,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-18T16:45:45.577591+00:00,5795981,karachi|2026_10_19|highest_temperature|c|opkc,Karachi,OPKC,2026-10-19,highest_temperature,exact,36.0,0.44385,0.05,0.07,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-18T16:45:45.785188+00:00,5855440,beijing|2026_10_20|highest_temperature|c|zbaa,Beijing,ZBAA,2026-10-20,highest_temperature,or_lower,12.0,0.538889,0.095,0.1,gamma_reference,POSSIBLE_EDGE_V18,,,
