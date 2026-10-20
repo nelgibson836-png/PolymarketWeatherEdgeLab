@@ -1,6 +1,6 @@
 POLYMARKET WEATHER EDGE ENGINE V1.8
 SHADOW VALIDATION — NO ORDERS SENT
-UTC: 2026-10-20T07:36:21.495288+00:00
+UTC: 2026-10-20T13:02:03.009801+00:00
 
 V1.7 PAPER_BUY snapshot: 100
 V1.8 PAPER_BUY_V18: 0
@@ -17,6 +17,7 @@ microprice_cutoff<0.02
 settlement_source_guard=enabled
 
 TOP V1.8 SHADOW SIGNALS
-POSSIBLE_EDGE_V18|Munich|2026-10-21|p_raw=0.567568|p_cal=0.211673|ask=0.02|edge=0.191673|alpha=1.3803|reason=raw_edge_too_large; family=INCOMPLETE
-POSSIBLE_EDGE_V18|Kuala Lumpur|2026-10-20|p_raw=0.32973|p_cal=0.064803|ask=0.025|edge=0.039803|alpha=1.3803|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|London|2026-10-20|p_raw=0.326203|p_cal=0.063477|ask=0.031|edge=0.032477|alpha=1.3803|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Tokyo|2026-10-20|p_raw=0.360544|p_cal=0.077192|ask=0.02|edge=0.057192|alpha=1.3803|reason=family=INCOMPLETE
+POSSIBLE_EDGE_V18|Ankara|2026-10-20|p_raw=0.368984|p_cal=0.08085|ask=0.026|edge=0.05485|alpha=1.3803|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Milan|2026-10-20|p_raw=0.320755|p_cal=0.061465|ask=0.022|edge=0.039465|alpha=1.3803|reason=family=INCOMPLETE
+POSSIBLE_EDGE_V18|Amsterdam|2026-10-20|p_raw=0.358289|p_cal=0.070174|ask=0.04|edge=0.030174|alpha=0.6553|reason=v18_thresholds_pass

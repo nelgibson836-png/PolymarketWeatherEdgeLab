@@ -1561,3 +1561,7 @@ decision_at,market_id,event_key,city,station,market_date,market_type,bucket_type
 2026-10-20T07:36:31.406058+00:00,5855270,london|2026_10_20|highest_temperature|c|eglc,London,EGLC,2026-10-20,highest_temperature,exact,13.0,0.326203,0.0265,0.031,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-20T07:36:31.482025+00:00,5855552,kuala_lumpur|2026_10_20|highest_temperature|c|wmkk,Kuala Lumpur,WMKK,2026-10-20,highest_temperature,exact,33.0,0.32973,0.015,0.025,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-20T07:36:31.660055+00:00,5914091,munich|2026_10_21|highest_temperature|c|eddm,Munich,EDDM,2026-10-21,highest_temperature,exact,15.0,0.567568,0.0115,0.02,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-20T13:02:10.217413+00:00,5854012,amsterdam|2026_10_20|lowest_temperature|c|eham,Amsterdam,EHAM,2026-10-20,lowest_temperature,exact,5.0,0.358289,0.03,0.04,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-20T13:02:10.244442+00:00,5855303,ankara|2026_10_20|highest_temperature|c|ltac,Ankara,LTAC,2026-10-20,highest_temperature,exact,16.0,0.368984,0.014,0.026,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-20T13:02:10.256253+00:00,5855344,tokyo|2026_10_20|highest_temperature|c|rjtt,Tokyo,RJTT,2026-10-20,highest_temperature,exact,26.0,0.360544,0.011,0.02,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-20T13:02:10.270179+00:00,5855393,milan|2026_10_20|highest_temperature|c|limc,Milan,LIMC,2026-10-20,highest_temperature,exact,18.0,0.320755,0.021,0.022,gamma_reference,POSSIBLE_EDGE_V18,,,
