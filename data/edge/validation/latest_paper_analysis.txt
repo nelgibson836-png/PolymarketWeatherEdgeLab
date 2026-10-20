@@ -1,5 +1,5 @@
 POLYMARKET WEATHER PAPER TRIAL ANALYSIS
-Generated: 2026-10-20T02:09:44.506463+00:00
+Generated: 2026-10-20T07:36:32.917019+00:00
 
 CURRENT TRIAL
 Trial start: 2026-09-11T16:03:48.809958+00:00
@@ -27,14 +27,14 @@ Exact/range win rate: 0.045187
 Exact/range P&L: -150.048943
 
 V1.7 SHADOW
-Signals evaluated: 783
-PAPER_BUY candidates: 81
-PAPER_BUY cumulative: 5
-PAPER_BUY exact/range: 76
+Signals evaluated: 1176
+PAPER_BUY candidates: 100
+PAPER_BUY cumulative: 9
+PAPER_BUY exact/range: 91
 Exact/range not PASS: 0
 Thin asks: 0
-PAPER_BUY p >= 50%: 2
-Max PAPER_BUY probability: 0.632432
+PAPER_BUY p >= 50%: 5
+Max PAPER_BUY probability: 0.664865
 
 DECISION NOTE
 Positive P&L alone is not treated as proof of predictive edge.
