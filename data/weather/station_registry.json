@@ -448,5 +448,45 @@
     "elevation_m": 494.0,
     "source": "AviationWeather.gov stationinfo",
     "updated_at": "2026-09-10T20:11:39.829146+00:00"
+  },
+  "LLBG": {
+    "station": "LLBG",
+    "latitude": 32.011,
+    "longitude": 34.887,
+    "name": "Tel Aviv/Ben Gurion Arpt",
+    "country": "IL",
+    "elevation_m": 35.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-10-21T04:49:07.249932+00:00"
+  },
+  "LTFM": {
+    "station": "LTFM",
+    "latitude": 41.262,
+    "longitude": 28.74,
+    "name": "Istanbul Arpt",
+    "country": "TR",
+    "elevation_m": 99.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-10-21T04:49:07.367635+00:00"
+  },
+  "RCSS": {
+    "station": "RCSS",
+    "latitude": 25.069,
+    "longitude": 121.552,
+    "name": "Taipei/Songshan Arpt",
+    "country": "TW",
+    "elevation_m": 8.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-10-21T04:49:07.483197+00:00"
+  },
+  "UUWW": {
+    "station": "UUWW",
+    "latitude": 55.592,
+    "longitude": 37.261,
+    "name": "Moscow/Vnukovo Arpt",
+    "country": "RU",
+    "elevation_m": 195.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-10-21T04:49:07.645263+00:00"
   }
 }

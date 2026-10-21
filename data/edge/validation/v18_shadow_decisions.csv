@@ -1576,3 +1576,4 @@ decision_at,market_id,event_key,city,station,market_date,market_type,bucket_type
 2026-10-21T00:10:19.684582+00:00,5914018,london|2026_10_21|highest_temperature|c|eglc,London,EGLC,2026-10-21,highest_temperature,exact,11.0,0.370166,0.0305,0.031,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-21T00:10:19.749448+00:00,5914162,madrid|2026_10_21|highest_temperature|c|lemd,Madrid,LEMD,2026-10-21,highest_temperature,exact,17.0,0.372973,0.042,0.05,gamma_reference,POSSIBLE_EDGE_V18,,,
 2026-10-21T00:10:20.036458+00:00,5958469,warsaw|2026_10_22|highest_temperature|c|epwa,Warsaw,EPWA,2026-10-22,highest_temperature,exact,16.0,0.337017,0.0245,0.029,gamma_reference,POSSIBLE_EDGE_V18,,,
+2026-10-21T04:49:28.015743+00:00,5958469,warsaw|2026_10_22|highest_temperature|c|epwa,Warsaw,EPWA,2026-10-22,highest_temperature,exact,16.0,0.337017,0.029,0.037,gamma_reference,POSSIBLE_EDGE_V18,,,
