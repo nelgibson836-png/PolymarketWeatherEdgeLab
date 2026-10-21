@@ -1,6 +1,6 @@
 POLYMARKET WEATHER EDGE ENGINE V1.8
 SHADOW VALIDATION — NO ORDERS SENT
-UTC: 2026-10-21T19:09:26.869523+00:00
+UTC: 2026-10-21T22:23:23.407036+00:00
 
 V1.7 PAPER_BUY snapshot: 100
 V1.8 PAPER_BUY_V18: 0
@@ -17,9 +17,11 @@ microprice_cutoff<0.02
 settlement_source_guard=enabled
 
 TOP V1.8 SHADOW SIGNALS
-POSSIBLE_EDGE_V18|Munich|2026-10-23|p_raw=0.85|p_cal=0.663511|ask=0.049|edge=0.614511|alpha=1.3732|reason=raw_edge_too_large; calibrated_edge_too_large
-POSSIBLE_EDGE_V18|Madrid|2026-10-23|p_raw=0.562842|p_cal=0.204902|ask=0.13|edge=0.074902|alpha=1.3732|reason=raw_edge_too_large
-POSSIBLE_EDGE_V18|Warsaw|2026-10-21|p_raw=0.359116|p_cal=0.075978|ask=0.022|edge=0.053978|alpha=1.3732|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Shanghai|2026-10-22|p_raw=0.497268|p_cal=0.096297|ask=0.049|edge=0.047297|alpha=0.6528|reason=raw_edge_too_large
-POSSIBLE_EDGE_V18|London|2026-10-22|p_raw=0.318919|p_cal=0.060379|ask=0.02|edge=0.040379|alpha=1.3732|reason=v18_thresholds_pass
-POSSIBLE_EDGE_V18|Milan|2026-10-23|p_raw=0.312883|p_cal=0.058239|ask=0.02|edge=0.038239|alpha=1.3732|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Madrid|2026-10-23|p_raw=0.567568|p_cal=0.209237|ask=0.08|edge=0.129237|alpha=1.3732|reason=raw_edge_too_large
+POSSIBLE_EDGE_V18|Karachi|2026-10-21|p_raw=0.411765|p_cal=0.100406|ask=0.02|edge=0.080406|alpha=1.3732|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Ankara|2026-10-21|p_raw=0.372549|p_cal=0.081752|ask=0.02|edge=0.061752|alpha=1.3732|reason=family=INCOMPLETE
+POSSIBLE_EDGE_V18|Shanghai|2026-10-22|p_raw=0.508197|p_cal=0.09881|ask=0.042|edge=0.05681|alpha=0.6528|reason=raw_edge_too_large
+POSSIBLE_EDGE_V18|London|2026-10-22|p_raw=0.36612|p_cal=0.078952|ask=0.029|edge=0.049952|alpha=1.3732|reason=v18_thresholds_pass
+POSSIBLE_EDGE_V18|Tokyo|2026-10-21|p_raw=0.459119|p_cal=0.087951|ask=0.041|edge=0.046951|alpha=0.6528|reason=raw_edge_too_large; family=INCOMPLETE
+POSSIBLE_EDGE_V18|Munich|2026-10-23|p_raw=0.358779|p_cal=0.075837|ask=0.04|edge=0.035837|alpha=1.3732|reason=family=INCOMPLETE
+POSSIBLE_EDGE_V18|Amsterdam|2026-10-23|p_raw=0.300546|p_cal=0.05402|ask=0.021|edge=0.03302|alpha=1.3732|reason=v18_thresholds_pass
