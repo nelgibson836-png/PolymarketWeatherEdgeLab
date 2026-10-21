@@ -488,5 +488,15 @@
     "elevation_m": 195.0,
     "source": "AviationWeather.gov stationinfo",
     "updated_at": "2026-10-21T04:49:07.645263+00:00"
+  },
+  "KDEN": {
+    "station": "KDEN",
+    "latitude": 39.84657,
+    "longitude": -104.65623,
+    "name": "Denver Intl",
+    "country": "US",
+    "elevation_m": 1656.0,
+    "source": "AviationWeather.gov stationinfo",
+    "updated_at": "2026-10-21T09:52:31.335074+00:00"
   }
 }
