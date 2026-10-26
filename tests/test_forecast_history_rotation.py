@@ -1,6 +1,9 @@
 import csv
 import os
 import tempfile
+import sys
+
+sys.path.insert(0, ".")
 
 import edge_engine_v17
 
