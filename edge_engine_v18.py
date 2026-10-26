@@ -765,7 +765,7 @@ def main():
 
     run_at = now_iso()
     markets = read_json(ACTIVE_FILE).get("markets", [])
-    forecasts = latest_forecasts(read_csv(FORECAST_FILE))
+    forecasts = latest_forecasts(read_forecast_history())
     groups, usable_count, rejected_sanity = load_calibration_groups()
     residuals = load_residuals(groups)
 
