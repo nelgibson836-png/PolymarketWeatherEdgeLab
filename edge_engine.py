@@ -223,6 +223,15 @@ def read_csv(path):
         )
 
 
+def read_forecast_history():
+    import glob
+    paths = sorted(glob.glob(os.path.join(os.path.dirname(FORECAST_FILE), "forecasts*.csv")))
+    rows = []
+    for path in paths:
+        rows.extend(read_csv(path))
+    return rows
+
+
 def write_json(path, payload):
     directory = os.path.dirname(path)
 
