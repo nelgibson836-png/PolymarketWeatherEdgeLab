@@ -1895,9 +1895,7 @@ def main():
 
     forecasts = (
         select_latest_forecasts(
-            read_csv(
-                FORECAST_FILE
-            )
+            read_forecast_history()
         )
     )
 
