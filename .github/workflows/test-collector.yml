@@ -103,6 +103,9 @@ jobs:
       - name: Run Observation Lock Tests
         run: python tests/test_observation_lock.py
 
+      - name: Run Forecast History Rotation Tests
+        run: python tests/test_forecast_history_rotation.py
+
       - name: Commit normal pipeline, shadow engine and diagnostics
         run: |
           git config user.name "github-actions[bot]"
