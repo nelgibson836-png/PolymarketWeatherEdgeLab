@@ -64,9 +64,12 @@ WEATHER_OBS_FILE = os.path.join(
     "observations.csv",
 )
 
+# Keep the legacy forecasts.csv as a read-only historical shard.
+# New rows are written to a daily shard so individual Git blobs stay below
+# GitHub's 100 MB limit while downstream engines can load all shards.
 WEATHER_FCST_FILE = os.path.join(
     WEATHER_HISTORY_DIR,
-    "forecasts.csv",
+    f"forecasts_{datetime.now(timezone.utc).strftime('%Y-%m-%d')}.csv",
 )
 
 LATEST_FILE = os.path.join(
