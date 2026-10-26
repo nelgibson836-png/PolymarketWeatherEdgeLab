@@ -349,7 +349,7 @@ def main():
     run_at = now_iso()
     active = read_json(ACTIVE_FILE)
     markets = active.get("markets", [])
-    forecasts = latest_forecasts(read_csv(FORECAST_FILE))
+    forecasts = latest_forecasts(read_forecast_history())
     calibration = load_calibration()
     print(f"UTC: {run_at}")
     print(f"Current markets: {len(markets)}")
