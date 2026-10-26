@@ -6,9 +6,16 @@ on:
       - "tests/test_v18_calibration.py"
       - "tests/test_paper_trader_v18.py"
       - "tests/test_observation_lock.py"
+      - "tests/test_forecast_history_rotation.py"
       - "v18_probability_calibration.py"
       - "paper_trader_v18.py"
       - "observation_lock_model.py"
+      - "collector.py"
+      - "edge_engine.py"
+      - "edge_engine_v16.py"
+      - "edge_engine_v17.py"
+      - "edge_engine_v18.py"
+      - ".github/workflows/test-collector.yml"
   workflow_dispatch:
     inputs:
       mode:
