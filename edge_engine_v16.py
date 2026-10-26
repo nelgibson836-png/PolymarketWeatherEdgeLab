@@ -85,6 +85,16 @@ def read_csv(path):
         return list(csv.DictReader(h))
 
 
+def read_forecast_history():
+    # Include the legacy history and all dated shards in chronological order.
+    import glob
+    paths = sorted(glob.glob(os.path.join(os.path.dirname(FORECAST_FILE), "forecasts*.csv")))
+    rows = []
+    for path in paths:
+        rows.extend(read_csv(path))
+    return rows
+
+
 def write_json(path, payload):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     tmp = path + ".tmp"
